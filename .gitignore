@@ -1,0 +1,74 @@
+# ======================
+# Flutter / Dart
+# ======================
+.dart_tool/
+.packages
+.pub/
+.pub-cache/
+build/
+coverage/
+
+.flutter-plugins
+.flutter-plugins-dependencies
+.flutter-version
+
+# ======================
+# Android
+# ======================
+android/.gradle/
+android/local.properties
+android/**/GeneratedPluginRegistrant.java
+
+*.apk
+*.aab
+
+# Firebase Android (NO subir)
+android/app/google-services.json
+
+# ======================
+# iOS
+# ======================
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+ios/Runner/GeneratedPluginRegistrant.*
+ios/Runner.xcworkspace
+ios/Pods/
+ios/.symlinks/
+
+# Firebase iOS (NO subir)
+ios/Runner/GoogleService-Info.plist
+
+# ======================
+# macOS
+# ======================
+macos/Flutter/ephemeral/
+macos/Pods/
+
+# ======================
+# Windows / Linux
+# ======================
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/
+
+# ======================
+# IDEs
+# ======================
+.idea/
+.vscode/
+*.iml
+
+# ======================
+# Entorno / secretos
+# ======================
+.env
+.env.*
+firebase.json
+.firebaserc
+
+# ======================
+# Sistema
+# ======================
+.DS_Store
+Thumbs.db
