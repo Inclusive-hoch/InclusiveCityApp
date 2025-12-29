@@ -47,10 +47,7 @@ void initState() {
             },
         },
         child: GoogleMap(
-          initialCameraPosition: const CameraPosition(
-            target: LatLng(0, 0),
-            zoom: 2,
-          ),
+          initialCameraPosition: _defaultPosition,
           onMapCreated: (controller) => _mapController = controller,
           myLocationEnabled: true,
         ),
