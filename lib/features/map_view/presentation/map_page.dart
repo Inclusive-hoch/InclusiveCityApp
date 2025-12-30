@@ -12,6 +12,7 @@ class MapPage extends StatefulWidget {
 
 class _MapPageState extends State<MapPage> {
   GoogleMapController? _mapController;
+  static const double _userLocationZoom = 15;
   bool _isCenteredOnUser = false;
 
   static const CameraPosition _defaultPosition = CameraPosition(
@@ -20,31 +21,35 @@ class _MapPageState extends State<MapPage> {
   );
 
   @override
-void initState() {
-  super.initState();
-  context.read<MapBloc>().add(GetUserLocationEvent());
-}
+  void initState() {
+    super.initState();
+    context.read<MapBloc>().add(GetUserLocationEvent());
+  }
+
+  @override
+  void dispose(){
+    _mapController?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocListener<MapBloc, MapState>(
-        listener: (context, state) => {
-          if (state is MapLocationLoaded)
-            {
-              _mapController?.animateCamera(
-                CameraUpdate.newLatLngZoom(
-                  LatLng(state.latitude, state.longitude),
-                  15,
-                ),
+        listener: (context, state) {
+          if (state is MapLocationLoaded) {
+            _mapController?.animateCamera(
+              CameraUpdate.newLatLngZoom(
+                LatLng(state.latitude, state.longitude),
+                _userLocationZoom,
               ),
-            },
-          if (state is MapError)
-            {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(state.message))),
-            },
+            );
+          }
+          if (state is MapError) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
+          }
         },
         child: GoogleMap(
           initialCameraPosition: _defaultPosition,
