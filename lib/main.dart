@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:inclusive_app/features/map_view/application/map_bloc.dart';
-import 'package:inclusive_app/features/map_view/presentation/map_page.dart';
+import 'package:inclusive_app/features/map_view/presentation/application/map_bloc.dart';
+import 'package:inclusive_app/features/map_view/presentation/pages/map_page.dart';
 import 'package:inclusive_app/injection_container.dart' as di;
 
 void main() async {
