@@ -1,5 +1,5 @@
 import 'package:get_it/get_it.dart';
-import 'package:inclusive_app/features/map_view/presentation/application/map_bloc.dart';
+import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart';
 
 final sl = GetIt.instance;
 
