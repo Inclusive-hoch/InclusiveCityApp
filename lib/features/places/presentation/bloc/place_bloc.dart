@@ -119,7 +119,6 @@ class PlaceBloc extends Bloc<PlacesEvent, PlacesState> {
       emit(PlaceDetailsLoaded(placeDetails));
     } catch (e) {
       emit(PlacesError('No se pudieron cargar los detalles del lugar'));
-  /// Carga el historial de búsquedas guardadas localmente.
     }
   }
 
