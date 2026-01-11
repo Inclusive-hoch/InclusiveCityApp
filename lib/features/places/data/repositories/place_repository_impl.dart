@@ -15,7 +15,7 @@ import 'package:inclusive_app/features/places/data/models/place_search_result_mo
 class PlaceRepositoryImpl implements PlaceRepository {
   final PlaceRemoteDataSource remoteDataSource;
   final PlaceLocalDataSource localDataSource;
-  final NetworkInfoImpl networkInfo;
+  final NetworkInfo networkInfo;
 
   const PlaceRepositoryImpl({
     required this.remoteDataSource,
