@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart';
 import 'package:inclusive_app/shared/widgets/custom_floating_action_button.dart';
 import 'package:inclusive_app/features/map_view/presentation/controller/map_page_controller.dart';
+import 'package:inclusive_app/features/places/presentation/screen/search_page.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -65,12 +66,12 @@ class _MapPageState extends State<MapPage> {
               onCameraIdle: () => _controller.handleCameraIdle(),
             ),
           ),
-          
+
           Positioned(
             top: 48,
             left: 16,
             child: CustomFloatingActionButton.square(
-              icon: Icons.menu, 
+              icon: Icons.menu,
               onPressed: () => log('Abrir menu'),
             ),
           ),
@@ -91,7 +92,7 @@ class _MapPageState extends State<MapPage> {
             valueListenable: _controller.isCenteredOnUser,
             builder: (context, isCentered, _) {
               if (!isCentered) return const SizedBox.shrink();
-              
+
               return Positioned(
                 bottom: 30,
                 right: 20,
@@ -102,14 +103,25 @@ class _MapPageState extends State<MapPage> {
               );
             },
           ),
+
+          DraggableScrollableSheet(
+            initialChildSize:
+                0.2, // Empieza ocupando el 20% de la pantalla (abajo)
+            minChildSize: 0.15, // Lo mínimo que se puede esconder (15%)
+            maxChildSize: 0.9, // Se estira hasta casi arriba (90%)
+            builder: (context, scrollController) {
+              // Aquí le pasamos el "controlador" mágico a nuestra SearchPage
+              return SearchPage(scrollController: scrollController);
+            },
+          ),
         ],
       ),
     );
   }
 
   void _showError(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
