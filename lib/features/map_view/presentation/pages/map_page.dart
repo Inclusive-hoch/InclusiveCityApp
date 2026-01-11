@@ -77,7 +77,7 @@ class _MapPageState extends State<MapPage> {
           ),
 
           Positioned(
-            bottom: 30,
+            bottom: MediaQuery.of(context).size.height * 0.18, 
             left: 20,
             child: CustomFloatingActionButton.primary(
               icon: Icons.navigation,
@@ -94,7 +94,7 @@ class _MapPageState extends State<MapPage> {
               if (!isCentered) return const SizedBox.shrink();
 
               return Positioned(
-                bottom: 30,
+                bottom: MediaQuery.of(context).size.height * 0.18,
                 right: 20,
                 child: CustomFloatingActionButton.incidence(
                   icon: Icons.add_location_alt,
@@ -106,7 +106,7 @@ class _MapPageState extends State<MapPage> {
 
           DraggableScrollableSheet(
             initialChildSize:
-                0.2, // Empieza ocupando el 20% de la pantalla (abajo)
+                0.15, // Empieza ocupando el 20% de la pantalla (abajo)
             minChildSize: 0.15, // Lo mínimo que se puede esconder (15%)
             maxChildSize: 0.9, // Se estira hasta casi arriba (90%)
             builder: (context, scrollController) {
