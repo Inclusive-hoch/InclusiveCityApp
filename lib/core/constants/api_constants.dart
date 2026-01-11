@@ -33,9 +33,9 @@ class ApiConstants {
   static String get formsBase => "$baseUrl/form";
 
   // === AUTHENTICATION (puerto 9090) ===
-  static String get login => "$baseUrl/login";
-  static String get register => "$baseUrl/register";
-  static String get resetPassword => "$baseUrl/reset";
+  static String get login => "$baseUrl/account/auth/login";
+  static String get register => "$baseUrl/account/auth/register";
+  static String get resetPassword => "$baseUrl/account/auth/reset";
 
   // Headers
   static const Map<String, String> jsonHeaders = {
