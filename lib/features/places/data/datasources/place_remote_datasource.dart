@@ -18,8 +18,12 @@ abstract class PlaceRemoteDataSource {
 /// Implementación de [PlaceRemoteDataSource] usando HTTP client.
 class PlaceRemoteDataSourceImpl implements PlaceRemoteDataSource {
   final http.Client client;
+  final String Function() getToken;
 
-  const PlaceRemoteDataSourceImpl({required this.client});
+  const PlaceRemoteDataSourceImpl({
+    required this.client,
+    required this.getToken,
+  });
 
   /// Busca lugares en el backend mediante POST request.
   /// Lanza [ServerException] si el request falla.
@@ -27,10 +31,11 @@ class PlaceRemoteDataSourceImpl implements PlaceRemoteDataSource {
   Future<List<PlaceSearchResultModel>> getPlaceSearchResults(
     String query,
   ) async {
+    final token = getToken();
     final response = await client.post(
       Uri.parse(ApiConstants.placesSearch),
-      headers: {...ApiConstants.jsonHeaders},
-      body: utf8.encode(json.encode(query)),
+      headers: {...ApiConstants.authHeaders(token)},
+      body: json.encode({'query': query}),
     );
 
     if (response.statusCode == 200) {
@@ -55,9 +60,10 @@ class PlaceRemoteDataSourceImpl implements PlaceRemoteDataSource {
   /// Lanza [ServerException] si el request falla.
   @override
   Future<PlaceDetailsModel> getPlaceDetails(String placeId) async {
+    final token = getToken();
     final response = await client.get(
       Uri.parse(ApiConstants.placeDetails(placeId)),
-      headers: {...ApiConstants.jsonHeaders},
+      headers: {...ApiConstants.authHeaders(token)},
     );
 
     if (response.statusCode == 200) {
