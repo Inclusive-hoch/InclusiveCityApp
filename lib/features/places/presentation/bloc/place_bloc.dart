@@ -85,6 +85,7 @@ class PlaceBloc extends Bloc<PlacesEvent, PlacesState> {
         emit(PlacesLoaded(suggestions));
       }
     } catch (e) {
+      log('Error en búsqueda: $e');
       emit(PlacesError('No se pudo completar la búsqueda. Intenta de nuevo'));
     }
   }
