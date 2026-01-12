@@ -2,10 +2,12 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart';
+import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart' as map_bloc;
+import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart';
 import 'package:inclusive_app/shared/widgets/custom_floating_action_button.dart';
 import 'package:inclusive_app/features/map_view/presentation/controller/map_page_controller.dart';
 import 'package:inclusive_app/features/places/presentation/screen/search_page.dart';
+import 'package:inclusive_app/features/places/presentation/screen/place_details_page.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -28,7 +30,7 @@ class _MapPageState extends State<MapPage> {
   void initState() {
     super.initState();
     _controller = MapPageController();
-    context.read<MapBloc>().add(GetUserLocationEvent());
+    context.read<map_bloc.MapBloc>().add(map_bloc.GetUserLocationEvent());
   }
 
   @override
@@ -43,27 +45,46 @@ class _MapPageState extends State<MapPage> {
     return Scaffold(
       body: Stack(
         children: [
-          BlocListener<MapBloc, MapState>(
-            listener: (context, state) {
-              if (state is MapLocationLoaded) {
+          // Listener para centrar el mapa cuando se selecciona un lugar
+          BlocListener<PlaceBloc, PlacesState>(
+            listener: (context, placeState) {
+              if (placeState is PlaceDetailsLoaded) {
+                final place = placeState.placeDetails;
+                
+                // Centrar el mapa en el lugar seleccionado
                 _mapController?.animateCamera(
                   CameraUpdate.newLatLngZoom(
-                    LatLng(state.latitude, state.longitude),
-                    _userLocationZoom,
+                    LatLng(place.latitude, place.longitude),
+                    16, // Zoom cercano al lugar
                   ),
                 );
-              }
-              if (state is MapError) {
-                _showError(context, state.message);
+
+                // Mostrar los detalles del lugar en un bottom sheet
+                _showPlaceDetails(context, place);
               }
             },
-            child: GoogleMap(
-              initialCameraPosition: _defaultPosition,
-              onMapCreated: (controller) => _mapController = controller,
-              myLocationEnabled: true,
-              zoomControlsEnabled: false,
-              onCameraMove: (_) => _controller.handleCameraMove(),
-              onCameraIdle: () => _controller.handleCameraIdle(),
+            child: BlocListener<map_bloc.MapBloc, map_bloc.MapState>(
+              listener: (context, state) {
+                if (state is map_bloc.MapLocationLoaded) {
+                  _mapController?.animateCamera(
+                    CameraUpdate.newLatLngZoom(
+                      LatLng(state.latitude, state.longitude),
+                      _userLocationZoom,
+                    ),
+                  );
+                }
+                if (state is map_bloc.MapError) {
+                  _showError(context, state.message);
+                }
+              },
+              child: GoogleMap(
+                initialCameraPosition: _defaultPosition,
+                onMapCreated: (controller) => _mapController = controller,
+                myLocationEnabled: true,
+                zoomControlsEnabled: false,
+                onCameraMove: (_) => _controller.handleCameraMove(),
+                onCameraIdle: () => _controller.handleCameraIdle(),
+              ),
             ),
           ),
 
@@ -83,7 +104,7 @@ class _MapPageState extends State<MapPage> {
               icon: Icons.navigation,
               onPressed: () {
                 _controller.startCentering();
-                context.read<MapBloc>().add(GetUserLocationEvent());
+                context.read<map_bloc.MapBloc>().add(map_bloc.GetUserLocationEvent());
               },
             ),
           ),
@@ -123,5 +144,43 @@ class _MapPageState extends State<MapPage> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// Muestra los detalles del lugar en un bottom sheet modal
+  void _showPlaceDetails(BuildContext context, place) {
+    final sheetController = DraggableScrollableController();
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      isDismissible: true,
+      enableDrag: true,
+      builder: (context) => DraggableScrollableSheet(
+        controller: sheetController,
+        initialChildSize: 0.9,
+        minChildSize: 0.3,
+        maxChildSize: 0.95,
+        snap: true,
+        snapSizes: const [0.3, 0.9],
+        builder: (context, scrollController) {
+          // Escuchar cambios en el tamaño del sheet para cerrar cuando llegue al mínimo
+          sheetController.addListener(() {
+            if (sheetController.size <= 0.31) {
+              Navigator.pop(context);
+            }
+          });
+          
+          return PlaceDetailsPage(
+            placeId: place.placeId,
+            placeName: place.name,
+            address: place.address,
+            photoReferences: place.photos,
+            rating: place.rating,
+            medals: place.medals,
+          );
+        },
+      ),
+    );
   }
 }
