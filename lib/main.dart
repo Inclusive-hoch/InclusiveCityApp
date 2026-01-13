@@ -1,32 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:inclusive_app/features/map_view/application/map_bloc.dart';
-import 'package:inclusive_app/features/map_view/presentation/map_page.dart';
-import 'package:inclusive_app/injection_container.dart' as di;
+import 'package:firebase_core/firebase_core.dart';
 
-void main() async {
+import 'injection_container.dart' as di;
+import 'core/app.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Cargar variables de entorno desde .env
+
+  await Firebase.initializeApp();
   await dotenv.load(fileName: ".env");
-  
   await di.init();
-  
+
   runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: BlocProvider(
-        create: (context) => di.sl<MapBloc>(),
-        child: const MapPage(),
-      ),
-    );
-  }
 }
