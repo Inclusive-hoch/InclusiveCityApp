@@ -12,7 +12,7 @@ class AppColor {
   static const Color primaryDarkHover = Color(0xFF373799);
   static const Color primaryDarkActive = Color(0xFF292973);
   static const Color primaryDarker = Color(0xFF202059);
-
+  static const Color primaryShadow = Color.fromARGB(211, 254, 254, 255);
   // ===== SECONDARY (Blue) - Successful =====
   static const Color secondaryLight = Color(0xFFEDEDF1);
   static const Color secondaryLightHover = Color(0xFFE4E4E9);
@@ -37,7 +37,7 @@ class AppColor {
   static const Color accentDarkActive = Color(0xFF73293B);
   static const Color accentDarker = Color(0xFF59202E);
 
-// ==== GREEN (Success)
+  // ==== GREEN (Success)
   static const Color greenLight = Color(0xFFEBF9F9);
   static const Color greenLightHover = Color(0xFFE1F7F6);
   static const Color greenLightActive = Color(0xFFC2EEED);
