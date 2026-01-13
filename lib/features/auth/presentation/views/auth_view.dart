@@ -17,11 +17,9 @@ class AuthView extends StatelessWidget {
         heightFactor: 1,
         child: BlocListener<AuthBloc, AuthState>(
           listener: (context, state) {
-            // if (state is AuthAuthenticated) {
-            //   Navigator.of(context).pushReplacement(
-            //     MaterialPageRoute(builder: (_) => const TokenPage()),
-            //   );
-            // }
+            if (state is AuthAuthenticated) {
+              GoRouter.of(context).push('/map');
+            }
           },
           child: Column(
             spacing: 40,
@@ -55,7 +53,7 @@ class AuthView extends StatelessWidget {
                   ),
                   FilledButton(
                     onPressed: () => {
-                      context.read<AuthBloc>().add(LoginWithGoogleRequested()),
+                      //context.read<AuthBloc>().add(LoginWithGoogleRequested()),
                     },
                     style: ButtonStyle(
                       elevation: WidgetStatePropertyAll(2),
@@ -76,7 +74,7 @@ class AuthView extends StatelessWidget {
                   ),
                   FilledButton(
                     onPressed: () => {
-                      //context.read<AuthBloc>().add(LoginWithGoogleRequested()),
+                      context.read<AuthBloc>().add(LoginWithGoogleRequested()),
                     },
                     style: ButtonStyle(
                       elevation: WidgetStatePropertyAll(2),
