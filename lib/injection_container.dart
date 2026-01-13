@@ -13,6 +13,18 @@ import 'package:inclusive_app/features/map_view/application/map_bloc.dart';
 
 final sl = GetIt.instance;
 
+/// Inicializa todas las dependencias del proyecto.
+///
+/// Configura el contenedor de inyección de dependencias siguiendo
+/// la arquitectura limpia, registrando las dependencias en orden:
+/// 1. Dependencias externas (SharedPreferences, HTTP, etc.)
+/// 2. Servicios core (Auth, Network)
+/// 3. Data sources (Remote y Local)
+/// 4. Repositories
+/// 5. Use cases
+/// 6. BLoCs
+///
+/// Debe ser llamado antes de iniciar la aplicación.
 Future<void> init() async {
   // Firebase
   sl.registerLazySingleton(() => FirebaseAuth.instance);
@@ -42,5 +54,45 @@ Future<void> init() async {
   );
 
   // Map
+  // External dependencies
+  final sharedPreferences = await SharedPreferences.getInstance();
+  sl.registerLazySingleton(() => sharedPreferences);
+  sl.registerLazySingleton(() => http.Client());
+  sl.registerLazySingleton(() => InternetConnectionChecker());
+
+  // Core services
+  sl.registerLazySingleton<TempAuthService>(
+    () => TempAuthService(prefs: sl(), client: sl()),
+  );
+
+  sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
+
+  // Data sources
+  sl.registerLazySingleton<PlaceRemoteDataSource>(
+    () => PlaceRemoteDataSourceImpl(
+      client: sl(),
+      getToken: () => sl<TempAuthService>().getToken(),
+    ),
+  );
+  sl.registerLazySingleton<PlaceLocalDataSource>(
+    () => PlaceLocalDataSourceImpl(sharedPreferences: sl()),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<PlaceRepository>(
+    () => PlaceRepositoryImpl(
+      remoteDataSource: sl(),
+      localDataSource: sl(),
+      networkInfo: sl(),
+    ),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => SearchPlaces(sl()));
+  sl.registerLazySingleton(() => GetPlaceDetails(sl()));
+  sl.registerLazySingleton(() => GetSearchHistory(sl()));
+  sl.registerLazySingleton(() => SavePlaceToHistory(sl()));
+
+  // BLoCs
   sl.registerFactory(() => MapBloc());
 }
