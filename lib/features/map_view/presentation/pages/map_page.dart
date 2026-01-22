@@ -103,7 +103,8 @@ class _MapPageState extends State<MapPage> {
             left: 16,
             child: CustomFloatingActionButton.square(
               icon: Icons.menu,
-              onPressed: () => GoRouter.of(context).go('/profile'),
+              heroTag: 'map_menu_fab',
+              onPressed: () => GoRouter.of(context).push('/profile'),
             ),
           ),
 
@@ -113,6 +114,7 @@ class _MapPageState extends State<MapPage> {
             left: 20,
             child: CustomFloatingActionButton.primary(
               icon: Icons.navigation,
+              heroTag: 'map_center_user_fab',
               onPressed: () {
                 _controller.startCentering();
                 context.read<map_bloc.MapBloc>().add(
@@ -133,6 +135,7 @@ class _MapPageState extends State<MapPage> {
 
                 return CustomFloatingActionButton.incidence(
                   icon: Icons.add_location_alt,
+                  heroTag: 'map_incidence_fab',
                   onPressed: () => log("Nueva incidencia"),
                 );
               },
