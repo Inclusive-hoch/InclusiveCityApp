@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart'
     as map_bloc;
@@ -102,7 +103,7 @@ class _MapPageState extends State<MapPage> {
             left: 16,
             child: CustomFloatingActionButton.square(
               icon: Icons.menu,
-              onPressed: () => log('Abrir menu'),
+              onPressed: () => GoRouter.of(context).go('/profile'),
             ),
           ),
 
