@@ -13,7 +13,7 @@ Future<void> main() async {
   await Firebase.initializeApp();
   await dotenv.load(fileName: ".env");
   await di.init();
-  await di.sl<TempAuthService>().loginHardcoded();
+  //await di.sl<TempAuthService>().loginHardcoded();
 
   runApp(const MyApp());
 }
