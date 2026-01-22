@@ -12,14 +12,15 @@ import 'package:inclusive_app/core/theme/app_color.dart';
 class CustomFloatingActionButton extends StatelessWidget {
   /// Callback que se ejecuta al presionar el botón
   final VoidCallback onPressed;
-  
+
   /// Icono que se mostrará en el botón
   final IconData icon;
-  
+
   final Color backgroundColor;
   final ShapeBorder shapeBorder;
   final double buttonSize;
   final double iconSize;
+  final Object? heroTag;
 
   /// Constructor privado base para crear instancias personalizadas
   const CustomFloatingActionButton._({
@@ -27,37 +28,47 @@ class CustomFloatingActionButton extends StatelessWidget {
     required this.icon,
     required this.backgroundColor,
     required this.shapeBorder,
-    this.buttonSize = 72,
-    this.iconSize = 40,
+    required this.buttonSize,
+    required this.iconSize,
+    this.heroTag,
   });
 
   factory CustomFloatingActionButton.primary({
     required VoidCallback onPressed,
     required IconData icon,
+    Object? heroTag,
   }) {
     return CustomFloatingActionButton._(
       onPressed: onPressed,
       icon: icon,
       backgroundColor: AppColor.primaryNormal,
       shapeBorder: const CircleBorder(),
+      buttonSize: 56,
+      iconSize: 24,
+      heroTag: heroTag,
     );
   }
 
   factory CustomFloatingActionButton.incidence({
     required VoidCallback onPressed,
     required IconData icon,
+    Object? heroTag,
   }) {
     return CustomFloatingActionButton._(
       onPressed: onPressed,
       icon: icon,
       backgroundColor: AppColor.yellowNormal,
       shapeBorder: const CircleBorder(),
+      buttonSize: 56,
+      iconSize: 24,
+      heroTag: heroTag,
     );
   }
 
   factory CustomFloatingActionButton.square({
     required VoidCallback onPressed,
     required IconData icon,
+    Object? heroTag,
   }) {
     return CustomFloatingActionButton._(
       onPressed: onPressed,
@@ -66,6 +77,9 @@ class CustomFloatingActionButton extends StatelessWidget {
       shapeBorder: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
+      buttonSize: 56,
+      iconSize: 24,
+      heroTag: heroTag,
     );
   }
 
@@ -75,15 +89,12 @@ class CustomFloatingActionButton extends StatelessWidget {
       height: buttonSize,
       width: buttonSize,
       child: FloatingActionButton(
+        heroTag: heroTag, // Added this
         onPressed: onPressed,
         backgroundColor: backgroundColor,
         shape: shapeBorder,
         elevation: 3,
-        child: Icon(
-          icon,
-          color: Colors.white,
-          size: iconSize,
-        ),
+        child: Icon(icon, color: Colors.white, size: iconSize),
       ),
     );
   }
