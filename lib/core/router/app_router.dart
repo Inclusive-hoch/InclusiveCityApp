@@ -14,16 +14,15 @@ GoRouter createRouter(AuthBloc authBloc) {
 
     redirect: (context, state) {
       final authState = authBloc.state;
-      final isLogin = state.matchedLocation == '/login';
+      final publicRoutes = ['/login', '/login_form', '/'];
+      final isPublicRoute = publicRoutes.contains(state.matchedLocation);
 
       if (authState is AuthAuthenticated) {
-        return isLogin ? '/map' : null;
+        return isPublicRoute && state.matchedLocation != '/' ? '/map' : null;
       }
 
       if (authState is AuthUnauthenticated) {
-        return (isLogin || state.matchedLocation == '/login_form')
-            ? null
-            : '/login';
+        return isPublicRoute ? null : '/login';
       }
 
       return null;
