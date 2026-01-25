@@ -21,7 +21,9 @@ GoRouter createRouter(AuthBloc authBloc) {
       }
 
       if (authState is AuthUnauthenticated) {
-        return isLogin ? null : '/login';
+        return (isLogin || state.matchedLocation == '/login_form')
+            ? null
+            : '/login';
       }
 
       return null;
@@ -31,7 +33,6 @@ GoRouter createRouter(AuthBloc authBloc) {
       GoRoute(path: '/login_form', builder: (_, __) => const LoginForm()),
       GoRoute(path: '/map', builder: (_, __) => const MapPage()),
       GoRoute(path: '/profile', builder: (_, __) => const ProfilePage()),
-
     ],
   );
 }
