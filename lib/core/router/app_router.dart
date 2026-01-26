@@ -31,7 +31,7 @@ GoRouter createRouter(AuthBloc authBloc) {
       GoRoute(path: '/login_form', builder: (_, __) => const LoginForm()),
       GoRoute(path: '/map', builder: (_, __) => const MapPage()),
       GoRoute(path: '/profile', builder: (_, __) => const ProfilePage()),
-
+      GoRoute(path: '/profile/details', builder: (_, __) => const ProfilePage())
     ],
   );
 }

@@ -39,7 +39,6 @@ class ProfileView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 ProfileUserSection(userName: userName, photoUrl: photoUrl),
-        
                 const Divider(color: AppColor.primaryLight),
                 //Boton ajustes
                 ProfileMenuItem(icon: Icons.settings, label: 'Ajustes', onTap: () {}),
