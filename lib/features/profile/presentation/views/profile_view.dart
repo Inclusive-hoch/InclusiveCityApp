@@ -26,34 +26,31 @@ class ProfileView extends StatelessWidget {
           ),
         ),
       ),
-      body: Center(
-        child: BlocBuilder<AuthBloc, AuthState>(
+      body:  BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state){
             final user = state is AuthAuthenticated ? state.user : null;
             final userName = user?.name ?? 'Usuario';
             final photoUrl = user?.profilePictureUrl;
 
             return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              spacing: 32,
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 //Bototon de perfil
                 _buildUserSection(context, userName, photoUrl),
                 const SizedBox(height: 24),
-                const Divider(color: AppColor.neutralDarkNormalHover),
-                const SizedBox(height: 16),
+                const Divider(color: AppColor.primaryLight),
                 //Boton ajustes
-                ProfileMenuItem(icon: Icons.settings_outlined, label: 'Ajustes', onTap: () {}),
+                ProfileMenuItem(icon: Icons.settings, label: 'Ajustes', onTap: () {}),
                 //Boton ayuda
-                ProfileMenuItem(icon: Icons.help_outline, label: 'Ayuda', onTap: () {}),
+                ProfileMenuItem(icon: Icons.help, label: 'Ayuda', onTap: () {}),
                 //Boton cerrar sesion
                 ProfileMenuItem(icon: Icons.logout, label: 'Cerrar sesión', onTap: () => _showLogoutDialog(context)),
               ],
             );
           }
         ),
-      ),
-    );
+      );
   }
 
 
@@ -64,41 +61,42 @@ class ProfileView extends StatelessWidget {
     String? photoUrl,
   ) {
     return InkWell(
-      onTap: () => context.push('/profile/details'),
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
-        child: Row(
-          children: [
-            // Avatar circular del usuario
-            ProfileAvatar(
-              photoUrl: photoUrl,
-              size: 100,
-            ),
-            const SizedBox(width: 20),
-            
-            // Nombre del usuario
-            Expanded(
-              child: Text(
-                userName,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: AppColor.secondaryNormal,
+        onTap: () => context.push('/profile/details'),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 32, horizontal:24),
+          child: Row(
+            children: [
+              // Avatar circular del usuario
+              ProfileAvatar(
+                photoUrl: photoUrl,
+                size: 100,
+              ),
+              const SizedBox(width: 20),
+              
+              // Nombre del usuario
+              Expanded(
+                child: Text(
+                  userName,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColor.secondaryNormal,
+                  ),
                 ),
               ),
-            ),
-            
-            // Flecha indicando que es clickeable
-            const Icon(
-              Icons.chevron_right,
-              color: AppColor.primaryNormal,
-              size: 20,
-            ),
-          ],
+              
+              // Flecha indicando que es clickeable
+              const Icon(
+                Icons.chevron_right,
+                color: AppColor.primaryNormal,
+                size: 32,
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    
   }
 
 //modal logout

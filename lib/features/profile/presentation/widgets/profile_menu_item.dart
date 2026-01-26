@@ -28,23 +28,17 @@ class ProfileMenuItem extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+      child: Container(
+        height: 54,
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Row(
           children: [
-            // Ícono con fondo circular
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColor.primaryLight,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                color: AppColor.primaryNormal,
-                size: 24,
-              ),
+            Icon(
+              icon,
+              color: AppColor.primaryNormal,
+              size: 30,
             ),
+            
             const SizedBox(width: 16),
             
             // Texto del menú
