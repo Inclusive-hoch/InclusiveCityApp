@@ -4,7 +4,8 @@ class ApiConstants {
   // Base URLs - Cargar desde .env
   // Usar 10.0.2.2 para emulador Android (localhost de la máquina host)
   // Para dispositivo físico, usa la IP de tu PC en el .env (ej: http://192.168.1.100:8080)
-  static String get gatewayUrl => dotenv.env['BACKEND_GATEWAY_URL'] ?? 'http://localhost:8080';
+  static String get gatewayUrl =>
+      dotenv.env['BACKEND_GATEWAY_URL'] ?? 'http://localhost:8080';
   static const String baseApiPath = "/inclusive/api/v1";
   static String get baseUrl => "$gatewayUrl$baseApiPath";
 
@@ -13,13 +14,26 @@ class ApiConstants {
   static String get placesBase => "$baseUrl/location/place";
   static String get placesSearch => "$placesBase/search";
   static String placeDetails(String placeId) => "$placesBase/$placeId";
-  static String placePhoto(String photoReference) => "$placesBase/photo/$photoReference";
+  static String placePhoto(String photoReference) =>
+      "$placesBase/photo/$photoReference";
 
   // Spots endpoints
   static String get spotsBase => "$baseUrl/location/spot";
   static String get createSpot => "$spotsBase/insert";
-  static String userSpots(String userId) => "$spotsBase/$userId";
+  static String get userSpots => "$spotsBase/user-spot";
 
+  // Custom Spots (listas personalizadas)
+  static String get customSpots => "$spotsBase/custom-spot";
+  static String get createCustomSpot => "$spotsBase/custom-spot/insert";
+  static String addSpotToList(String listName) =>
+      "$spotsBase/custom-spot/save-spot/${Uri.encodeComponent(listName)}";
+
+  // Delete endpoints
+  static String get deleteSpot => "$spotsBase/delete/spot";
+  static String deleteCustomSpotList(String listName) =>
+      "$spotsBase/delete/custom-spot/list/${Uri.encodeComponent(listName)}";
+  static String deleteSpotFromList(String listName) =>
+      "$spotsBase/delete/custom-spot/spot/${Uri.encodeComponent(listName)}";
   // Incidence endpoints
   static String get incidenceBase => "$baseUrl/incidence";
   static String get createIncidence => incidenceBase;
