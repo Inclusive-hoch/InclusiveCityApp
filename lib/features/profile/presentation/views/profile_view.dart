@@ -3,10 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:inclusive_app/features/auth/presentation/bloc/auth_event.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_state.dart';
 import 'package:inclusive_app/features/profile/presentation/widgets/logout_dialog.dart';
-import 'package:inclusive_app/features/profile/presentation/widgets/profile_avatar.dart';
 import 'package:inclusive_app/features/profile/presentation/widgets/profile_menu_item.dart';
 import 'package:inclusive_app/features/profile/presentation/widgets/profile_user_section.dart';
 
