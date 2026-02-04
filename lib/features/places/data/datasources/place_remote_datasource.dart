@@ -18,7 +18,7 @@ abstract class PlaceRemoteDataSource {
 /// Implementación de [PlaceRemoteDataSource] usando HTTP client.
 class PlaceRemoteDataSourceImpl implements PlaceRemoteDataSource {
   final http.Client client;
-  final String Function() getToken;
+  final Future<String> Function() getToken;
 
   const PlaceRemoteDataSourceImpl({
     required this.client,
@@ -31,7 +31,7 @@ class PlaceRemoteDataSourceImpl implements PlaceRemoteDataSource {
   Future<List<PlaceSearchResultModel>> getPlaceSearchResults(
     String query,
   ) async {
-    final token = getToken();
+    final token = await getToken();
     final response = await client.post(
       Uri.parse(ApiConstants.placesSearch),
       headers: {...ApiConstants.authHeaders(token)},
@@ -60,7 +60,7 @@ class PlaceRemoteDataSourceImpl implements PlaceRemoteDataSource {
   /// Lanza [ServerException] si el request falla.
   @override
   Future<PlaceDetailsModel> getPlaceDetails(String placeId) async {
-    final token = getToken();
+    final token = await getToken();
     final response = await client.get(
       Uri.parse(ApiConstants.placeDetails(placeId)),
       headers: {...ApiConstants.authHeaders(token)},
