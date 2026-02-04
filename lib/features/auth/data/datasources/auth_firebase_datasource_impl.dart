@@ -1,5 +1,3 @@
-import 'dart:developer' as developer;
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'auth_firebase_datasource.dart';
@@ -9,15 +7,6 @@ class AuthFirebaseDataSourceImpl implements AuthFirebaseDataSource {
   final FirebaseAuth firebaseAuth;
   final GoogleSignIn googleSignIn;
 
-  AuthFirebaseDataSourceImpl(this.firebaseAuth);
-
-  Future<void> _logFirebaseToken() async {
-    final user = firebaseAuth.currentUser;
-    if (user != null) {
-      final token = await user.getIdToken();
-      developer.log('🔑 Firebase ID Token: $token', name: 'FirebaseAuth');
-    }
-  }
   AuthFirebaseDataSourceImpl(this.firebaseAuth, this.googleSignIn);
 
   @override
@@ -26,8 +15,6 @@ class AuthFirebaseDataSourceImpl implements AuthFirebaseDataSource {
       email: email,
       password: password,
     );
-    await _logFirebaseToken();
-    return UserModel.fromFirebase(cred.user);
 
     // Reload user to get fresh data including displayName
     await cred.user?.reload();
@@ -60,9 +47,6 @@ class AuthFirebaseDataSourceImpl implements AuthFirebaseDataSource {
 
   @override
   Future<UserModel> loginWithGoogle() async {
-    final cred = await firebaseAuth.signInWithProvider(GoogleAuthProvider());
-    await _logFirebaseToken();
-    return UserModel.fromFirebase(cred.user);
     // Sign in with Google - this will show account picker
     final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
@@ -117,8 +101,6 @@ class AuthFirebaseDataSourceImpl implements AuthFirebaseDataSource {
   UserModel? getCurrentUser() {
     final user = firebaseAuth.currentUser;
     if (user == null) return null;
-    _logFirebaseToken(); // Log token when getting current user
-    return UserModel.fromFirebase(user);
 
     // Get displayName from providerData if not available in main user object
     String? displayName = user.displayName;
