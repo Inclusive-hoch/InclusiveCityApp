@@ -20,7 +20,7 @@ class UserEvaluationBloc extends Bloc<UserEvaluationEvent, UserEvaluationState> 
   ) async {
     emit(UserEvaluationLoading());
     try {
-      final evaluations = await getUserEvaluations();
+      final evaluations = await getUserEvaluations(event.userId);
       if (evaluations.isEmpty) {
         emit(UserEvaluationEmpty());
       } else {
@@ -36,7 +36,7 @@ class UserEvaluationBloc extends Bloc<UserEvaluationEvent, UserEvaluationState> 
     Emitter<UserEvaluationState> emit,
   ) async {
     try {
-      final evaluations = await getUserEvaluations();
+      final evaluations = await getUserEvaluations(event.userId);
       if (evaluations.isEmpty) {
         emit(UserEvaluationEmpty());
       } else {
