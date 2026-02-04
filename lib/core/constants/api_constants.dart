@@ -4,7 +4,8 @@ class ApiConstants {
   // Base URLs - Cargar desde .env
   // Usar 10.0.2.2 para emulador Android (localhost de la máquina host)
   // Para dispositivo físico, usa la IP de tu PC en el .env (ej: http://192.168.1.100:8080)
-  static String get gatewayUrl => dotenv.env['BACKEND_GATEWAY_URL'] ?? 'http://localhost:8080';
+  static String get gatewayUrl =>
+      dotenv.env['BACKEND_GATEWAY_URL'] ?? 'http://localhost:8080';
   static const String baseApiPath = "/inclusive/api/v1";
   static String get baseUrl => "$gatewayUrl$baseApiPath";
 
@@ -13,7 +14,8 @@ class ApiConstants {
   static String get placesBase => "$baseUrl/location/place";
   static String get placesSearch => "$placesBase/search";
   static String placeDetails(String placeId) => "$placesBase/$placeId";
-  static String placePhoto(String photoReference) => "$placesBase/photo/$photoReference";
+  static String placePhoto(String photoReference) =>
+      "$placesBase/photo/$photoReference";
 
   // Spots endpoints
   static String get spotsBase => "$baseUrl/location/spot";
@@ -36,6 +38,9 @@ class ApiConstants {
   static String get login => "$baseUrl/account/auth/login";
   static String get register => "$baseUrl/account/auth/register";
   static String get resetPassword => "$baseUrl/account/auth/reset";
+
+  // User Evaluations endpoint
+  static String get userEvaluations => "$profileBase/evaluations";
 
   // Headers
   static const Map<String, String> jsonHeaders = {

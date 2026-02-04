@@ -24,6 +24,11 @@ import 'package:inclusive_app/features/places/domain/usecases/search_places.dart
 import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:inclusive_app/features/profile/data/datasources/user_evaluation_remote_datasource.dart';
+import 'package:inclusive_app/features/profile/data/repositories/user_evaluation_repository_impl.dart';
+import 'package:inclusive_app/features/profile/domain/repositories/user_evaluation_repository.dart';
+import 'package:inclusive_app/features/profile/domain/usecases/get_user_evaluations.dart';
+import 'package:inclusive_app/features/profile/application/bloc/user_evaluation_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -118,4 +123,29 @@ Future<void> init() async {
       savePlaceToHistoryUseCase: sl(),
     ),
   );
+
+  // User Evaluations - DataSource
+sl.registerLazySingleton<UserEvaluationRemoteDataSource>(
+  () => UserEvaluationRemoteDataSourceImpl(
+    client: sl(),
+    getToken: () => sl<TempAuthService>().getToken(),
+  ),
+);
+
+// User Evaluations - Repository
+sl.registerLazySingleton<UserEvaluationRepository>(
+  () => UserEvaluationRepositoryImpl(
+    remoteDataSource: sl(),
+    networkInfo: sl(),
+  ),
+);
+
+// User Evaluations - UseCase
+sl.registerLazySingleton(() => GetUserEvaluations(sl()));
+
+// User Evaluations - Bloc
+sl.registerFactory(
+  () => UserEvaluationBloc(getUserEvaluations: sl()),
+);
+
 }
