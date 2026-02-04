@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
+import 'package:inclusive_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:inclusive_app/features/auth/presentation/bloc/auth_state.dart';
 import 'package:inclusive_app/features/profile/application/bloc/user_evaluation_bloc.dart';
 import 'package:inclusive_app/features/profile/application/bloc/user_evaluation_event.dart';
 import 'package:inclusive_app/features/profile/application/bloc/user_evaluation_state.dart';
@@ -18,7 +20,13 @@ class _UserEvaluationsListState extends State<UserEvaluationsList> {
   @override
   void initState() {
     super.initState();
-    context.read<UserEvaluationBloc>().add(LoadUserEvaluations());
+    // Obtener el userId del AuthBloc y cargar las evaluaciones
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      context.read<UserEvaluationBloc>().add(
+        LoadUserEvaluations(userId: authState.user.uid),
+      );
+    }
   }
 
   @override
@@ -29,9 +37,7 @@ class _UserEvaluationsListState extends State<UserEvaluationsList> {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(32),
-              child: CircularProgressIndicator(
-                color: AppColor.primaryNormal,
-              ),
+              child: CircularProgressIndicator(color: AppColor.primaryNormal),
             ),
           );
         }
@@ -57,7 +63,12 @@ class _UserEvaluationsListState extends State<UserEvaluationsList> {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      context.read<UserEvaluationBloc>().add(LoadUserEvaluations());
+                      final authState = context.read<AuthBloc>().state;
+                      if (authState is AuthAuthenticated) {
+                        context.read<UserEvaluationBloc>().add(
+                          LoadUserEvaluations(userId: authState.user.uid),
+                        );
+                      }
                     },
                     child: const Text('Reintentar'),
                   ),

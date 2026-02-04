@@ -40,7 +40,7 @@ class ApiConstants {
   static String get resetPassword => "$baseUrl/account/auth/reset";
 
   // User Evaluations endpoint
-  static String get userEvaluations => "$profileBase/evaluations";
+  static String get userEvaluations => "$baseUrl/location/place/user";
 
   // Headers
   static const Map<String, String> jsonHeaders = {

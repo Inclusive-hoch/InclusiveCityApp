@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
-import 'package:inclusive_app/core/auth/temp_auth_service.dart';
+import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
 import 'package:inclusive_app/core/network/network_info.dart';
 import 'package:inclusive_app/features/auth/data/datasources/auth_firebase_datasource.dart';
 import 'package:inclusive_app/features/auth/data/datasources/auth_firebase_datasource_impl.dart';
@@ -87,8 +87,8 @@ Future<void> init() async {
   sl.registerLazySingleton(() => InternetConnectionChecker.createInstance());
 
   // Core services
-  sl.registerLazySingleton<TempAuthService>(
-    () => TempAuthService(prefs: sl(), client: sl()),
+  sl.registerLazySingleton<FirebaseAuthService>(
+    () => FirebaseAuthService(firebaseAuth: sl()),
   );
 
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
@@ -97,7 +97,7 @@ Future<void> init() async {
   sl.registerLazySingleton<PlaceRemoteDataSource>(
     () => PlaceRemoteDataSourceImpl(
       client: sl(),
-      getToken: () => sl<TempAuthService>().getToken(),
+      getToken: () => sl<FirebaseAuthService>().getIdToken(),
     ),
   );
   sl.registerLazySingleton<PlaceLocalDataSource>(
@@ -132,12 +132,12 @@ Future<void> init() async {
   );
 
   // User Evaluations - DataSource
-  sl.registerLazySingleton<UserEvaluationRemoteDataSource>(
-    () => UserEvaluationRemoteDataSourceImpl(
-      client: sl(),
-      getToken: () => sl<TempAuthService>().getToken(),
-    ),
-  );
+sl.registerLazySingleton<UserEvaluationRemoteDataSource>(
+  () => UserEvaluationRemoteDataSourceImpl(
+    client: sl(),
+    getToken: () => sl<FirebaseAuthService>().getIdToken(),
+  ),
+);
 
   // User Evaluations - Repository
   sl.registerLazySingleton<UserEvaluationRepository>(

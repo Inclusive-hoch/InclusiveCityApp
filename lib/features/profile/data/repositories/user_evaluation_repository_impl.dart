@@ -14,9 +14,9 @@ class UserEvaluationRepositoryImpl implements UserEvaluationRepository {
   });
 
   @override
-  Future<List<UserEvaluation>> getUserEvaluations() async {
+  Future<List<UserEvaluation>> getUserEvaluations(String userId) async {
     if (await networkInfo.isConnected) {
-      final evaluations = await remoteDataSource.getUserEvaluations();
+      final evaluations = await remoteDataSource.getUserEvaluations(userId);
       return evaluations;
     } else {
       throw Exception('No hay conexión a internet');
