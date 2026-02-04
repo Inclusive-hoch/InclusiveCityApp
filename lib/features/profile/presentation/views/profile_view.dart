@@ -8,26 +8,32 @@ import 'package:inclusive_app/features/profile/presentation/widgets/logout_dialo
 import 'package:inclusive_app/features/profile/presentation/widgets/profile_menu_item.dart';
 import 'package:inclusive_app/features/profile/presentation/widgets/profile_user_section.dart';
 
-
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: true,
-        leading: IconButton(
-          onPressed: () => GoRouter.of(context).pop(),
-          icon: const Icon(
-            Icons.arrow_back,
-            color: AppColor.primaryNormal,
-            size: 30,
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthUnauthenticated) {
+          // Navigate to login when user logs out
+          GoRouter.of(context).go('/login');
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: true,
+          leading: IconButton(
+            onPressed: () => GoRouter.of(context).pop(),
+            icon: const Icon(
+              Icons.arrow_back,
+              color: AppColor.primaryNormal,
+              size: 30,
+            ),
           ),
         ),
-      ),
-      body:  BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, state){
+        body: BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, state) {
             final user = state is AuthAuthenticated ? state.user : null;
             final userName = user?.name ?? 'Usuario';
             final photoUrl = user?.profilePictureUrl;
@@ -39,16 +45,24 @@ class ProfileView extends StatelessWidget {
                 ProfileUserSection(userName: userName, photoUrl: photoUrl),
                 const Divider(color: AppColor.primaryLight),
                 //Boton ajustes
-                ProfileMenuItem(icon: Icons.settings, label: 'Ajustes', onTap: () {}),
+                ProfileMenuItem(
+                  icon: Icons.settings,
+                  label: 'Ajustes',
+                  onTap: () {},
+                ),
                 //Boton ayuda
                 ProfileMenuItem(icon: Icons.help, label: 'Ayuda', onTap: () {}),
                 //Boton cerrar sesion
-                ProfileMenuItem(icon: Icons.logout, label: 'Cerrar sesión', onTap: () => LogoutDialog.show(context)),
+                ProfileMenuItem(
+                  icon: Icons.logout,
+                  label: 'Cerrar sesión',
+                  onTap: () => LogoutDialog.show(context),
+                ),
               ],
             );
-          }
+          },
         ),
-      );
+      ),
+    );
   }
 }
-

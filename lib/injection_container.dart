@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:inclusive_app/core/auth/temp_auth_service.dart';
 import 'package:inclusive_app/core/network/network_info.dart';
@@ -10,6 +11,7 @@ import 'package:inclusive_app/features/auth/domain/repositories/auth_repository.
 import 'package:inclusive_app/features/auth/domain/usecases/get_current_user.dart';
 import 'package:inclusive_app/features/auth/domain/usecases/login_with_email.dart';
 import 'package:inclusive_app/features/auth/domain/usecases/login_with_google.dart';
+import 'package:inclusive_app/features/auth/domain/usecases/register_with_email.dart';
 import 'package:inclusive_app/features/auth/domain/usecases/logout.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart';
@@ -48,9 +50,12 @@ Future<void> init() async {
   // Firebase
   sl.registerLazySingleton(() => FirebaseAuth.instance);
 
+  // Google Sign-In
+  sl.registerLazySingleton<GoogleSignIn>(() => GoogleSignIn());
+
   // Auth - DataSource
   sl.registerLazySingleton<AuthFirebaseDataSource>(
-    () => AuthFirebaseDataSourceImpl(sl()),
+    () => AuthFirebaseDataSourceImpl(sl(), sl()),
   );
 
   // Auth - Repository
@@ -59,6 +64,7 @@ Future<void> init() async {
   // Auth - UseCases
   sl.registerLazySingleton(() => LoginWithEmail(sl()));
   sl.registerLazySingleton(() => LoginWithGoogle(sl()));
+  sl.registerLazySingleton(() => RegisterWithEmail(sl()));
   sl.registerLazySingleton(() => GetCurrentUser(sl()));
   sl.registerLazySingleton(() => Logout(sl()));
 
@@ -67,6 +73,7 @@ Future<void> init() async {
     () => AuthBloc(
       loginWithEmail: sl(),
       loginWithGoogle: sl(),
+      registerWithEmail: sl(),
       getCurrentUser: sl(),
       logout: sl(),
     ),
@@ -125,27 +132,22 @@ Future<void> init() async {
   );
 
   // User Evaluations - DataSource
-sl.registerLazySingleton<UserEvaluationRemoteDataSource>(
-  () => UserEvaluationRemoteDataSourceImpl(
-    client: sl(),
-    getToken: () => sl<TempAuthService>().getToken(),
-  ),
-);
+  sl.registerLazySingleton<UserEvaluationRemoteDataSource>(
+    () => UserEvaluationRemoteDataSourceImpl(
+      client: sl(),
+      getToken: () => sl<TempAuthService>().getToken(),
+    ),
+  );
 
-// User Evaluations - Repository
-sl.registerLazySingleton<UserEvaluationRepository>(
-  () => UserEvaluationRepositoryImpl(
-    remoteDataSource: sl(),
-    networkInfo: sl(),
-  ),
-);
+  // User Evaluations - Repository
+  sl.registerLazySingleton<UserEvaluationRepository>(
+    () =>
+        UserEvaluationRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
+  );
 
-// User Evaluations - UseCase
-sl.registerLazySingleton(() => GetUserEvaluations(sl()));
+  // User Evaluations - UseCase
+  sl.registerLazySingleton(() => GetUserEvaluations(sl()));
 
-// User Evaluations - Bloc
-sl.registerFactory(
-  () => UserEvaluationBloc(getUserEvaluations: sl()),
-);
-
+  // User Evaluations - Bloc
+  sl.registerFactory(() => UserEvaluationBloc(getUserEvaluations: sl()));
 }
