@@ -106,7 +106,7 @@ class UserEvaluationCard extends StatelessWidget {
   }
 
   Widget _buildRateIndicator() {
-    final isLiked = evaluation.rate.toLowerCase() == 'like';
+    final isLiked = evaluation.rateChoice.toUpperCase() == 'LIKE';
     return Row(
       children: [
         Icon(
