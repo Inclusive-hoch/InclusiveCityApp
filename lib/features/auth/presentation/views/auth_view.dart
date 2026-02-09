@@ -53,7 +53,7 @@ class AuthView extends StatelessWidget {
                   ),
                   FilledButton(
                     onPressed: () => {
-                      //context.read<AuthBloc>().add(LoginWithGoogleRequested()),
+                      GoRouter.of(context).push('/register_form'),
                     },
                     style: ButtonStyle(
                       elevation: WidgetStatePropertyAll(2),

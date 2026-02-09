@@ -6,7 +6,8 @@ class ServerException implements Exception {
   ServerException(this.message, [this.statusCode]);
 
   @override
-  String toString() => 'ServerException: $message${statusCode != null ? ' (Status: $statusCode)' : ''}';
+  String toString() =>
+      'ServerException: $message${statusCode != null ? ' (Status: $statusCode)' : ''}';
 }
 
 /// Excepción lanzada cuando hay problemas de conectividad de red

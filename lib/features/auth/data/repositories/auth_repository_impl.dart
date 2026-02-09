@@ -20,8 +20,18 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<User> registerWithEmail(
+    String name,
+    String email,
+    String password,
+  ) async {
+    final userModel = await firebase.registerWithEmail(name, email, password);
+    return userModel.toEntity();
+  }
+
+  @override
   Future<User?> getCurrentUser() async {
-    final userModel = await firebase.getCurrentUser();
+    final userModel = firebase.getCurrentUser();
     return userModel?.toEntity();
   }
 

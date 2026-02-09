@@ -1,7 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
-import 'package:inclusive_app/core/auth/temp_auth_service.dart';
+import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
 import 'package:inclusive_app/core/network/network_info.dart';
 import 'package:inclusive_app/features/auth/data/datasources/auth_firebase_datasource.dart';
 import 'package:inclusive_app/features/auth/data/datasources/auth_firebase_datasource_impl.dart';
@@ -10,6 +11,7 @@ import 'package:inclusive_app/features/auth/domain/repositories/auth_repository.
 import 'package:inclusive_app/features/auth/domain/usecases/get_current_user.dart';
 import 'package:inclusive_app/features/auth/domain/usecases/login_with_email.dart';
 import 'package:inclusive_app/features/auth/domain/usecases/login_with_google.dart';
+import 'package:inclusive_app/features/auth/domain/usecases/register_with_email.dart';
 import 'package:inclusive_app/features/auth/domain/usecases/logout.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart';
@@ -36,6 +38,11 @@ import 'package:inclusive_app/features/spot/domain/usecases/save_spot.dart';
 import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:inclusive_app/features/profile/data/datasources/user_evaluation_remote_datasource.dart';
+import 'package:inclusive_app/features/profile/data/repositories/user_evaluation_repository_impl.dart';
+import 'package:inclusive_app/features/profile/domain/repositories/user_evaluation_repository.dart';
+import 'package:inclusive_app/features/profile/domain/usecases/get_user_evaluations.dart';
+import 'package:inclusive_app/features/profile/application/bloc/user_evaluation_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -55,9 +62,12 @@ Future<void> init() async {
   // Firebase
   sl.registerLazySingleton(() => FirebaseAuth.instance);
 
+  // Google Sign-In
+  sl.registerLazySingleton<GoogleSignIn>(() => GoogleSignIn());
+
   // Auth - DataSource
   sl.registerLazySingleton<AuthFirebaseDataSource>(
-    () => AuthFirebaseDataSourceImpl(sl()),
+    () => AuthFirebaseDataSourceImpl(sl(), sl()),
   );
 
   // Auth - Repository
@@ -66,6 +76,7 @@ Future<void> init() async {
   // Auth - UseCases
   sl.registerLazySingleton(() => LoginWithEmail(sl()));
   sl.registerLazySingleton(() => LoginWithGoogle(sl()));
+  sl.registerLazySingleton(() => RegisterWithEmail(sl()));
   sl.registerLazySingleton(() => GetCurrentUser(sl()));
   sl.registerLazySingleton(() => Logout(sl()));
 
@@ -74,6 +85,7 @@ Future<void> init() async {
     () => AuthBloc(
       loginWithEmail: sl(),
       loginWithGoogle: sl(),
+      registerWithEmail: sl(),
       getCurrentUser: sl(),
       logout: sl(),
     ),
@@ -87,8 +99,8 @@ Future<void> init() async {
   sl.registerLazySingleton(() => InternetConnectionChecker.createInstance());
 
   // Core services
-  sl.registerLazySingleton<TempAuthService>(
-    () => TempAuthService(prefs: sl(), client: sl()),
+  sl.registerLazySingleton<FirebaseAuthService>(
+    () => FirebaseAuthService(firebaseAuth: sl()),
   );
 
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
@@ -97,7 +109,7 @@ Future<void> init() async {
   sl.registerLazySingleton<PlaceRemoteDataSource>(
     () => PlaceRemoteDataSourceImpl(
       client: sl(),
-      getToken: () => sl<TempAuthService>().getToken(),
+      getToken: () => sl<FirebaseAuthService>().getIdToken(),
     ),
   );
   sl.registerLazySingleton<PlaceLocalDataSource>(
@@ -155,6 +167,29 @@ Future<void> init() async {
       savePlaceToHistoryUseCase: sl(),
     ),
   );
+
+  // User Evaluations - DataSource
+sl.registerLazySingleton<UserEvaluationRemoteDataSource>(
+  () => UserEvaluationRemoteDataSourceImpl(
+    client: sl(),
+    getToken: () => sl<FirebaseAuthService>().getIdToken(),
+  ),
+);
+
+  // User Evaluations - Repository
+  sl.registerLazySingleton<UserEvaluationRepository>(
+    () =>
+        UserEvaluationRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
+  );
+
+  // User Evaluations - UseCase
+  sl.registerLazySingleton(() => GetUserEvaluations(sl()));
+
+  // User Evaluations - Bloc
+  sl.registerFactory(() => UserEvaluationBloc(
+    getUserEvaluations: sl(),
+    placeRepository: sl(),
+  ));
 
   sl.registerFactory(
     () => SpotBloc(

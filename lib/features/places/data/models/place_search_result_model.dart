@@ -2,18 +2,12 @@ import 'package:inclusive_app/features/places/domain/entities/place_search_resul
 
 class PlaceSearchResultModel extends PlaceSearchResult {
   const PlaceSearchResultModel({
-    required String placeId,
-    required String description,
-    String? address,
-    double? latitude,
-    double? longitude,
-  }) : super(
-         placeId: placeId,
-         description: description,
-         address: address,
-         latitude: latitude,
-         longitude: longitude,
-       );
+    required super.placeId,
+    required super.description,
+    super.address,
+    super.latitude,
+    super.longitude,
+  });
 
   // Factory para backend (location-API)
   factory PlaceSearchResultModel.fromBackendJson(Map<String, dynamic> json) {

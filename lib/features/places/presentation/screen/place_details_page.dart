@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/places/presentation/widget/photo_gallery.dart';
-import 'package:inclusive_app/features/places/presentation/widget/header_actions.dart';
 import 'package:inclusive_app/features/places/presentation/widget/raiting.dart';
 import 'package:inclusive_app/features/places/presentation/widget/medals.dart';
 import 'package:inclusive_app/features/places/presentation/widget/feedback.dart' as place_feedback;
