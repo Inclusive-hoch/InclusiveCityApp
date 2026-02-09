@@ -120,7 +120,7 @@ Future<void> init() async {
   sl.registerLazySingleton<SpotRemoteDatasource>(
     () => SpotRemoteDatasourceImpl(
       client: sl(),
-      getToken: () => sl<TempAuthService>().getToken(),
+      getToken: () => sl<FirebaseAuthService>().getIdToken(),
     ),
   );
 

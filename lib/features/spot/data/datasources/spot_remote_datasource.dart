@@ -39,7 +39,7 @@ abstract class SpotRemoteDatasource {
 /// Implementación de [SpotRemoteDatasource] usando HTTP client.
 class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
   final http.Client client;
-  final String Function() getToken;
+  final Future<String> Function() getToken;
 
   const SpotRemoteDatasourceImpl({
     required this.client,
@@ -52,7 +52,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
   @override
   Future<CustomSpotModel> addSpotToList(String listName, SpotModel spot) async {
     try {
-      final token = getToken();
+      final token = await getToken();
 
       final response = await client.post(
         Uri.parse(ApiConstants.addSpotToList(listName)),
@@ -83,7 +83,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
   @override
   Future<CustomSpotModel> createCustomSpot(CustomSpotModel customSpot) async {
     try {
-      final token = getToken();
+      final token = await getToken();
 
       final response = await client.post(
         Uri.parse(ApiConstants.createCustomSpot),
@@ -114,7 +114,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
   @override
   Future<SpotModel> createSpot(SpotModel spot) async {
     try {
-      final token = getToken();
+      final token = await getToken();
       final response = await client.post(
         Uri.parse(ApiConstants.createSpot),
         headers: {...ApiConstants.authHeaders(token)},
@@ -144,7 +144,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
   @override
   Future<int> deleteCustomSpotList(String listName) async {
     try {
-      final token = getToken();
+      final token = await getToken();
 
       final response = await client.delete(
         Uri.parse(ApiConstants.deleteCustomSpotList(listName)),
@@ -173,7 +173,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
   @override
   Future<int> deleteSpot(double latitude, double longitude) async {
     try {
-      final token = getToken();
+      final token = await getToken();
 
       final response = await client.delete(
         Uri.parse(ApiConstants.deleteSpot),
@@ -207,7 +207,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
     double longitude,
   ) async {
     try {
-      final token = getToken();
+      final token = await getToken();
 
       final response = await client.delete(
         Uri.parse(ApiConstants.deleteSpotFromList(listName)),
@@ -237,7 +237,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
   @override
   Future<List<CustomSpotModel>> getCustomSpots() async {
     try {
-      final token = getToken();
+      final token = await getToken();
 
       final response = await client.get(
         Uri.parse(ApiConstants.customSpots),
@@ -271,7 +271,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
   @override
   Future<List<SpotModel>> getUserSpots() async {
     try {
-      final token = getToken();
+      final token = await getToken();
 
       final response = await client.get(
         Uri.parse(ApiConstants.userSpots),
