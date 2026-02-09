@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:inclusive_app/core/constants/accessibility_medals.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/profile/domain/entities/user_evaluation.dart';
 
@@ -21,6 +22,11 @@ class UserEvaluationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Obtener las medallas confirmadas basado en forms
+    final confirmedMedals = AccessibilityMedalsHelper.getConfirmedMedals(
+      evaluation.forms,
+    );
+
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -84,20 +90,8 @@ class UserEvaluationCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            // Botones de acción
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildActionButton(
-                  icon: Icons.accessibility_new,
-                  onTap: () {
-                    // TODO: Navegar a detalles de accesibilidad
-                  },
-                ),
-                const SizedBox(width: 16),
-                _buildFormIndicator(),
-              ],
-            ),
+            // Iconos de medallas confirmadas
+            _buildMedalsRow(confirmedMedals),
             const Divider(color: AppColor.primaryLight, height: 24),
           ],
         ),
@@ -126,13 +120,27 @@ class UserEvaluationCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+  /// Construye la fila de iconos de medallas confirmadas
+  Widget _buildMedalsRow(List<AccessibilityMedal> confirmedMedals) {
+    if (confirmedMedals.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: confirmedMedals.map((medal) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: _buildMedalIcon(medal),
+        );
+      }).toList(),
+    );
+  }
+
+  /// Construye un icono individual de medalla
+  Widget _buildMedalIcon(AccessibilityMedal medal) {
+    return Tooltip(
+      message: medal.displayName,
       child: Container(
         width: 40,
         height: 40,
@@ -141,30 +149,9 @@ class UserEvaluationCard extends StatelessWidget {
           color: AppColor.primaryLight,
         ),
         child: Icon(
-          icon,
+          medal.icon,
           color: AppColor.primaryNormal,
           size: 20,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFormIndicator() {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColor.primaryLight,
-      ),
-      child: Center(
-        child: Text(
-          'E',
-          style: const TextStyle(
-            color: AppColor.primaryNormal,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
         ),
       ),
     );

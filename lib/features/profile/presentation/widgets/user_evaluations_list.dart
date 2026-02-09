@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_state.dart';
@@ -123,12 +124,14 @@ class _UserEvaluationsListState extends State<UserEvaluationsList> {
                 itemCount: state.evaluations.length,
                 itemBuilder: (context, index) {
                   final evaluation = state.evaluations[index];
+                  final placeDetails = state.placesDetails[evaluation.placeId];
                   return UserEvaluationCard(
                     evaluation: evaluation,
-                    // TODO: Obtener nombre e imagen del lugar
-                    placeName: 'Universidad de la frontera',
-                    placeType: 'Universidad',
-                    imageUrl: null,
+                    placeName: placeDetails?.name,
+                    placeType: placeDetails?.address,
+                    imageUrl: placeDetails?.photos.isNotEmpty == true
+                        ? placeDetails!.photos.first
+                        : null,
                   );
                 },
               ),
@@ -136,7 +139,7 @@ class _UserEvaluationsListState extends State<UserEvaluationsList> {
               Center(
                 child: IconButton(
                   onPressed: () {
-                    // TODO: Implementar expansión de lista
+                    context.push('/profile/evaluations');
                   },
                   icon: const Icon(
                     Icons.expand_more,
