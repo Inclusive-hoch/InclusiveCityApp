@@ -149,5 +149,8 @@ sl.registerLazySingleton<UserEvaluationRemoteDataSource>(
   sl.registerLazySingleton(() => GetUserEvaluations(sl()));
 
   // User Evaluations - Bloc
-  sl.registerFactory(() => UserEvaluationBloc(getUserEvaluations: sl()));
+  sl.registerFactory(() => UserEvaluationBloc(
+    getUserEvaluations: sl(),
+    placeRepository: sl(),
+  ));
 }
