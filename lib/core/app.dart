@@ -5,6 +5,7 @@ import 'package:inclusive_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_event.dart';
 import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart';
 import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart';
+import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:inclusive_app/injection_container.dart' as di;
 
 class MyApp extends StatelessWidget {
@@ -20,6 +21,7 @@ class MyApp extends StatelessWidget {
         BlocProvider<MapBloc>(create: (_) => di.sl<MapBloc>()),
         BlocProvider(create: (context) => di.sl<MapBloc>()),
         BlocProvider(create: (context) => di.sl<PlaceBloc>()),
+        BlocProvider(create: (context) => di.sl<SpotBloc>()),
       ],
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
