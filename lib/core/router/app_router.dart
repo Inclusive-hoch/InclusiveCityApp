@@ -6,9 +6,9 @@ import 'package:inclusive_app/features/auth/presentation/pages/auth_page.dart';
 import 'package:inclusive_app/features/auth/presentation/views/login_form.dart';
 import 'package:inclusive_app/features/auth/presentation/views/register_form.dart';
 import 'package:inclusive_app/features/map_view/presentation/pages/map_page.dart';
+import 'package:inclusive_app/features/profile/presentation/pages/evaluated_places_page.dart';
 import 'package:inclusive_app/features/profile/presentation/pages/profile_details_page.dart';
 import 'package:inclusive_app/features/profile/presentation/pages/profile_page.dart';
-import 'package:inclusive_app/features/profile/presentation/views/profile_details_view.dart';
 
 GoRouter createRouter(AuthBloc authBloc) {
   return GoRouter(
@@ -39,6 +39,10 @@ GoRouter createRouter(AuthBloc authBloc) {
       GoRoute(
         path: '/profile/details',
         builder: (_, __) => const ProfileDetailsPage(),
+      ),
+      GoRoute(
+        path: '/profile/evaluations',
+        builder: (_, __) => const EvaluatedPlacesPage(),
       ),
     ],
   );
