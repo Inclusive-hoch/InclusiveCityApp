@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +9,7 @@ import 'package:inclusive_app/shared/widgets/custom_floating_action_button.dart'
 import 'package:inclusive_app/features/map_view/presentation/controller/map_page_controller.dart';
 import 'package:inclusive_app/features/places/presentation/screen/search_page.dart';
 import 'package:inclusive_app/features/places/presentation/screen/place_details_page.dart';
+import 'package:inclusive_app/features/incidents/presentation/views/incident_type_container.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -136,7 +136,7 @@ class _MapPageState extends State<MapPage> {
                 return CustomFloatingActionButton.incidence(
                   icon: Icons.add_location_alt,
                   heroTag: 'map_incidence_fab',
-                  onPressed: () => log("Nueva incidencia"),
+                  onPressed: () => _showIncidentTypeSelection(context),
                 );
               },
             ),
@@ -160,6 +160,15 @@ class _MapPageState extends State<MapPage> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _showIncidentTypeSelection(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const IncidentTypeContainer(),
+    );
   }
 
   void _showPlaceDetails(BuildContext context, place) {
