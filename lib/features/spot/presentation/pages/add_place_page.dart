@@ -77,14 +77,28 @@ class _AddPlacePageState extends State<AddPlacePage> {
   /// Guarda el lugar como spot del usuario.
   void _saveSpot(PlaceSearchResult place, String name) {
     // Validar coordenadas
-    final lat = place.latitude ?? 0.0;
-    final lng = place.longitude ?? 0.0;
+    final lat = place.latitude;
+    final lng = place.longitude;
     
+    // Validar que las coordenadas existan
+    if (lat == null || lng == null) {
+      debugPrint('⚠️ [AddPlacePage] Coordenadas null para "$name" (placeId: ${place.placeId})');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: Este lugar no tiene coordenadas. Por favor selecciona otro lugar.'),
+          backgroundColor: AppColor.accentNormal,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+    
+    // Validar que las coordenadas no sean (0.0, 0.0)
     if (lat == 0.0 && lng == 0.0) {
       debugPrint('⚠️ [AddPlacePage] Coordenadas inválidas (0.0, 0.0) para "$name"');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Error: No se pudieron obtener las coordenadas del lugar'),
+          content: Text('Error: Las coordenadas del lugar son inválidas. Por favor intenta con otro lugar.'),
           backgroundColor: AppColor.accentNormal,
           duration: Duration(seconds: 3),
         ),

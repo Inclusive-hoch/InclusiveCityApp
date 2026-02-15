@@ -18,16 +18,47 @@ class SpotModel extends Spot {
   /// Crea un [SpotModel] desde un mapa JSON.
   /// 
   /// Extrae las coordenadas del objeto 'location' anidado.
+  /// Lanza [FormatException] si los datos son inválidos.
   factory SpotModel.fromJson(Map<String, dynamic> json) {
+    // Validar campos requeridos
+    if (json['userId'] == null) {
+      throw FormatException('SpotModel.fromJson: userId es null');
+    }
+    if (json['spotName'] == null) {
+      throw FormatException('SpotModel.fromJson: spotName es null');
+    }
+    if (json['placeId'] == null) {
+      throw FormatException('SpotModel.fromJson: placeId es null');
+    }
+    if (json['address'] == null) {
+      throw FormatException('SpotModel.fromJson: address es null');
+    }
+
     final location = json['location'] as Map<String, dynamic>?;
+    
+    // Validar coordenadas
+    if (location == null) {
+      throw FormatException('SpotModel.fromJson: location es null para spot "${json['spotName']}"');
+    }
+    
+    final latitude = location['latitude'] as double?;
+    final longitude = location['longitude'] as double?;
+    
+    if (latitude == null || longitude == null) {
+      throw FormatException('SpotModel.fromJson: coordenadas null para spot "${json['spotName']}" (lat: $latitude, lng: $longitude)');
+    }
+    
+    if (latitude == 0.0 && longitude == 0.0) {
+      throw FormatException('SpotModel.fromJson: coordenadas inválidas (0.0, 0.0) para spot "${json['spotName']}"');
+    }
 
     return SpotModel(
       userId: json['userId'] as String,
       spotName: json['spotName'] as String,
       placeId: json['placeId'] as String,
       address: json['address'] as String,
-      latitude: location?['latitude'] as double? ?? 0.0,
-      longitude: location?['longitude'] as double? ?? 0.0,
+      latitude: latitude,
+      longitude: longitude,
       type: json['type'] as String?,
     );
   }

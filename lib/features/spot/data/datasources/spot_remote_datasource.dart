@@ -1,5 +1,4 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'dart:convert';import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:inclusive_app/core/constants/api_constants.dart';
 import 'package:inclusive_app/core/errors/exceptions.dart';
@@ -274,6 +273,8 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
   /// Lanza [NetworkException] si hay problemas de conectividad.
   @override
   Future<List<CustomSpotModel>> getCustomSpots() async {
+    debugPrint('🔷 [SpotDataSource] Obteniendo listas personalizadas...');
+    
     try {
       final token = await getToken();
 
@@ -282,16 +283,42 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
         headers: {...ApiConstants.authHeaders(token)},
       );
 
+      debugPrint('🔷 [SpotDataSource] Status Code: ${response.statusCode}');
       final String responseBody = utf8.decode(response.bodyBytes);
+      debugPrint('🔷 [SpotDataSource] Response Body: $responseBody');
+
       final Map<String, dynamic> jsonResponse = json.decode(responseBody);
 
       if (response.statusCode == 200) {
-        final data = jsonResponse['data'] as List<dynamic>;
-        return data
-            .map(
-              (json) => CustomSpotModel.fromJson(json as Map<String, dynamic>),
-            )
-            .toList();
+        final data = jsonResponse['data'];
+        
+        if (data == null) {
+          debugPrint('⚠️ [SpotDataSource] Backend devolvió data: null para custom spots, retornando lista vacía');
+          return [];
+        }
+        
+        if (data is! List) {
+          throw ServerException('Formato de respuesta inválido: data no es una lista. Tipo: ${data.runtimeType}', 200);
+        }
+        
+        debugPrint('🔷 [SpotDataSource] Parseando ${data.length} listas...');
+        
+        final List<CustomSpotModel> customSpots = [];
+        for (int i = 0; i < data.length; i++) {
+          try {
+            final customSpotJson = data[i] as Map<String, dynamic>;
+            debugPrint('🔷 [SpotDataSource] Lista $i: ${customSpotJson['listName']}');
+            customSpots.add(CustomSpotModel.fromJson(customSpotJson));
+          } catch (e, stackTrace) {
+            debugPrint('❌ [SpotDataSource] Error parseando lista $i: $e');
+            debugPrint('❌ [SpotDataSource] JSON problemático: ${data[i]}');
+            debugPrint('❌ [SpotDataSource] StackTrace: $stackTrace');
+            // Continuar con las demás listas en lugar de fallar completamente
+          }
+        }
+        
+        debugPrint('✅ [SpotDataSource] ${customSpots.length} listas obtenidas exitosamente');
+        return customSpots;
       } else {
         final errorMsg = 'Error al obtener listas personalizadas. Status ${response.statusCode}: $responseBody';
         debugPrint('❌ [SpotDataSource] $errorMsg');
@@ -299,6 +326,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
       }
     } catch (e) {
       if (e is http.ClientException) {
+        debugPrint('❌ [SpotDataSource] Error de red: ${e.message}');
         throw NetworkException('No se pudo conectar al servidor al obtener listas: ${e.message}');
       }
       if (e is ServerException || e is NetworkException) rethrow;
@@ -312,23 +340,53 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
   /// Lanza [NetworkException] si hay problemas de conectividad.
   @override
   Future<List<SpotModel>> getUserSpots() async {
+    debugPrint('🔷 [SpotDataSource] Obteniendo spots del usuario...');
+    
     try {
       final token = await getToken();
+      debugPrint('🔷 [SpotDataSource] Token obtenido: ${token.substring(0, 20)}...');
 
       final response = await client.get(
         Uri.parse(ApiConstants.userSpots),
         headers: {...ApiConstants.authHeaders(token)},
       );
 
+      debugPrint('🔷 [SpotDataSource] Status Code: ${response.statusCode}');
       final String responseBody = utf8.decode(response.bodyBytes);
+      debugPrint('🔷 [SpotDataSource] Response Body: $responseBody');
 
       final Map<String, dynamic> jsonResponse = json.decode(responseBody);
 
       if (response.statusCode == 200) {
-        final data = jsonResponse['data'] as List<dynamic>;
-        return data
-            .map((json) => SpotModel.fromJson(json as Map<String, dynamic>))
-            .toList();
+        final data = jsonResponse['data'];
+        
+        if (data == null) {
+          debugPrint('⚠️ [SpotDataSource] Backend devolvió data: null, retornando lista vacía');
+          return [];
+        }
+        
+        if (data is! List) {
+          throw ServerException('Formato de respuesta inválido: data no es una lista. Tipo: ${data.runtimeType}', 200);
+        }
+        
+        debugPrint('🔷 [SpotDataSource] Parseando ${data.length} spots...');
+        
+        final List<SpotModel> spots = [];
+        for (int i = 0; i < data.length; i++) {
+          try {
+            final spotJson = data[i] as Map<String, dynamic>;
+            debugPrint('🔷 [SpotDataSource] Spot $i: ${spotJson['spotName']}');
+            spots.add(SpotModel.fromJson(spotJson));
+          } catch (e, stackTrace) {
+            debugPrint('❌ [SpotDataSource] Error parseando spot $i: $e');
+            debugPrint('❌ [SpotDataSource] JSON problemático: ${data[i]}');
+            debugPrint('❌ [SpotDataSource] StackTrace: $stackTrace');
+            // Continuar con los demás spots en lugar de fallar completamente
+          }
+        }
+        
+        debugPrint('✅ [SpotDataSource] ${spots.length} spots obtenidos exitosamente');
+        return spots;
       } else {
         final errorMsg = 'Error al obtener spots del usuario. Status ${response.statusCode}: $responseBody';
         debugPrint('❌ [SpotDataSource] $errorMsg');
@@ -336,6 +394,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
       }
     } catch (e) {
       if (e is http.ClientException) {
+        debugPrint('❌ [SpotDataSource] Error de red: ${e.message}');
         throw NetworkException('No se pudo conectar al servidor al obtener spots: ${e.message}');
       }
       if (e is ServerException || e is NetworkException) rethrow;
