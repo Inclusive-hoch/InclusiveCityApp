@@ -51,13 +51,19 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
   /// Lanza [NetworkException] si hay problemas de conectividad.
   @override
   Future<CustomSpotModel> addSpotToList(String listName, SpotModel spot) async {
+    debugPrint('🔷 [SpotDataSource] Agregando spot "${spot.spotName}" a lista "$listName"');
+    
     try {
       final token = await getToken();
+      final requestBody = spot.toJson();
+      final requestJson = jsonEncode(requestBody);
+      
+      debugPrint('🔷 [SpotDataSource] JSON enviado: $requestJson');
 
       final response = await client.post(
         Uri.parse(ApiConstants.addSpotToList(listName)),
         headers: {...ApiConstants.authHeaders(token)},
-        body: jsonEncode(spot.toJson()),
+        body: requestJson,
       );
 
       final String responseBody = utf8.decode(response.bodyBytes);
@@ -65,6 +71,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonResponse['data'] as Map<String, dynamic>;
+        debugPrint('✅ [SpotDataSource] Spot agregado exitosamente a lista "$listName"');
         return CustomSpotModel.fromJson(data);
       } else {
         final errorMsg = 'Error al agregar spot a lista "$listName". Status ${response.statusCode}: $responseBody';
@@ -128,10 +135,16 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
     
     try {
       final token = await getToken();
+      final requestBody = spot.toJson();
+      final requestJson = json.encode(requestBody);
+      
+      debugPrint('🔷 [SpotDataSource] JSON enviado: $requestJson');
+      debugPrint('🔷 [SpotDataSource] Endpoint: ${ApiConstants.createSpot}');
+      
       final response = await client.post(
         Uri.parse(ApiConstants.createSpot),
         headers: {...ApiConstants.authHeaders(token)},
-        body: json.encode(spot.toJson()),
+        body: requestJson,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

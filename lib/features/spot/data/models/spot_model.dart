@@ -80,13 +80,14 @@ class SpotModel extends Spot {
   /// 
   /// Estructura las coordenadas en un objeto 'location'.
   /// IMPORTANTE: NO incluye userId - se extrae del JWT en el backend.
+  /// El campo 'type' siempre se incluye, con default 'other' si es null.
   Map<String, dynamic> toJson() {
     return {
       'spotName': spotName,
       'placeId': placeId,
       'address': address,
       'location': {'latitude': latitude, 'longitude': longitude},
-      if (type != null) 'type': type,
+      'type': type ?? 'other',  // Backend requiere este campo siempre
     };
   }
 
