@@ -19,7 +19,7 @@ class CustomSpot extends Equatable {
   final List<Spot> spotList;
 
   const CustomSpot({
-    required this.id,
+    this.id,
     required this.userId,
     required this.listName,
     required this.spotList,

@@ -38,12 +38,13 @@ class CustomSpotModel extends CustomSpot {
   }
 
   /// Convierte el modelo a un mapa JSON.
+  /// 
+  /// IMPORTANTE: NO incluye userId - se extrae del JWT en el backend.
+  /// Serializa spotList como 'spots' (nombre que espera el backend).
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'listName': listName,
-      'userId': userId,
-      'spotList': spotList,
+      'spots': spotList.map((spot) => SpotModel.fromEntity(spot).toJson()).toList(),
     };
   }
 

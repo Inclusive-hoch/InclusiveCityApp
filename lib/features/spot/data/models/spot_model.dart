@@ -48,9 +48,9 @@ class SpotModel extends Spot {
   /// Convierte el modelo a un mapa JSON.
   /// 
   /// Estructura las coordenadas en un objeto 'location'.
+  /// IMPORTANTE: NO incluye userId - se extrae del JWT en el backend.
   Map<String, dynamic> toJson() {
     return {
-      'userId': userId,
       'spotName': spotName,
       'placeId': placeId,
       'address': address,

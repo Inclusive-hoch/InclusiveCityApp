@@ -33,7 +33,7 @@ class Spot extends Equatable {
     required this.address,
     required this.latitude,
     required this.longitude,
-    required this.type,
+    this.type,
   });
 
   @override
