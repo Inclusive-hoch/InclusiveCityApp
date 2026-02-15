@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:inclusive_app/features/spot/data/datasources/spot_remote_datasource.dart';
 import 'package:inclusive_app/features/spot/data/models/custom_spot_model.dart';
 import 'package:inclusive_app/features/spot/data/models/spot_model.dart';
@@ -22,6 +23,7 @@ class SpotRepositoryImpl implements SpotRepository {
   /// Retorna el spot creado como entidad de dominio.
   @override
   Future<Spot> createSpot(Spot spot) async {
+    debugPrint('🔹 [SpotRepository] createSpot iniciado para: ${spot.spotName}');
     final spotModel = SpotModel.fromEntity(spot);
     final result = await remoteDataSource.createSpot(spotModel);
     return result.toEntity();
@@ -47,6 +49,7 @@ class SpotRepositoryImpl implements SpotRepository {
   /// Convierte la entidad [CustomSpot] a modelo antes de enviarla.
   @override
   Future<CustomSpot> createCustomSpot(CustomSpot customSpot) async {
+    debugPrint('🔹 [SpotRepository] createCustomSpot iniciado para lista: ${customSpot.listName}');
     final model = CustomSpotModel.fromEntity(customSpot);
     final result = await remoteDataSource.createCustomSpot(model);
     return result;

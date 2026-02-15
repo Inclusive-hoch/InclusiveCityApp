@@ -8,6 +8,7 @@ import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:inclusive_app/features/spot/presentation/widgets/add_place_app_bar.dart';
 import 'package:inclusive_app/features/spot/presentation/widgets/place_name_dialog.dart';
 import 'package:inclusive_app/features/spot/presentation/widgets/recent_place_item.dart';
+import 'package:flutter/foundation.dart';
 
 /// Página para agregar un nuevo lugar guardado.
 /// 
@@ -75,13 +76,29 @@ class _AddPlacePageState extends State<AddPlacePage> {
 
   /// Guarda el lugar como spot del usuario.
   void _saveSpot(PlaceSearchResult place, String name) {
+    // Validar coordenadas
+    final lat = place.latitude ?? 0.0;
+    final lng = place.longitude ?? 0.0;
+    
+    if (lat == 0.0 && lng == 0.0) {
+      debugPrint('⚠️ [AddPlacePage] Coordenadas inválidas (0.0, 0.0) para "$name"');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: No se pudieron obtener las coordenadas del lugar'),
+          backgroundColor: AppColor.accentNormal,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+    
     final spot = Spot(
       userId: widget.userId,
       spotName: name,
       placeId: place.placeId,
       address: place.address ?? place.description,
-      latitude: place.latitude ?? 0.0,
-      longitude: place.longitude ?? 0.0,
+      latitude: lat,
+      longitude: lng,
       type: _detectPlaceType(name),
     );
 
