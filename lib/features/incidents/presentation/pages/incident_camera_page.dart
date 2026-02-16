@@ -109,7 +109,7 @@ class _IncidentCameraPageState extends State<IncidentCameraPage> {
               Expanded(
                 child: CustomFilledButton(
                   label: 'Cancelar',
-                  isPrimary: false,
+                  style: CustomButtonStyle.secondary,
                   onPressed: _cancel,
                 ),
               ),
@@ -170,7 +170,7 @@ class _IncidentCameraPageState extends State<IncidentCameraPage> {
                   Expanded(
                     child: CustomFilledButton(
                       label: 'Reintentar',
-                      isPrimary: false,
+                      style: CustomButtonStyle.secondary,
                       onPressed: _retryPhoto,
                     ),
                   ),
@@ -178,7 +178,7 @@ class _IncidentCameraPageState extends State<IncidentCameraPage> {
                   Expanded(
                     child: CustomFilledButton(
                       label: 'Aceptar',
-                      isPrimary: true,
+                      style: CustomButtonStyle.primary,
                       onPressed: _acceptPhoto,
                     ),
                   ),
