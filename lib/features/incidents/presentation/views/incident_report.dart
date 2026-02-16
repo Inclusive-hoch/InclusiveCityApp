@@ -47,7 +47,7 @@ class IncidentSubTypeSelector extends StatelessWidget {
                 Expanded(
                   child: CustomFilledButton(
                     label: 'Atrás',
-                    isPrimary: false,
+                    style: CustomButtonStyle.secondary,
                     onPressed: () => context.read<IncidentTypeBloc>().add(
                       IncidentTypeGoBack(),
                     ),
@@ -57,7 +57,7 @@ class IncidentSubTypeSelector extends StatelessWidget {
                 Expanded(
                   child: CustomFilledButton(
                     label: 'Aceptar',
-                    isPrimary: true,
+                    style: CustomButtonStyle.primary,
                     onPressed: state.hasTemporarySubType
                         ? () => context.read<IncidentTypeBloc>().add(
                             IncidentSubTypeConfirmed(),
