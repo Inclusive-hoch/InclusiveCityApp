@@ -6,10 +6,13 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart'
     as map_bloc;
 import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart';
+import 'package:inclusive_app/features/routing/presentation/bloc/route_bloc.dart';
 import 'package:inclusive_app/shared/widgets/custom_floating_action_button.dart';
 import 'package:inclusive_app/features/map_view/presentation/controller/map_page_controller.dart';
 import 'package:inclusive_app/features/places/presentation/screen/search_page.dart';
 import 'package:inclusive_app/features/places/presentation/screen/place_details_page.dart';
+import 'package:inclusive_app/core/utils/polyline_decoder.dart';
+import 'package:inclusive_app/core/theme/app_color.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -21,6 +24,7 @@ class MapPage extends StatefulWidget {
 class _MapPageState extends State<MapPage> {
   GoogleMapController? _mapController;
   late final MapPageController _controller;
+  final Set<Polyline> _polylines = {};
 
   static const double _userLocationZoom = 15;
 
@@ -83,15 +87,68 @@ class _MapPageState extends State<MapPage> {
                     _showError(context, state.message);
                   }
                 },
-                child: GoogleMap(
-                  initialCameraPosition: _defaultPosition,
-                  onMapCreated: (controller) {
-                    _mapController = controller;
+                child: BlocListener<RouteBloc, RouteState>(
+                  listener: (context, routeState) {
+                    if (routeState is RouteLoaded) {
+                      setState(() {
+                        _polylines.clear();
+
+                        // Agregar ruta principal si existe
+                        if (routeState.mainRoute != null) {
+                          final mainPolyline = PolylineDecoder.createPolyline(
+                            polylineId: 'main_route',
+                            encodedPolyline:
+                                routeState.mainRoute!.encodedPolyline,
+                            color: AppColor.primaryNormal,
+                            width: 6,
+                            isHere: false, // Ruta de Google Maps
+                          );
+                          _polylines.add(mainPolyline);
+
+                          log('Ruta principal cargada: ${routeState.mainRoute!.formattedDistance}, ${routeState.mainRoute!.formattedDuration}');
+                        }
+
+                        // Agregar ruta alternativa si existe
+                        if (routeState.alternativeRoute != null) {
+                          final altPolyline = PolylineDecoder.createPolyline(
+                            polylineId: 'alternative_route',
+                            encodedPolyline:
+                                routeState.alternativeRoute!.encodedPolyline,
+                            color: Colors.orange,
+                            width: 5,
+                            isHere: true, // Ruta de HERE Maps
+                          );
+                          _polylines.add(altPolyline);
+
+                          log('Ruta alternativa cargada: ${routeState.alternativeRoute!.formattedDistance}');
+                        }
+                      });
+                    }
+
+                    // Limpiar polylines cuando se cancelen las rutas
+                    if (routeState is RouteInitial) {
+                      setState(() {
+                        _polylines.clear();
+                      });
+                      log('Rutas limpiadas del mapa');
+                    }
+
+                    if (routeState is RouteError) {
+                      log('Error al cargar ruta: ${routeState.message}');
+                      _showError(context, routeState.message);
+                    }
                   },
-                  myLocationEnabled: true,
-                  zoomControlsEnabled: false,
-                  onCameraMove: (_) => _controller.handleCameraMove(),
-                  onCameraIdle: () => _controller.handleCameraIdle(),
+                  child: GoogleMap(
+                    initialCameraPosition: _defaultPosition,
+                    onMapCreated: (controller) {
+                      _mapController = controller;
+                    },
+                    polylines: _polylines,
+                    myLocationEnabled: true,
+                    zoomControlsEnabled: false,
+                    onCameraMove: (_) => _controller.handleCameraMove(),
+                    onCameraIdle: () => _controller.handleCameraIdle(),
+                  ),
                 ),
               ),
             ),
@@ -190,6 +247,8 @@ class _MapPageState extends State<MapPage> {
             photoReferences: place.photos,
             rating: place.rating,
             medals: place.medals,
+            latitude: place.latitude,
+            longitude: place.longitude,
           );
         },
       ),

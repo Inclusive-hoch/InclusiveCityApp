@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/places/presentation/widget/photo_gallery.dart';
 import 'package:inclusive_app/features/places/presentation/widget/raiting.dart';
 import 'package:inclusive_app/features/places/presentation/widget/medals.dart';
 import 'package:inclusive_app/features/places/presentation/widget/feedback.dart' as place_feedback;
 import 'package:inclusive_app/shared/widgets/grabber.dart';
+import 'package:inclusive_app/features/routing/presentation/bloc/route_bloc.dart';
+import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart' as map_bloc;
 
 /// Página de detalles de un lugar con información de accesibilidad
 /// 
@@ -29,6 +33,12 @@ class PlaceDetailsPage extends StatefulWidget {
   /// Lista de medallas de accesibilidad
   final List<String> medals;
 
+  /// Latitud del lugar
+  final double latitude;
+
+  /// Longitud del lugar
+  final double longitude;
+
   const PlaceDetailsPage({
     super.key,
     required this.placeId,
@@ -37,6 +47,8 @@ class PlaceDetailsPage extends StatefulWidget {
     required this.photoReferences,
     required this.rating,
     required this.medals,
+    required this.latitude,
+    required this.longitude,
   });
 
   @override
@@ -135,10 +147,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   children: [
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: () {
-                          // TODO: Generar ruta
-                          print('Generar ruta');
-                        },
+                        onPressed: () => _onGenerateRoute(context),
                         icon: const Icon(Icons.route, size: 20),
                         label: const Text('Generar ruta'),
                         style: ElevatedButton.styleFrom(
@@ -260,5 +269,37 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         ],
       ),
     );
+  }
+
+  /// Genera la ruta desde la ubicación del usuario hasta este lugar
+  void _onGenerateRoute(BuildContext context) {
+    // Obtener el estado actual del MapBloc para conseguir la ubicación del usuario
+    final mapState = context.read<map_bloc.MapBloc>().state;
+
+    if (mapState is map_bloc.MapLocationLoaded) {
+      // Cerrar el modal de detalles del lugar
+      Navigator.pop(context);
+      
+      // Navegar a la pantalla de selección de ruta
+      context.push('/route-selection', extra: {
+        'originLat': mapState.latitude,
+        'originLng': mapState.longitude,
+        'destLat': widget.latitude,
+        'destLng': widget.longitude,
+        'originName': 'Mi ubicación',
+        'destName': widget.placeName,
+      });
+    } else {
+      // No tenemos ubicación del usuario, mostrar error
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'No se pudo obtener tu ubicación. Activa el GPS e intenta de nuevo.',
+          ),
+          duration: Duration(seconds: 3),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

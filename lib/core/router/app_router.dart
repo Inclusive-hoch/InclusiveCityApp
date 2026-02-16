@@ -9,6 +9,7 @@ import 'package:inclusive_app/features/map_view/presentation/pages/map_page.dart
 import 'package:inclusive_app/features/profile/presentation/pages/evaluated_places_page.dart';
 import 'package:inclusive_app/features/profile/presentation/pages/profile_details_page.dart';
 import 'package:inclusive_app/features/profile/presentation/pages/profile_page.dart';
+import 'package:inclusive_app/features/routing/presentation/pages/route_selection_page.dart';
 
 GoRouter createRouter(AuthBloc authBloc) {
   return GoRouter(
@@ -43,6 +44,20 @@ GoRouter createRouter(AuthBloc authBloc) {
       GoRoute(
         path: '/profile/evaluations',
         builder: (_, __) => const EvaluatedPlacesPage(),
+      ),
+      GoRoute(
+        path: '/route-selection',
+        builder: (_, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return RouteSelectionPage(
+            originLat: extra['originLat'] as double,
+            originLng: extra['originLng'] as double,
+            destLat: extra['destLat'] as double,
+            destLng: extra['destLng'] as double,
+            originName: extra['originName'] as String,
+            destName: extra['destName'] as String,
+          );
+        },
       ),
     ],
   );

@@ -28,7 +28,9 @@ class ApiConstants {
   static String get allIncidences => "$incidenceBase/all";
 
   // === ROUTE API (puerto 8060) ===
-  static String get routeBase => "$baseUrl/routes";
+  static String get routeBase => "$baseUrl/route";
+  static String get principalRoute => "$routeBase/principal";
+  static String get secondaryRoute => "$routeBase/secondary";
 
   // === ACCOUNT API (puerto 8090) ===
   static String get profileBase => "$baseUrl/profile";
