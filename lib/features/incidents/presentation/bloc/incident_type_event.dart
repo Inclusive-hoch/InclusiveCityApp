@@ -32,3 +32,22 @@ class IncidentSubTypeConfirmed extends IncidentTypeEvent {}
 class IncidentTypeGoBack extends IncidentTypeEvent {}
 
 class IncidentTypeReset extends IncidentTypeEvent {}
+
+/// El usuario quiere tomar una foto → abre cámara.
+class IncidentPhotoRequested extends IncidentTypeEvent {}
+
+/// Foto capturada exitosamente.
+class IncidentPhotoCaptured extends IncidentTypeEvent {
+  final String photoPath;
+
+  const IncidentPhotoCaptured(this.photoPath);
+
+  @override
+  List<Object?> get props => [photoPath];
+}
+
+/// El usuario omite la foto.
+class IncidentPhotoSkipped extends IncidentTypeEvent {}
+
+/// Volver del paso de foto al paso de subtipos.
+class IncidentPhotoGoBack extends IncidentTypeEvent {}
