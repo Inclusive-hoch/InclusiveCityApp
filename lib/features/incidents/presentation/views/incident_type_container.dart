@@ -181,7 +181,7 @@ class _IncidentTypeContainerState extends State<IncidentTypeContainer> {
             Expanded(
               child: CustomFilledButton(
                 label: 'Atrás',
-                isPrimary: false,
+                style: CustomButtonStyle.secondary,
                 onPressed: () {
                   Navigator.of(context).pop();
                   Future.microtask(() {
@@ -194,7 +194,7 @@ class _IncidentTypeContainerState extends State<IncidentTypeContainer> {
             Expanded(
               child: CustomFilledButton(
                 label: 'Siguiente',
-                isPrimary: true,
+                style: CustomButtonStyle.primary,
                 onPressed: state.hasTemporaryType
                     ? () => context.read<IncidentTypeBloc>().add(
                         IncidentTypeConfirmed(),
