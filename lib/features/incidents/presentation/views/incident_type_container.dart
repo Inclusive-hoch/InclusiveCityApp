@@ -7,18 +7,34 @@ import 'package:inclusive_app/features/incidents/presentation/bloc/incident_type
 import 'package:inclusive_app/features/incidents/presentation/bloc/incident_type_event.dart';
 import 'package:inclusive_app/features/incidents/presentation/bloc/incident_type_state.dart';
 import 'package:inclusive_app/features/incidents/presentation/views/incident_report.dart';
+import 'package:inclusive_app/features/incidents/presentation/views/incident_photo_prompt.dart';
 
-class IncidentTypeContainer extends StatelessWidget {
+class IncidentTypeContainer extends StatefulWidget {
   const IncidentTypeContainer({super.key});
+
+  @override
+  State<IncidentTypeContainer> createState() => _IncidentTypeContainerState();
+}
+
+class _IncidentTypeContainerState extends State<IncidentTypeContainer> {
+  final DraggableScrollableController _sheetController =
+      DraggableScrollableController();
+
+  @override
+  void dispose() {
+    _sheetController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => IncidentTypeBloc(),
       child: DraggableScrollableSheet(
-        initialChildSize: 0.29,
+        controller: _sheetController,
+        initialChildSize: 0.35,
         minChildSize: 0.25,
-        maxChildSize: 0.5,
+        maxChildSize: 0.6,
         builder: (draggableContext, scrollController) {
           return Container(
             decoration: BoxDecoration(
@@ -61,7 +77,6 @@ class IncidentTypeContainer extends StatelessWidget {
                             ),
                             onPressed: () {
                               Navigator.of(context).pop();
-                              // Reset after closing to avoid showing first questionnaire
                               Future.microtask(() {
                                 context.read<IncidentTypeBloc>().add(
                                   IncidentTypeReset(),
@@ -77,103 +92,36 @@ class IncidentTypeContainer extends StatelessWidget {
                 Expanded(
                   child: BlocConsumer<IncidentTypeBloc, IncidentTypeState>(
                     listener: (context, state) {
-                      if (state.hasType && state.hasSubType) {
-                        debugPrint(
-                          'Tipo: ${state.selectedType} | Subtipo: ${state.selectedSubType}',
-                        );
-                        // Close modal after current frame to avoid UI flicker
-                        Future.microtask(() => Navigator.of(context).pop());
+                      // Expandir el sheet cuando llegamos al paso de foto
+                      if (state.currentStep == IncidentStep.photoPrompt) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (_sheetController.isAttached) {
+                            _sheetController.animateTo(
+                              0.55,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        });
                       }
                     },
                     builder: (context, state) {
-                      if (!state.hasType) {
-                        return ListView(
-                          controller: scrollController,
-                          padding: const EdgeInsets.all(16),
-                          children: [
-                            Wrap(
-                              direction: Axis.horizontal,
-                              spacing: 16,
-                              runSpacing: 16,
-                              alignment: WrapAlignment.spaceAround,
-                              children: [
-                                IncidentItem(
-                                  icon: Icons.accessible_forward_outlined,
-                                  title: 'Transporte',
-                                  isSelected:
-                                      state.temporaryType == 'Transporte',
-                                  onTap: () =>
-                                      context.read<IncidentTypeBloc>().add(
-                                        const IncidentTypeTemporarilySelected(
-                                          'Transporte',
-                                        ),
-                                      ),
-                                ),
-                                IncidentItem(
-                                  icon: Icons.accessibility_new_sharp,
-                                  title: 'Accesibilidad',
-                                  isSelected:
-                                      state.temporaryType == 'Accesibilidad',
-                                  onTap: () =>
-                                      context.read<IncidentTypeBloc>().add(
-                                        const IncidentTypeTemporarilySelected(
-                                          'Accesibilidad',
-                                        ),
-                                      ),
-                                ),
-                                IncidentItem(
-                                  icon: Icons.wheelchair_pickup_outlined,
-                                  title: 'Movilidad',
-                                  isSelected:
-                                      state.temporaryType == 'Movilidad',
-                                  onTap: () =>
-                                      context.read<IncidentTypeBloc>().add(
-                                        const IncidentTypeTemporarilySelected(
-                                          'Movilidad',
-                                        ),
-                                      ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 24),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: CustomFilledButton(
-                                    label: 'Atrás',
-                                    isPrimary: false,
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                      Future.microtask(() {
-                                        context.read<IncidentTypeBloc>().add(
-                                          IncidentTypeReset(),
-                                        );
-                                      });
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: CustomFilledButton(
-                                    label: 'Siguiente',
-                                    isPrimary: true,
-                                    onPressed: state.hasTemporaryType
-                                        ? () => context
-                                              .read<IncidentTypeBloc>()
-                                              .add(IncidentTypeConfirmed())
-                                        : null,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        );
+                      switch (state.currentStep) {
+                        case IncidentStep.selectingType:
+                          return _buildTypeSelector(
+                            context,
+                            state,
+                            scrollController,
+                          );
+                        case IncidentStep.selectingSubType:
+                          return IncidentSubTypeSelector(
+                            scrollController: scrollController,
+                          );
+                        case IncidentStep.photoPrompt:
+                          return IncidentPhotoPrompt(
+                            scrollController: scrollController,
+                          );
                       }
-
-                      return IncidentSubTypeSelector(
-                        scrollController: scrollController,
-                      );
                     },
                   ),
                 ),
@@ -182,6 +130,81 @@ class IncidentTypeContainer extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildTypeSelector(
+    BuildContext context,
+    IncidentTypeState state,
+    ScrollController scrollController,
+  ) {
+    return ListView(
+      controller: scrollController,
+      padding: const EdgeInsets.all(16),
+      children: [
+        Wrap(
+          direction: Axis.horizontal,
+          spacing: 16,
+          runSpacing: 16,
+          alignment: WrapAlignment.spaceAround,
+          children: [
+            IncidentItem(
+              icon: Icons.accessible_forward_outlined,
+              title: 'Transporte',
+              isSelected: state.temporaryType == 'Transporte',
+              onTap: () => context.read<IncidentTypeBloc>().add(
+                const IncidentTypeTemporarilySelected('Transporte'),
+              ),
+            ),
+            IncidentItem(
+              icon: Icons.accessibility_new_sharp,
+              title: 'Accesibilidad',
+              isSelected: state.temporaryType == 'Accesibilidad',
+              onTap: () => context.read<IncidentTypeBloc>().add(
+                const IncidentTypeTemporarilySelected('Accesibilidad'),
+              ),
+            ),
+            IncidentItem(
+              icon: Icons.wheelchair_pickup_outlined,
+              title: 'Movilidad',
+              isSelected: state.temporaryType == 'Movilidad',
+              onTap: () => context.read<IncidentTypeBloc>().add(
+                const IncidentTypeTemporarilySelected('Movilidad'),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: CustomFilledButton(
+                label: 'Atrás',
+                isPrimary: false,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Future.microtask(() {
+                    context.read<IncidentTypeBloc>().add(IncidentTypeReset());
+                  });
+                },
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: CustomFilledButton(
+                label: 'Siguiente',
+                isPrimary: true,
+                onPressed: state.hasTemporaryType
+                    ? () => context.read<IncidentTypeBloc>().add(
+                        IncidentTypeConfirmed(),
+                      )
+                    : null,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
