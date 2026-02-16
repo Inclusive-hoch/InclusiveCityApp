@@ -48,7 +48,7 @@ class IncidentPhotoPrompt extends StatelessWidget {
             Expanded(
               child: CustomFilledButton(
                 label: 'Omitir',
-                isPrimary: false,
+                style: CustomButtonStyle.secondary,
                 onPressed: () {
                   context.read<IncidentTypeBloc>().add(IncidentPhotoSkipped());
                   Navigator.of(context).pop();
@@ -59,7 +59,7 @@ class IncidentPhotoPrompt extends StatelessWidget {
             Expanded(
               child: CustomFilledButton(
                 label: 'Tomar Foto',
-                isPrimary: true,
+                style: CustomButtonStyle.primary,
                 onPressed: () {
                   Navigator.of(context)
                       .push<String?>(
