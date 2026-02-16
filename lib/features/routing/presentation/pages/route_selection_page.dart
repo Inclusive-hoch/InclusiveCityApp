@@ -74,21 +74,29 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
 
   /// Configura los marcadores de origen y destino en el mapa
   void _setupMarkers() {
+    // Marcador de origen - círculo azul
     _markers.add(
       Marker(
         markerId: const MarkerId('origin'),
         position: LatLng(widget.originLat, widget.originLng),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-        infoWindow: InfoWindow(title: widget.originName),
+        infoWindow: InfoWindow(
+          title: 'Mi ubicación', 
+          snippet: widget.originName,
+        ),
       ),
     );
     
+    // Marcador de destino - bandera roja
     _markers.add(
       Marker(
         markerId: const MarkerId('destination'),
         position: LatLng(widget.destLat, widget.destLng),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-        infoWindow: InfoWindow(title: widget.destName),
+        infoWindow: InfoWindow(
+          title: 'Destino', 
+          snippet: widget.destName,
+        ),
       ),
     );
   }
@@ -130,7 +138,7 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
                       polylineId: 'main_route',
                       encodedPolyline: state.mainRoute!.encodedPolyline,
                       color: AppColor.primaryNormal,
-                      width: 6,
+                      width: 8,
                       isHere: false,
                     );
                     
@@ -171,93 +179,112 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
             ),
           ),
           
-          // Panel superior con origen y destino
+          // Widget flotante con origen y destino
           Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
+            top: 60,
+            left: 16,
+            right: 16,
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Fila de origen
-                      Row(
-                        children: [
-                          Container(
-                            width: 12,
-                            height: 12,
-                            decoration: const BoxDecoration(
-                              color: Colors.blue,
-                              shape: BoxShape.circle,
-                            ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Fila de origen - icono separado
+                    Row(
+                      children: [
+                        // Icono de origen separado
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: const BoxDecoration(
+                            color: AppColor.primaryNormal,
+                            shape: BoxShape.circle,
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
+                          child: const Icon(
+                            Icons.my_location,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Campo de texto separado
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade300, width: 1),
+                            ),
                             child: Text(
                               widget.originName,
                               style: const TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ],
-                      ),
-                      
-                      // Línea vertical
-                      Padding(
-                        padding: const EdgeInsets.only(left: 5.5, top: 4, bottom: 4),
-                        child: Container(
-                          width: 1,
-                          height: 20,
-                          color: Colors.grey.shade300,
                         ),
-                      ),
-                      
-                      // Fila de destino
-                      Row(
-                        children: [
-                          Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 2,
-                              ),
-                            ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // Fila de destino - icono separado
+                    Row(
+                      children: [
+                        // Icono de destino separado
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
+                          child: const Icon(
+                            Icons.place,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Campo de texto separado
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade300, width: 1),
+                            ),
                             child: Text(
                               widget.destName,
                               style: const TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -286,72 +313,80 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
                   ),
                   child: SafeArea(
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Información de la ruta
-                          if (state is RouteLoaded && state.mainRoute != null)
+                          // Información de la ruta - sin icono de flecha
+                          if (state is RouteLoaded && state.mainRoute != null) ...[
                             Padding(
-                              padding: const EdgeInsets.only(bottom: 16.0),
+                              padding: const EdgeInsets.only(bottom: 20.0),
                               child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Duración
+                                  // Duración con mejor contraste
                                   Text(
                                     state.mainRoute!.formattedDuration,
                                     style: const TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColor.neutralDarkNormal,
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.black87,
+                                      letterSpacing: -0.5,
                                     ),
                                   ),
-                                  const SizedBox(width: 16),
+                                  const SizedBox(width: 20),
                                   
-                                  // Distancia
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        state.mainRoute!.formattedDistance,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColor.neutralDarkNormal,
+                                  // Información de distancia y ruta
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          state.mainRoute!.formattedDistance,
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.black87,
+                                          ),
                                         ),
-                                      ),
-                                      const Text(
-                                        'Mejor ruta, menos incidencias',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: AppColor.neutralDarkLight,
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Por ${widget.originName.split(',').first}, ${widget.destName.split(',').first}',
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black54,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  
-                                  const Spacer(),
-                                  
-                                  // Icono de navegación
-                                  Icon(
-                                    Icons.navigation,
-                                    color: AppColor.primaryNormal,
-                                    size: 28,
+                                        const SizedBox(height: 4),
+                                        const Text(
+                                          'Mejor ruta, menos incidencias',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
+                          ],
                           
                           // Indicador de carga
                           if (state is RouteLoading)
                             const Padding(
-                              padding: EdgeInsets.only(bottom: 16.0),
+                              padding: EdgeInsets.only(bottom: 24.0),
                               child: Center(
                                 child: CircularProgressIndicator(),
                               ),
                             ),
                           
-                          // Botón Cancelar
+                          // Botón Cancelar con mejor accesibilidad
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
@@ -362,17 +397,21 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColor.primaryNormal,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 20),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
+                                elevation: 2,
+                                shadowColor: AppColor.primaryNormal.withOpacity(0.3),
                               ),
                               child: const Text(
                                 'Cancelar',
                                 style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
                                   color: Colors.white,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
                             ),
