@@ -1,16 +1,23 @@
 import 'package:equatable/equatable.dart';
 
+/// Los pasos del flujo de registro de incidencia.
+enum IncidentStep { selectingType, selectingSubType, photoPrompt }
+
 class IncidentTypeState extends Equatable {
   final String? selectedType;
   final String? selectedSubType;
   final String? temporaryType;
   final String? temporarySubType;
+  final String? photoPath;
+  final IncidentStep currentStep;
 
   const IncidentTypeState({
     this.selectedType,
     this.selectedSubType,
     this.temporaryType,
     this.temporarySubType,
+    this.photoPath,
+    this.currentStep = IncidentStep.selectingType,
   });
 
   bool get hasType => selectedType != null;
@@ -23,8 +30,11 @@ class IncidentTypeState extends Equatable {
     String? selectedSubType,
     String? temporaryType,
     String? temporarySubType,
+    String? photoPath,
+    IncidentStep? currentStep,
     bool clearTemporaryType = false,
     bool clearTemporarySubType = false,
+    bool clearPhoto = false,
   }) {
     return IncidentTypeState(
       selectedType: selectedType ?? this.selectedType,
@@ -35,6 +45,8 @@ class IncidentTypeState extends Equatable {
       temporarySubType: clearTemporarySubType
           ? null
           : (temporarySubType ?? this.temporarySubType),
+      photoPath: clearPhoto ? null : (photoPath ?? this.photoPath),
+      currentStep: currentStep ?? this.currentStep,
     );
   }
 
@@ -46,5 +58,7 @@ class IncidentTypeState extends Equatable {
     selectedSubType,
     temporaryType,
     temporarySubType,
+    photoPath,
+    currentStep,
   ];
 }
