@@ -25,15 +25,9 @@ class ReviewSuccessView extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         const Text(
-          '¡Muchas gracias!',
+          'Gracias por realizar el formulario',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        const Text(
-          'Tus respuestas nos ayudan a construir una ciudad más inclusiva para todos.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, color: AppColor.neutralDark),
         ),
         const SizedBox(height: 48),
         CustomFilledButton(
