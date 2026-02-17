@@ -7,13 +7,20 @@ import 'package:inclusive_app/core/constants/api_constants.dart';
 /// Muestra una lista de fotos en formato carrusel con indicadores
 /// de posición. Carga las imágenes desde el backend usando las
 /// referencias de fotos proporcionadas.
+/// 
+/// IMPORTANTE: Requiere token de autenticación para cargar las fotos
+/// desde el backend.
 class PhotoGallery extends StatefulWidget {
   /// Lista de referencias de fotos del lugar.
   final List<String> photoReferences;
+  
+  /// Token de autenticación para cargar las fotos.
+  final String authToken;
 
   const PhotoGallery({
     super.key,
     required this.photoReferences,
+    required this.authToken,
   });
 
   @override
@@ -64,6 +71,9 @@ class _PlacePhotoGalleryState extends State<PhotoGallery> {
     return Image.network(
       photoUrl,
       fit: BoxFit.cover,
+      headers: {
+        'Authorization': 'Bearer ${widget.authToken}',
+      },
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
         return _buildLoadingIndicator(loadingProgress);

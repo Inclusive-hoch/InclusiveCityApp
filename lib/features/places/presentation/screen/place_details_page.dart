@@ -5,6 +5,8 @@ import 'package:inclusive_app/features/places/presentation/widget/raiting.dart';
 import 'package:inclusive_app/features/places/presentation/widget/medals.dart';
 import 'package:inclusive_app/features/places/presentation/widget/feedback.dart' as place_feedback;
 import 'package:inclusive_app/shared/widgets/grabber.dart';
+import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
+import 'package:inclusive_app/injection_container.dart' as di;
 
 /// Página de detalles de un lugar con información de accesibilidad
 /// 
@@ -45,6 +47,23 @@ class PlaceDetailsPage extends StatefulWidget {
 
 class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   bool isSaved = false;
+  String _authToken = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAuthToken();
+  }
+
+  /// Carga el token de autenticación para las fotos.
+  Future<void> _loadAuthToken() async {
+    final token = await di.sl<FirebaseAuthService>().getIdToken();
+    if (mounted) {
+      setState(() {
+        _authToken = token;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -177,9 +196,16 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               // Galería de fotos
               SizedBox(
                 height: 250,
-                child: PhotoGallery(
-                  photoReferences: widget.photoReferences,
-                ),
+                child: _authToken.isEmpty
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColor.primaryNormal,
+                        ),
+                      )
+                    : PhotoGallery(
+                        photoReferences: widget.photoReferences,
+                        authToken: _authToken,
+                      ),
               ),
               const SizedBox(height: 16),
               

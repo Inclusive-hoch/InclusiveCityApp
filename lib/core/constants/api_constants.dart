@@ -20,8 +20,21 @@ class ApiConstants {
   // Spots endpoints
   static String get spotsBase => "$baseUrl/location/spot";
   static String get createSpot => "$spotsBase/insert";
-  static String userSpots(String userId) => "$spotsBase/$userId";
+  static String get userSpots => "$spotsBase/user-spot";
 
+  // Custom Spots (listas personalizadas)
+  static String get customSpots => "$spotsBase/custom-spot";
+  static String get createCustomSpot => "$spotsBase/custom-spot/insert";
+  static String addSpotToList(String listName) =>
+      "$spotsBase/custom-spot/save-spot/${Uri.encodeComponent(listName)}";
+
+  // Delete endpoints
+  static String get deleteSpot => "$spotsBase/delete/spot";
+  static String deleteCustomSpotList(String listName) =>
+      "$spotsBase/delete/custom-spot/list/${Uri.encodeComponent(listName)}";
+  static String deleteSpotFromList(String listName) =>
+      "$spotsBase/delete/custom-spot/spot/${Uri.encodeComponent(listName)}";
+  
   // Incidence endpoints
   static String get incidenceBase => "$baseUrl/incidence";
   static String get createIncidence => incidenceBase;

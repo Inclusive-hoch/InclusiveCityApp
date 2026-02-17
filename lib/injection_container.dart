@@ -24,6 +24,18 @@ import 'package:inclusive_app/features/places/domain/usecases/get_search_history
 import 'package:inclusive_app/features/places/domain/usecases/save_place_to_history.dart';
 import 'package:inclusive_app/features/places/domain/usecases/search_places.dart';
 import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart';
+import 'package:inclusive_app/features/spot/data/datasources/spot_remote_datasource.dart';
+import 'package:inclusive_app/features/spot/data/repositories/spot_repository_impl.dart';
+import 'package:inclusive_app/features/spot/domain/repositories/spot_repository.dart';
+import 'package:inclusive_app/features/spot/domain/usecases/add_spot_to_list.dart';
+import 'package:inclusive_app/features/spot/domain/usecases/create_custom_spot.dart';
+import 'package:inclusive_app/features/spot/domain/usecases/delete_custom_spot_list.dart';
+import 'package:inclusive_app/features/spot/domain/usecases/delete_spot.dart';
+import 'package:inclusive_app/features/spot/domain/usecases/delete_spot_from_list.dart';
+import 'package:inclusive_app/features/spot/domain/usecases/get_custom_spots.dart';
+import 'package:inclusive_app/features/spot/domain/usecases/get_user_spots.dart';
+import 'package:inclusive_app/features/spot/domain/usecases/save_spot.dart';
+import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:inclusive_app/features/profile/data/datasources/user_evaluation_remote_datasource.dart';
@@ -93,7 +105,7 @@ Future<void> init() async {
 
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
 
-  // Data sources
+  // Data sources - Places
   sl.registerLazySingleton<PlaceRemoteDataSource>(
     () => PlaceRemoteDataSourceImpl(
       client: sl(),
@@ -104,7 +116,15 @@ Future<void> init() async {
     () => PlaceLocalDataSourceImpl(sharedPreferences: sl()),
   );
 
-  // Repositories
+  // Data sources - Spots
+  sl.registerLazySingleton<SpotRemoteDatasource>(
+    () => SpotRemoteDatasourceImpl(
+      client: sl(),
+      getToken: () => sl<FirebaseAuthService>().getIdToken(),
+    ),
+  );
+
+  // Repositories - Places
   sl.registerLazySingleton<PlaceRepository>(
     () => PlaceRepositoryImpl(
       remoteDataSource: sl(),
@@ -113,11 +133,28 @@ Future<void> init() async {
     ),
   );
 
-  // Use cases
+  // Repositories - Spots
+  sl.registerLazySingleton<SpotRepository>(
+    () => SpotRepositoryImpl(
+      remoteDataSource: sl(),
+    ),
+  );
+
+  // Use cases - Places
   sl.registerLazySingleton(() => SearchPlaces(sl()));
   sl.registerLazySingleton(() => GetPlaceDetails(sl()));
   sl.registerLazySingleton(() => GetSearchHistory(sl()));
   sl.registerLazySingleton(() => SavePlaceToHistory(sl()));
+
+  // Use cases - Spots
+  sl.registerLazySingleton(() => SaveSpot(sl()));
+  sl.registerLazySingleton(() => GetUserSpots(sl()));
+  sl.registerLazySingleton(() => DeleteSpot(sl()));
+  sl.registerLazySingleton(() => CreateCustomSpot(sl()));
+  sl.registerLazySingleton(() => GetCustomSpots(sl()));
+  sl.registerLazySingleton(() => AddSpotToList(sl()));
+  sl.registerLazySingleton(() => DeleteCustomSpotList(sl()));
+  sl.registerLazySingleton(() => DeleteSpotFromList(sl()));
 
   // BLoCs
   sl.registerFactory(() => MapBloc());
@@ -153,4 +190,10 @@ sl.registerLazySingleton<UserEvaluationRemoteDataSource>(
     getUserEvaluations: sl(),
     placeRepository: sl(),
   ));
+
+  sl.registerFactory(
+    () => SpotBloc(
+      repository: sl(),
+    ),
+  );
 }
