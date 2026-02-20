@@ -4,7 +4,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/core/utils/polyline_decoder.dart';
 import 'package:inclusive_app/features/routing/presentation/bloc/route_bloc.dart';
-import 'package:inclusive_app/features/routing/presentation/widgets/route_info_card.dart';
 
 /// Página de selección de ruta que muestra el mapa con la ruta generada.
 /// 

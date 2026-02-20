@@ -13,7 +13,6 @@ import 'package:inclusive_app/features/places/presentation/screen/place_details_
 import 'package:inclusive_app/core/utils/polyline_decoder.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/incidents/presentation/views/incident_type_container.dart';
-import 'package:inclusive_app/features/reviews/presentation/views/review_container.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -105,8 +104,6 @@ class _MapPageState extends State<MapPage> {
                             isHere: false, // Ruta de Google Maps
                           );
                           _polylines.add(mainPolyline);
-
-                          log('Ruta principal cargada: ${routeState.mainRoute!.formattedDistance}, ${routeState.mainRoute!.formattedDuration}');
                         }
 
                         // Agregar ruta alternativa si existe
@@ -120,8 +117,6 @@ class _MapPageState extends State<MapPage> {
                             isHere: true, // Ruta de HERE Maps
                           );
                           _polylines.add(altPolyline);
-
-                          log('Ruta alternativa cargada: ${routeState.alternativeRoute!.formattedDistance}');
                         }
                       });
                     }
@@ -131,11 +126,9 @@ class _MapPageState extends State<MapPage> {
                       setState(() {
                         _polylines.clear();
                       });
-                      log('Rutas limpiadas del mapa');
                     }
 
                     if (routeState is RouteError) {
-                      log('Error al cargar ruta: ${routeState.message}');
                       _showError(context, routeState.message);
                     }
                   },
@@ -200,17 +193,6 @@ class _MapPageState extends State<MapPage> {
             ),
           ),
 
-          /// BOTÓN REVIW (TEMPORAL)
-          Positioned(
-            top: 48,
-            right: 16,
-            child: CustomFloatingActionButton.square(
-              icon: Icons.rate_review_outlined,
-              heroTag: 'map_review_fab',
-              onPressed: () => _showReviewModal(context),
-            ),
-          ),
-
           /// SEARCH / BOTTOM SHEET
           DraggableScrollableSheet(
             initialChildSize: 0.15,
@@ -237,15 +219,6 @@ class _MapPageState extends State<MapPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const IncidentTypeContainer(),
-    );
-  }
-
-  void _showReviewModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const ReviewContainer(),
     );
   }
 
