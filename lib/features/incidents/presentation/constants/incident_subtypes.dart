@@ -10,17 +10,31 @@ class IncidentSubType {
 
 /// Mapa de subtipos de incidencias por tipo principal
 const Map<String, List<IncidentSubType>> incidentSubTypes = {
-  'Transporte': [
-    IncidentSubType(name: 'Accidente', icon: Icons.car_crash),
-    IncidentSubType(name: 'Corte de vía', icon: Icons.block),
-    IncidentSubType(name: 'Retraso', icon: Icons.access_time),
+  'Veredas y superficies': [
+    IncidentSubType(name: 'Grietas', icon: Icons.foundation),
+    IncidentSubType(name: 'Baches', icon: Icons.dangerous),
+    IncidentSubType(name: 'Desniveles', icon: Icons.signal_cellular_0_bar),
+    IncidentSubType(name: 'Superficie resbaladiza', icon: Icons.severe_cold),
   ],
-  'Accesibilidad': [
-    IncidentSubType(name: 'Escalera rota', icon: Icons.stairs),
-    IncidentSubType(name: 'Ascensor fuera de servicio', icon: Icons.elevator),
+  'Cruces peatonales': [
+    IncidentSubType(name: 'Falta de rebaje', icon: Icons.height),
+    IncidentSubType(
+      name: 'Semáforo sin señal auditiva',
+      icon: Icons.hearing_disabled,
+    ),
   ],
-  'Movilidad': [
-    IncidentSubType(name: 'Vereda dañada', icon: Icons.warning),
-    IncidentSubType(name: 'Rampa bloqueada', icon: Icons.accessible),
+  'Problemas temporales': [
+    IncidentSubType(
+      name: 'Problema alumbrado público',
+      icon: Icons.lightbulb_outline,
+    ),
+    IncidentSubType(name: 'Obra', icon: Icons.engineering),
+    IncidentSubType(name: 'Escombros', icon: Icons.delete_sweep),
+    IncidentSubType(name: 'Bloqueo de ruta', icon: Icons.block),
+  ],
+  'Rampas': [
+    IncidentSubType(name: 'Falta de rampa', icon: Icons.not_accessible),
+    IncidentSubType(name: 'Rampa dañada', icon: Icons.report_problem),
+    IncidentSubType(name: 'Rampa bloqueada', icon: Icons.do_not_step),
   ],
 };

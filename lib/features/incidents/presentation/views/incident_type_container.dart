@@ -32,9 +32,9 @@ class _IncidentTypeContainerState extends State<IncidentTypeContainer> {
       create: (_) => IncidentTypeBloc(),
       child: DraggableScrollableSheet(
         controller: _sheetController,
-        initialChildSize: 0.35,
-        minChildSize: 0.25,
-        maxChildSize: 0.6,
+        initialChildSize: 0.50,
+        minChildSize: 0.35,
+        maxChildSize: 0.70,
         builder: (draggableContext, scrollController) {
           return Container(
             decoration: BoxDecoration(
@@ -149,27 +149,35 @@ class _IncidentTypeContainerState extends State<IncidentTypeContainer> {
           alignment: WrapAlignment.spaceAround,
           children: [
             IncidentItem(
-              icon: Icons.accessible_forward_outlined,
-              title: 'Transporte',
-              isSelected: state.temporaryType == 'Transporte',
+              icon: Icons.terrain,
+              title: 'Veredas y superficies',
+              isSelected: state.temporaryType == 'Veredas y superficies',
               onTap: () => context.read<IncidentTypeBloc>().add(
-                const IncidentTypeTemporarilySelected('Transporte'),
+                const IncidentTypeTemporarilySelected('Veredas y superficies'),
               ),
             ),
             IncidentItem(
-              icon: Icons.accessibility_new_sharp,
-              title: 'Accesibilidad',
-              isSelected: state.temporaryType == 'Accesibilidad',
+              icon: Icons.traffic,
+              title: 'Cruces peatonales',
+              isSelected: state.temporaryType == 'Cruces peatonales',
               onTap: () => context.read<IncidentTypeBloc>().add(
-                const IncidentTypeTemporarilySelected('Accesibilidad'),
+                const IncidentTypeTemporarilySelected('Cruces peatonales'),
               ),
             ),
             IncidentItem(
-              icon: Icons.wheelchair_pickup_outlined,
-              title: 'Movilidad',
-              isSelected: state.temporaryType == 'Movilidad',
+              icon: Icons.construction,
+              title: 'Problemas temporales',
+              isSelected: state.temporaryType == 'Problemas temporales',
               onTap: () => context.read<IncidentTypeBloc>().add(
-                const IncidentTypeTemporarilySelected('Movilidad'),
+                const IncidentTypeTemporarilySelected('Problemas temporales'),
+              ),
+            ),
+            IncidentItem(
+              icon: Icons.accessible,
+              title: 'Rampas',
+              isSelected: state.temporaryType == 'Rampas',
+              onTap: () => context.read<IncidentTypeBloc>().add(
+                const IncidentTypeTemporarilySelected('Rampas'),
               ),
             ),
           ],
