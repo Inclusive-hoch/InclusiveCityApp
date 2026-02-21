@@ -44,6 +44,8 @@ class _SearchPageState extends State<SearchPage> {
     super.initState();
     // Cargar spots del usuario si está disponible
     _loadUserSpots();
+    // Cargar historial de búsquedas
+    context.read<PlaceBloc>().add(LoadSearchHistoryEvent());
   }
 
   /// Carga los spots del usuario.
