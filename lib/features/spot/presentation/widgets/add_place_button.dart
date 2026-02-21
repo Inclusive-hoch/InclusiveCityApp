@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 
 /// Botón para agregar un nuevo lugar guardado.
-/// 
-/// Muestra el texto "+ Agregar un lugar" con el estilo apropiado.
 class AddPlaceButton extends StatelessWidget {
-  /// Callback cuando se presiona el botón.
   final VoidCallback? onPressed;
 
   const AddPlaceButton({

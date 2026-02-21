@@ -10,7 +10,7 @@ import 'package:inclusive_app/features/places/presentation/widget/search_bar.dar
 import 'package:inclusive_app/features/places/presentation/widget/search_result_list.dart';
 import 'package:inclusive_app/features/spot/domain/entities/spot.dart';
 import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
-import 'package:inclusive_app/features/spot/presentation/pages/add_place_page.dart';
+import 'package:inclusive_app/features/spot/presentation/pages/saved_spots_page.dart';
 import 'package:inclusive_app/features/spot/presentation/widgets/spot_quick_access_bar.dart';
 import 'package:inclusive_app/shared/widgets/grabber.dart';
 
@@ -36,9 +36,8 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  // Referencias a spots de Casa y Trabajo
-  Spot? homeSpot;
-  Spot? workSpot;
+  // Lista de todos los spots del usuario
+  List<Spot> userSpots = [];
 
   @override
   void initState() {
@@ -47,7 +46,7 @@ class _SearchPageState extends State<SearchPage> {
     _loadUserSpots();
   }
 
-  /// Carga los spots del usuario para detectar Casa y Trabajo.
+  /// Carga los spots del usuario.
   void _loadUserSpots() {
     // Obtener el userId del usuario autenticado
     final authState = context.read<AuthBloc>().state;
@@ -57,19 +56,49 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  /// Maneja el tap en la píldora Casa.
-  void _onHomeTap() {
-    if (homeSpot != null) {
-      // Seleccionar el lugar de casa
-      context.read<PlaceBloc>().add(SelectPlaceEvent(homeSpot!.placeId));
+  /// Maneja el tap en una píldora de spot.
+  void _onSpotTap(Spot spot) {
+    // Seleccionar el lugar del spot
+    context.read<PlaceBloc>().add(SelectPlaceEvent(spot.placeId));
+  }
+
+  /// Maneja el tap en la píldora Casa cuando no está asignada.
+  void _onAddHomeTap() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final userId = authState.user.uid;
+      
+      // Navegar a la página de lugares guardados para agregar Casa
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SavedPlacesPage(
+            userId: userId,
+            initialSpotType: 'casa',
+            initialSpotName: 'Casa',
+          ),
+        ),
+      );
     }
   }
 
-  /// Maneja el tap en la píldora Trabajo.
-  void _onWorkTap() {
-    if (workSpot != null) {
-      // Seleccionar el lugar de trabajo
-      context.read<PlaceBloc>().add(SelectPlaceEvent(workSpot!.placeId));
+  /// Maneja el tap en la píldora Trabajo cuando no está asignada.
+  void _onAddWorkTap() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final userId = authState.user.uid;
+      
+      // Navegar a la página de lugares guardados para agregar Trabajo
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SavedPlacesPage(
+            userId: userId,
+            initialSpotType: 'trabajo',
+            initialSpotName: 'Trabajo',
+          ),
+        ),
+      );
     }
   }
 
@@ -80,11 +109,11 @@ class _SearchPageState extends State<SearchPage> {
     if (authState is AuthAuthenticated) {
       final userId = authState.user.uid;
       
-      // Navegar a la página de agregar lugar
+      // Navegar a la página de lugares guardados
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => AddPlacePage(userId: userId),
+          builder: (context) => SavedPlacesPage(userId: userId),
         ),
       );
     }
@@ -94,26 +123,10 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     return BlocListener<SpotBloc, SpotState>(
       listener: (context, state) {
-        // Actualizar referencias de Casa y Trabajo
+        // Actualizar lista de spots
         if (state is SpotsLoaded) {
           setState(() {
-            try {
-              homeSpot = state.spots.firstWhere(
-                (spot) => spot.type?.toLowerCase() == 'home' || 
-                         spot.type?.toLowerCase() == 'casa',
-              );
-            } catch (e) {
-              homeSpot = null;
-            }
-            
-            try {
-              workSpot = state.spots.firstWhere(
-                (spot) => spot.type?.toLowerCase() == 'work' || 
-                         spot.type?.toLowerCase() == 'trabajo',
-              );
-            } catch (e) {
-              workSpot = null;
-            }
+            userSpots = state.spots;
           });
         }
       },
@@ -138,13 +151,13 @@ class _SearchPageState extends State<SearchPage> {
             const custom.SearchBar(),
             const SizedBox(height: 16),
 
-            // Barra de acceso rápido (Casa, Trabajo, Añadir)
+            // Barra de acceso rápido a spots guardados
             SpotQuickAccessBar(
-              onHomeTap: _onHomeTap,
-              onWorkTap: _onWorkTap,
+              spots: userSpots,
+              onSpotTap: _onSpotTap,
+              onAddHomeTap: _onAddHomeTap,
+              onAddWorkTap: _onAddWorkTap,
               onAddTap: _onAddTap,
-              hasHome: homeSpot != null,
-              hasWork: workSpot != null,
             ),
 
           BlocBuilder<PlaceBloc, PlacesState>(

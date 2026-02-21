@@ -5,30 +5,15 @@ import 'package:inclusive_app/core/errors/exceptions.dart';
 import 'package:inclusive_app/features/spot/data/models/custom_spot_model.dart';
 import 'package:inclusive_app/features/spot/data/models/spot_model.dart';
 
-/// Fuente de datos remota para gestión de spots y listas personalizadas.
+/// Fuente de datos remota para gestión de spots.
 abstract class SpotRemoteDatasource {
-  /// Crea un nuevo spot en el backend.
   Future<SpotModel> createSpot(SpotModel spot);
-
-  /// Obtiene los spots del usuario autenticado.
   Future<List<SpotModel>> getUserSpots();
-
-  /// Elimina un spot por su ubicación.
   Future<int> deleteSpot(double latitude, double longitude);
-
-  /// Crea una nueva lista personalizada de spots.
   Future<CustomSpotModel> createCustomSpot(CustomSpotModel customSpot);
-
-  /// Obtiene todas las listas personalizadas del usuario.
   Future<List<CustomSpotModel>> getCustomSpots();
-
-  /// Añade un spot a una lista personalizada existente.
   Future<CustomSpotModel> addSpotToList(String listName, SpotModel spot);
-
-  /// Elimina una lista personalizada completa.
   Future<int> deleteCustomSpotList(String listName);
-
-  /// Elimina un spot específico de una lista personalizada.
   Future<int> deleteSpotFromList(
     String listName,
     double latitude,
@@ -159,6 +144,18 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
       } else if (response.statusCode == 409) {
         debugPrint('⚠️ [SpotDataSource] Spot duplicado en ubicación (${spot.latitude}, ${spot.longitude})');
         throw ConflictException('El spot "${spot.spotName}" ya existe en esta ubicación');
+      } else if (response.statusCode == 500) {
+        final String responseBody = utf8.decode(response.bodyBytes);
+        
+        // Detectar error de clave duplicada de MongoDB (E11000)
+        if (responseBody.contains('E11000') && responseBody.contains('duplicate key')) {
+          debugPrint('⚠️ [SpotDataSource] Spot duplicado - mismo lugar ya guardado');
+          throw ConflictException('Este lugar ya está guardado. Por favor, elige otro lugar o elimina el existente.');
+        }
+        
+        final errorMsg = 'Error interno del servidor al crear spot "${spot.spotName}". Status ${response.statusCode}: $responseBody';
+        debugPrint('❌ [SpotDataSource] $errorMsg');
+        throw ServerException(errorMsg, response.statusCode);
       } else {
         final String responseBody = utf8.decode(response.bodyBytes);
         final errorMsg = 'Error al crear spot "${spot.spotName}". Status ${response.statusCode}: $responseBody';

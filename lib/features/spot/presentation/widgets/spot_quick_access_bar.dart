@@ -1,60 +1,79 @@
 import 'package:flutter/material.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
+import 'package:inclusive_app/features/spot/domain/entities/spot.dart';
 
-/// Barra de acceso rápido con píldoras para Casa, Trabajo y Añadir.
+/// Barra de acceso rápido con píldoras para spots guardados.
 /// 
-/// Muestra chips interactivos para:
-/// - 🏠 Casa: Navegar a lugar guardado como casa
-/// - 💼 Trabajo: Navegar a lugar guardado como trabajo
-/// - ➕ Añadir: Agregar nuevo lugar personalizado
+/// Casa y Trabajo siempre son visibles. Otros spots se muestran dinámicamente.
 class SpotQuickAccessBar extends StatelessWidget {
-  /// Callback cuando se presiona la píldora "Casa".
-  final VoidCallback? onHomeTap;
-
-  /// Callback cuando se presiona la píldora "Trabajo".
-  final VoidCallback? onWorkTap;
-
-  /// Callback cuando se presiona la píldora "Añadir".
+  final List<Spot> spots;
+  final Function(Spot)? onSpotTap;
+  final VoidCallback? onAddHomeTap;
+  final VoidCallback? onAddWorkTap;
   final VoidCallback? onAddTap;
-
-  /// Si tiene lugar guardado como casa.
-  final bool hasHome;
-
-  /// Si tiene lugar guardado como trabajo.
-  final bool hasWork;
 
   const SpotQuickAccessBar({
     super.key,
-    this.onHomeTap,
-    this.onWorkTap,
+    required this.spots,
+    this.onSpotTap,
+    this.onAddHomeTap,
+    this.onAddWorkTap,
     this.onAddTap,
-    this.hasHome = false,
-    this.hasWork = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    // Buscar spots de Casa y Trabajo
+    final homeSpot = _findSpotByType(['home', 'casa']);
+    final workSpot = _findSpotByType(['work', 'trabajo']);
+    
+    // Filtrar otros spots (que no sean casa ni trabajo)
+    final otherSpots = spots.where((spot) {
+      final type = spot.type?.toLowerCase();
+      return type != 'home' && type != 'casa' && type != 'work' && type != 'trabajo';
+    }).toList();
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          // Píldora Casa
-          _SpotPill(
-            icon: Icons.home,
-            label: 'Casa',
-            onTap: onHomeTap,
-            isActive: hasHome,
+          // Píldora Casa (siempre visible)
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: _SpotPill(
+              icon: Icons.home,
+              label: 'Casa',
+              onTap: homeSpot != null 
+                  ? () => onSpotTap?.call(homeSpot)
+                  : onAddHomeTap,
+              isActive: homeSpot != null,
+            ),
           ),
-          const SizedBox(width: 8),
           
-          // Píldora Trabajo
-          _SpotPill(
-            icon: Icons.work,
-            label: 'Trabajo',
-            onTap: onWorkTap,
-            isActive: hasWork,
+          // Píldora Trabajo (siempre visible)
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: _SpotPill(
+              icon: Icons.work,
+              label: 'Trabajo',
+              onTap: workSpot != null 
+                  ? () => onSpotTap?.call(workSpot)
+                  : onAddWorkTap,
+              isActive: workSpot != null,
+            ),
           ),
-          const SizedBox(width: 8),
+          
+          // Píldoras de otros spots guardados
+          ...otherSpots.map((spot) => Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: _SpotPill(
+                  icon: Icons.location_on,
+                  label: spot.spotName,
+                  onTap: () => onSpotTap?.call(spot),
+                  isActive: true,
+                ),
+              )),
           
           // Píldora Añadir
           _SpotPill(
@@ -67,6 +86,17 @@ class SpotQuickAccessBar extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Busca un spot por tipo (case-insensitive).
+  Spot? _findSpotByType(List<String> types) {
+    try {
+      return spots.firstWhere(
+        (spot) => types.contains(spot.type?.toLowerCase()),
+      );
+    } catch (e) {
+      return null;
+    }
   }
 }
 

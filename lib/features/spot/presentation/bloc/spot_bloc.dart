@@ -5,17 +5,41 @@ import 'package:inclusive_app/core/errors/exceptions.dart';
 import 'package:inclusive_app/features/spot/data/models/spot_model.dart';
 import 'package:inclusive_app/features/spot/domain/entities/custom_spot.dart';
 import 'package:inclusive_app/features/spot/domain/entities/spot.dart';
-import 'package:inclusive_app/features/spot/domain/repositories/spot_repository.dart';
+import 'package:inclusive_app/features/spot/domain/usecases/add_spot_to_list.dart';
+import 'package:inclusive_app/features/spot/domain/usecases/create_custom_spot.dart';
+import 'package:inclusive_app/features/spot/domain/usecases/delete_custom_spot_list.dart';
+import 'package:inclusive_app/features/spot/domain/usecases/delete_spot.dart';
+import 'package:inclusive_app/features/spot/domain/usecases/delete_spot_from_list.dart';
+import 'package:inclusive_app/features/spot/domain/usecases/get_custom_spots.dart';
+import 'package:inclusive_app/features/spot/domain/usecases/get_user_spots.dart';
+import 'package:inclusive_app/features/spot/domain/usecases/save_spot.dart';
 
 part 'spot_event.dart';
 part 'spot_state.dart';
 
-/// BLoC para gestionar la creación y carga de spots del usuario.
+/// BLoC para gestionar spots del usuario.
+/// 
+/// Usa use cases del dominio para mantener separación de responsabilidades
+/// según Clean Architecture.
 class SpotBloc extends Bloc<SpotEvent, SpotState> {
-  final SpotRepository repository;
+  final SaveSpot saveSpot;
+  final GetUserSpots getUserSpots;
+  final DeleteSpot deleteSpot;
+  final CreateCustomSpot createCustomSpot;
+  final GetCustomSpots getCustomSpots;
+  final AddSpotToList addSpotToList;
+  final DeleteCustomSpotList deleteCustomSpotList;
+  final DeleteSpotFromList deleteSpotFromList;
 
   SpotBloc({
-    required this.repository,
+    required this.saveSpot,
+    required this.getUserSpots,
+    required this.deleteSpot,
+    required this.createCustomSpot,
+    required this.getCustomSpots,
+    required this.addSpotToList,
+    required this.deleteCustomSpotList,
+    required this.deleteSpotFromList,
   }) : super(SpotInitial()) {
     on<CreateSpotEvent>(_onCreateSpot);
     on<LoadUserSpotsEvent>(_onLoadUserSpots);
@@ -36,9 +60,12 @@ class SpotBloc extends Bloc<SpotEvent, SpotState> {
     debugPrint('🔵 [SpotBloc] Creando spot: ${event.spot.spotName}');
 
     try {
-      final spot = await repository.createSpot(event.spot);
+      final spot = await saveSpot(event.spot);
       debugPrint('✅ [SpotBloc] Spot creado exitosamente');
       emit(SpotCreated(spot: spot));
+    } on ConflictException catch (e) {
+      debugPrint('⚠️ [SpotBloc] ConflictException: ${e.message}');
+      emit(SpotError(message: e.message));
     } on ServerException catch (e) {
       debugPrint('❌ [SpotBloc] ServerException: ${e.message}');
       emit(SpotError(message: 'Error del servidor: ${e.message}'));
@@ -59,7 +86,7 @@ class SpotBloc extends Bloc<SpotEvent, SpotState> {
     emit(SpotLoading());
 
     try {
-      final spots = await repository.getUserSpots(event.userId);
+      final spots = await getUserSpots(event.userId);
       debugPrint('✅ [SpotBloc] ${spots.length} spots cargados');
       emit(SpotsLoaded(spots: spots));
     } on ServerException catch (e) {
@@ -81,7 +108,7 @@ class SpotBloc extends Bloc<SpotEvent, SpotState> {
     emit(SpotLoading());
 
     try {
-      await repository.deleteSpot(event.latitude, event.longitude);
+      await deleteSpot(event.latitude, event.longitude);
       emit(SpotDeleted());
     } on ServerException catch (e) {
       debugPrint('❌ [SpotBloc] Error al eliminar spot: ${e.message}');
@@ -103,7 +130,7 @@ class SpotBloc extends Bloc<SpotEvent, SpotState> {
     debugPrint('🔵 [SpotBloc] Creando lista: ${event.customSpot.listName}');
 
     try {
-      final customSpot = await repository.createCustomSpot(event.customSpot);
+      final customSpot = await createCustomSpot(event.customSpot);
       debugPrint('✅ [SpotBloc] Lista creada exitosamente');
       emit(CustomSpotCreated(customSpot: customSpot));
     } on ServerException catch (e) {
@@ -125,7 +152,7 @@ class SpotBloc extends Bloc<SpotEvent, SpotState> {
     emit(SpotLoading());
 
     try {
-      final customSpots = await repository.getCustomSpots();
+      final customSpots = await getCustomSpots();
       debugPrint('✅ [SpotBloc] ${customSpots.length} listas cargadas');
       emit(CustomSpotsLoaded(customSpots: customSpots));
     } on ServerException catch (e) {
@@ -148,7 +175,7 @@ class SpotBloc extends Bloc<SpotEvent, SpotState> {
 
     try {
       final spotModel = SpotModel.fromEntity(event.spot);
-      final updatedList = await repository.addSpotToList(
+      final updatedList = await addSpotToList(
         event.listName,
         spotModel,
       );
@@ -172,7 +199,7 @@ class SpotBloc extends Bloc<SpotEvent, SpotState> {
     emit(SpotLoading());
 
     try {
-      final deletedCount = await repository.deleteCustomSpotList(event.listName);
+      final deletedCount = await deleteCustomSpotList(event.listName);
       emit(CustomSpotListDeleted(deletedCount: deletedCount));
     } on ServerException catch (e) {
       debugPrint('❌ [SpotBloc] Error al eliminar lista: ${e.message}');
@@ -193,7 +220,7 @@ class SpotBloc extends Bloc<SpotEvent, SpotState> {
     emit(SpotLoading());
 
     try {
-      final deletedCount = await repository.deleteSpotFromList(
+      final deletedCount = await deleteSpotFromList(
         event.listName,
         event.latitude,
         event.longitude,

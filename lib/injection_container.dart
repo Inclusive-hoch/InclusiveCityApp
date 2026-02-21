@@ -193,7 +193,14 @@ sl.registerLazySingleton<UserEvaluationRemoteDataSource>(
 
   sl.registerFactory(
     () => SpotBloc(
-      repository: sl(),
+      saveSpot: sl(),
+      getUserSpots: sl(),
+      deleteSpot: sl(),
+      createCustomSpot: sl(),
+      getCustomSpots: sl(),
+      addSpotToList: sl(),
+      deleteCustomSpotList: sl(),
+      deleteSpotFromList: sl(),
     ),
   );
 }
