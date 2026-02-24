@@ -18,12 +18,14 @@ import 'package:inclusive_app/shared/widgets/grabber.dart';
 /// Muestra búsqueda de lugares, acceso rápido a spots guardados (Casa/Trabajo)
 /// e historial de búsquedas, replicando la experiencia de la pantalla principal.
 class OriginLocationSheet {
-  /// Muestra el modal de selección de origen.
+  /// Muestra el modal de selección de ubicación.
   ///
   /// [onOriginSelected] se llama con el nombre, latitud y longitud del lugar elegido.
+  /// [title] personaliza el título del sheet (por defecto: 'Seleccionar origen').
   static void show(
     BuildContext context, {
     required void Function(String name, double lat, double lng) onOriginSelected,
+    String title = 'Seleccionar origen',
   }) {
     showModalBottomSheet(
       context: context,
@@ -52,6 +54,7 @@ class OriginLocationSheet {
               onOriginSelected(name, lat, lng);
             },
             authBloc: context.read<AuthBloc>(),
+            title: title,
           ),
         ),
       ),
@@ -64,11 +67,13 @@ class _OriginSheetContent extends StatefulWidget {
   final ScrollController scrollController;
   final void Function(String name, double lat, double lng) onOriginSelected;
   final AuthBloc authBloc;
+  final String title;
 
   const _OriginSheetContent({
     required this.scrollController,
     required this.onOriginSelected,
     required this.authBloc,
+    required this.title,
   });
 
   @override
@@ -183,7 +188,7 @@ class _OriginSheetContentState extends State<_OriginSheetContent> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Text(
-                  'Seleccionar origen',
+                  widget.title,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
