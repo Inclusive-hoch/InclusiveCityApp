@@ -8,25 +8,7 @@ abstract class RouteEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Evento para obtener la ruta principal (Google Maps).
-class GetMainRouteEvent extends RouteEvent {
-  final double originLat;
-  final double originLng;
-  final double destLat;
-  final double destLng;
-
-  const GetMainRouteEvent({
-    required this.originLat,
-    required this.originLng,
-    required this.destLat,
-    required this.destLng,
-  });
-
-  @override
-  List<Object?> get props => [originLat, originLng, destLat, destLng];
-}
-
-/// Evento para obtener la ruta alternativa (HERE Maps).
+/// Evento para obtener la ruta segura (OpenRouteService), que evita incidencias.
 class GetAlternativeRouteEvent extends RouteEvent {
   final double originLat;
   final double originLng;
@@ -34,24 +16,6 @@ class GetAlternativeRouteEvent extends RouteEvent {
   final double destLng;
 
   const GetAlternativeRouteEvent({
-    required this.originLat,
-    required this.originLng,
-    required this.destLat,
-    required this.destLng,
-  });
-
-  @override
-  List<Object?> get props => [originLat, originLng, destLat, destLng];
-}
-
-/// Evento para obtener ambas rutas en paralelo.
-class GetBothRoutesEvent extends RouteEvent {
-  final double originLat;
-  final double originLng;
-  final double destLat;
-  final double destLng;
-
-  const GetBothRoutesEvent({
     required this.originLat,
     required this.originLng,
     required this.destLat,

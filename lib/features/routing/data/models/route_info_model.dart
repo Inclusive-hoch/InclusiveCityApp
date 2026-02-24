@@ -13,18 +13,18 @@ class RouteInfoModel extends RouteInfo {
   });
 
   /// Crea un modelo desde JSON del backend.
-  /// 
-  /// Ejemplo de respuesta esperada:
+  ///
+  /// Formato de respuesta del endpoint principal (Google):
   /// ```json
-  /// {
-  ///   "status": true,
-  ///   "data": {
-  ///     "distance": "1.7 km",
-  ///     "duration": "5 mins",
-  ///     "polyline": "encoded_polyline_string"
-  ///   }
-  /// }
+  /// { "status": true, "data": { "distance": "1.7 km", "duration": "5 mins", "polyline": "..." } }
   /// ```
+  /// Formato de respuesta del endpoint seguro (ORS):
+  /// ```json
+  /// { "status": true, "data": { "distance": "500 m", "duration": "5 min", "polyline": "..." } }
+  /// ```
+  /// - `distance`: metros como string numérico puro, o string con sufijo "km"
+  /// - `duration`: segundos como string numérico puro, o string con sufijo "min/hour"
+  /// - `polyline`: Google Encoded Polyline (tanto para Google como para ORS)
   factory RouteInfoModel.fromJson(Map<String, dynamic> json, {String? routeType}) {
     // La respuesta viene envuelta en un objeto con 'status' y 'data'
     final data = json['data'] as Map<String, dynamic>;

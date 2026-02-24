@@ -43,7 +43,7 @@ class ApiConstants {
   // === ROUTE API (puerto 8060) ===
   static String get routeBase => "$baseUrl/route";
   static String get principalRoute => "$routeBase/principal";
-  static String get secondaryRoute => "$routeBase/secondary";
+  static String get secureRoute => "$routeBase/secure";
 
   // === ACCOUNT API (puerto 8090) ===
   static String get profileBase => "$baseUrl/profile";

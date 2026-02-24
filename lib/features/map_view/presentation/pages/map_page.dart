@@ -90,39 +90,22 @@ class _MapPageState extends State<MapPage> {
                 },
                 child: BlocListener<RouteBloc, RouteState>(
                   listener: (context, routeState) {
-                    if (routeState is RouteLoaded) {
+                    if (routeState is RouteLoaded &&
+                        routeState.alternativeRoute != null) {
                       setState(() {
                         _polylines.clear();
 
-                        // Agregar ruta principal si existe
-                        if (routeState.mainRoute != null) {
-                          final mainPolyline = PolylineDecoder.createPolyline(
-                            polylineId: 'main_route',
-                            encodedPolyline:
-                                routeState.mainRoute!.encodedPolyline,
-                            color: AppColor.primaryNormal,
-                            width: 6,
-                            isHere: false, // Ruta de Google Maps
-                          );
-                          _polylines.add(mainPolyline);
-
-                          log('Ruta principal cargada: ${routeState.mainRoute!.formattedDistance}, ${routeState.mainRoute!.formattedDuration}');
-                        }
-
-                        // Agregar ruta alternativa si existe
-                        if (routeState.alternativeRoute != null) {
-                          final altPolyline = PolylineDecoder.createPolyline(
-                            polylineId: 'alternative_route',
-                            encodedPolyline:
-                                routeState.alternativeRoute!.encodedPolyline,
-                            color: Colors.orange,
-                            width: 5,
-                            isHere: true, // Ruta de HERE Maps
-                          );
-                          _polylines.add(altPolyline);
-
-                          log('Ruta alternativa cargada: ${routeState.alternativeRoute!.formattedDistance}');
-                        }
+                        // Ruta segura (ORS) → evita incidencias
+                        final securePolyline = PolylineDecoder.createPolyline(
+                          polylineId: 'secure_route',
+                          encodedPolyline:
+                              routeState.alternativeRoute!.encodedPolyline,
+                          color: AppColor.primaryNormal,
+                          width: 6,
+                          isHere: false,
+                          zIndex: 1,
+                        );
+                        _polylines.add(securePolyline);
                       });
                     }
 
@@ -131,11 +114,9 @@ class _MapPageState extends State<MapPage> {
                       setState(() {
                         _polylines.clear();
                       });
-                      log('Rutas limpiadas del mapa');
                     }
 
                     if (routeState is RouteError) {
-                      log('Error al cargar ruta: ${routeState.message}');
                       _showError(context, routeState.message);
                     }
                   },

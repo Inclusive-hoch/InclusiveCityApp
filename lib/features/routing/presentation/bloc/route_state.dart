@@ -11,36 +11,23 @@ abstract class RouteState extends Equatable {
 /// Estado inicial, sin rutas cargadas.
 class RouteInitial extends RouteState {}
 
-/// Estado de carga mientras se obtienen las rutas.
+/// Estado de carga mientras se obtiene la ruta.
 class RouteLoading extends RouteState {}
 
-/// Estado con rutas cargadas exitosamente.
-/// 
-/// Puede contener solo la ruta principal, solo la alternativa,
-/// o ambas rutas en paralelo.
+/// Estado con la ruta segura cargada exitosamente.
 class RouteLoaded extends RouteState {
-  /// Ruta principal calculada con Google Maps (puede ser null)
-  final RouteInfo? mainRoute;
-  
-  /// Ruta alternativa calculada con HERE Maps (puede ser null)
+  /// Ruta segura calculada con OpenRouteService, evita incidencias.
   final RouteInfo? alternativeRoute;
 
   const RouteLoaded({
-    required this.mainRoute,
     required this.alternativeRoute,
   });
 
   @override
-  List<Object?> get props => [mainRoute, alternativeRoute];
-
-  /// Verifica si hay al menos una ruta cargada.
-  bool get hasAnyRoute => mainRoute != null || alternativeRoute != null;
-
-  /// Verifica si ambas rutas están cargadas.
-  bool get hasBothRoutes => mainRoute != null && alternativeRoute != null;
+  List<Object?> get props => [alternativeRoute];
 }
 
-/// Estado de error al obtener las rutas.
+/// Estado de error al obtener la ruta.
 class RouteError extends RouteState {
   final String message;
 

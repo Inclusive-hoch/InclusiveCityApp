@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 /// Entidad que representa información de una ruta calculada.
 /// 
 /// Contiene el polyline codificado, distancia, duración y tipo de ruta.
-/// Puede ser una ruta principal (Google) o secundaria (HERE).
+/// Puede ser una ruta principal (Google) o segura (OpenRouteService).
 class RouteInfo extends Equatable {
   /// Polyline codificado de la ruta
   final String encodedPolyline;
@@ -14,7 +14,7 @@ class RouteInfo extends Equatable {
   /// Duración estimada de la ruta en segundos
   final double durationSeconds;
   
-  /// Tipo de ruta: 'main' para Google o 'alternative' para HERE
+  /// Tipo de ruta: 'main' para Google o 'alternative' para OpenRouteService
   final String routeType;
 
   const RouteInfo({

@@ -1,10 +1,9 @@
 import 'package:inclusive_app/features/routing/domain/entities/route_info.dart';
 import 'package:inclusive_app/features/routing/domain/repositories/route_repository.dart';
 
-/// Caso de uso para obtener la ruta alternativa usando HERE Maps API.
+/// Caso de uso para obtener la ruta segura usando OpenRouteService (ORS).
 /// 
 /// Calcula una ruta que evita incidencias registradas en el sistema.
-/// Esta funcionalidad está preparada para futuras implementaciones.
 class GetAlternativeRoute {
   final RouteRepository repository;
 

@@ -47,7 +47,6 @@ import 'package:inclusive_app/features/routing/data/datasources/route_remote_dat
 import 'package:inclusive_app/features/routing/data/datasources/route_remote_datasource_impl.dart';
 import 'package:inclusive_app/features/routing/data/repositories/route_repository_impl.dart';
 import 'package:inclusive_app/features/routing/domain/repositories/route_repository.dart';
-import 'package:inclusive_app/features/routing/domain/usecases/get_main_route.dart';
 import 'package:inclusive_app/features/routing/domain/usecases/get_alternative_route.dart';
 import 'package:inclusive_app/features/routing/presentation/bloc/route_bloc.dart';
 
@@ -212,13 +211,11 @@ sl.registerLazySingleton<UserEvaluationRemoteDataSource>(
   );
 
   // Routing - UseCases
-  sl.registerLazySingleton(() => GetMainRoute(sl()));
   sl.registerLazySingleton(() => GetAlternativeRoute(sl()));
 
   // Routing - Bloc
   sl.registerFactory(
     () => RouteBloc(
-      getMainRoute: sl(),
       getAlternativeRoute: sl(),
     ),
   );

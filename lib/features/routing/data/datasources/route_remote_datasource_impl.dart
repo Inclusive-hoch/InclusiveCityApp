@@ -17,23 +17,6 @@ class RouteRemoteDataSourceImpl implements RouteRemoteDataSource {
   });
 
   @override
-  Future<RouteInfoModel> getMainRoute({
-    required double originLat,
-    required double originLng,
-    required double destLat,
-    required double destLng,
-  }) async {
-    return _fetchRoute(
-      endpoint: ApiConstants.principalRoute,
-      originLat: originLat,
-      originLng: originLng,
-      destLat: destLat,
-      destLng: destLng,
-      routeType: 'main',
-    );
-  }
-
-  @override
   Future<RouteInfoModel> getAlternativeRoute({
     required double originLat,
     required double originLng,
@@ -41,7 +24,7 @@ class RouteRemoteDataSourceImpl implements RouteRemoteDataSource {
     required double destLng,
   }) async {
     return _fetchRoute(
-      endpoint: ApiConstants.secondaryRoute,
+      endpoint: ApiConstants.secureRoute,
       originLat: originLat,
       originLng: originLng,
       destLat: destLat,

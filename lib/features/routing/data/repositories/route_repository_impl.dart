@@ -12,26 +12,6 @@ class RouteRepositoryImpl implements RouteRepository {
   RouteRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<RouteInfo> getMainRoute({
-    required double originLat,
-    required double originLng,
-    required double destLat,
-    required double destLng,
-  }) async {
-    try {
-      final routeModel = await remoteDataSource.getMainRoute(
-        originLat: originLat,
-        originLng: originLng,
-        destLat: destLat,
-        destLng: destLng,
-      );
-      return routeModel;
-    } catch (e) {
-      throw Exception('Error al obtener ruta principal: $e');
-    }
-  }
-
-  @override
   Future<RouteInfo> getAlternativeRoute({
     required double originLat,
     required double originLng,

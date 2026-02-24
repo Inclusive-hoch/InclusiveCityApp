@@ -4,7 +4,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/core/utils/polyline_decoder.dart';
 import 'package:inclusive_app/features/routing/presentation/bloc/route_bloc.dart';
-import 'package:inclusive_app/features/routing/presentation/widgets/route_info_card.dart';
+import 'package:inclusive_app/features/routing/presentation/widgets/origin_location_sheet.dart';
 
 /// Página de selección de ruta que muestra el mapa con la ruta generada.
 /// 
@@ -48,15 +48,25 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
   final Set<Polyline> _polylines = {};
   final Set<Marker> _markers = {};
 
+  // Estado mutable para el origen (puede cambiar si el usuario lo edita)
+  late double _originLat;
+  late double _originLng;
+  late String _originName;
+
   @override
   void initState() {
     super.initState();
+
+    // Inicializar origen desde los parámetros del widget
+    _originLat = widget.originLat;
+    _originLng = widget.originLng;
+    _originName = widget.originName;
     
-    // Generar la ruta al iniciar la pantalla
+    // Obtener la ruta segura al iniciar la pantalla (evita incidencias)
     context.read<RouteBloc>().add(
-      GetMainRouteEvent(
-        originLat: widget.originLat,
-        originLng: widget.originLng,
+      GetAlternativeRouteEvent(
+        originLat: _originLat,
+        originLng: _originLng,
         destLat: widget.destLat,
         destLng: widget.destLng,
       ),
@@ -74,15 +84,17 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
 
   /// Configura los marcadores de origen y destino en el mapa
   void _setupMarkers() {
+    _markers.clear();
+
     // Marcador de origen - círculo azul
     _markers.add(
       Marker(
         markerId: const MarkerId('origin'),
-        position: LatLng(widget.originLat, widget.originLng),
+        position: LatLng(_originLat, _originLng),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
         infoWindow: InfoWindow(
-          title: 'Mi ubicación', 
-          snippet: widget.originName,
+          title: 'Origen', 
+          snippet: _originName,
         ),
       ),
     );
@@ -101,18 +113,46 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
     );
   }
 
+  /// Actualiza el origen y recalcula la ruta.
+  void _onOriginSelected(String name, double lat, double lng) {
+    setState(() {
+      _originLat = lat;
+      _originLng = lng;
+      _originName = name;
+      _polylines.clear();
+      _setupMarkers();
+    });
+
+    context.read<RouteBloc>().add(
+      GetAlternativeRouteEvent(
+        originLat: _originLat,
+        originLng: _originLng,
+        destLat: widget.destLat,
+        destLng: widget.destLng,
+      ),
+    );
+  }
+
+  /// Abre el selector de ubicación de origen.
+  void _showOriginSelector() {
+    OriginLocationSheet.show(
+      context,
+      onOriginSelected: _onOriginSelected,
+    );
+  }
+
   /// Ajusta la cámara para mostrar toda la ruta
   void _fitRouteBounds() {
     if (_mapController == null) return;
     
     final bounds = LatLngBounds(
       southwest: LatLng(
-        widget.originLat < widget.destLat ? widget.originLat : widget.destLat,
-        widget.originLng < widget.destLng ? widget.originLng : widget.destLng,
+        _originLat < widget.destLat ? _originLat : widget.destLat,
+        _originLng < widget.destLng ? _originLng : widget.destLng,
       ),
       northeast: LatLng(
-        widget.originLat > widget.destLat ? widget.originLat : widget.destLat,
-        widget.originLng > widget.destLng ? widget.originLng : widget.destLng,
+        _originLat > widget.destLat ? _originLat : widget.destLat,
+        _originLng > widget.destLng ? _originLng : widget.destLng,
       ),
     );
     
@@ -130,21 +170,21 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
           Positioned.fill(
             child: BlocConsumer<RouteBloc, RouteState>(
               listener: (context, state) {
-                if (state is RouteLoaded && state.mainRoute != null) {
+                if (state is RouteLoaded && state.alternativeRoute != null) {
                   setState(() {
                     _polylines.clear();
-                    
-                    final polyline = PolylineDecoder.createPolyline(
-                      polylineId: 'main_route',
-                      encodedPolyline: state.mainRoute!.encodedPolyline,
+
+                    // Ruta segura (ORS) → evita incidencias
+                    _polylines.add(PolylineDecoder.createPolyline(
+                      polylineId: 'secure_route',
+                      encodedPolyline: state.alternativeRoute!.encodedPolyline,
                       color: AppColor.primaryNormal,
                       width: 8,
                       isHere: false,
-                    );
-                    
-                    _polylines.add(polyline);
+                      zIndex: 1,
+                    ));
                   });
-                  
+
                   // Ajustar la cámara para mostrar toda la ruta
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     _fitRouteBounds();
@@ -219,23 +259,38 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        // Campo de texto separado
+                        // Campo de texto de origen (tappable)
                         Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey.shade300, width: 1),
-                            ),
-                            child: Text(
-                              widget.originName,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
+                          child: GestureDetector(
+                            onTap: _showOriginSelector,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColor.primaryNormal.withOpacity(0.4), width: 1.5),
                               ),
-                              overflow: TextOverflow.ellipsis,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      _originName,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.edit_location_alt_outlined,
+                                    size: 18,
+                                    color: AppColor.primaryNormal.withOpacity(0.7),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -262,7 +317,7 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        // Campo de texto separado
+                        // Campo de texto de destino
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -319,7 +374,8 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Información de la ruta - sin icono de flecha
-                          if (state is RouteLoaded && state.mainRoute != null) ...[
+                          // Mostrar info de la ruta segura (HERE) cuando esté disponible
+                          if (state is RouteLoaded && state.alternativeRoute != null) ...[
                             Padding(
                               padding: const EdgeInsets.only(bottom: 20.0),
                               child: Row(
@@ -327,7 +383,7 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
                                 children: [
                                   // Duración con mejor contraste
                                   Text(
-                                    state.mainRoute!.formattedDuration,
+                                    state.alternativeRoute!.formattedDuration,
                                     style: const TextStyle(
                                       fontSize: 36,
                                       fontWeight: FontWeight.w900,
@@ -336,14 +392,14 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
                                     ),
                                   ),
                                   const SizedBox(width: 20),
-                                  
-                                  // Información de distancia y ruta
+
+                                  // Información de distancia y ruta segura
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          state.mainRoute!.formattedDistance,
+                                          state.alternativeRoute!.formattedDistance,
                                           style: const TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.w700,
@@ -352,7 +408,7 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          'Por ${widget.originName.split(',').first}, ${widget.destName.split(',').first}',
+                                          'Por ${_originName.split(',').first}, ${widget.destName.split(',').first}',
                                           style: const TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.w500,
@@ -362,7 +418,7 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
                                         ),
                                         const SizedBox(height: 4),
                                         const Text(
-                                          'Mejor ruta, menos incidencias',
+                                          'Ruta segura, sin incidencias',
                                           style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w500,

@@ -7,7 +7,6 @@ import 'package:inclusive_app/features/places/presentation/widget/raiting.dart';
 import 'package:inclusive_app/features/places/presentation/widget/medals.dart';
 import 'package:inclusive_app/features/places/presentation/widget/feedback.dart' as place_feedback;
 import 'package:inclusive_app/shared/widgets/grabber.dart';
-import 'package:inclusive_app/features/routing/presentation/bloc/route_bloc.dart';
 import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart' as map_bloc;
 import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
 import 'package:inclusive_app/injection_container.dart' as di;
