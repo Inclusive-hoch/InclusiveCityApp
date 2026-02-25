@@ -44,10 +44,15 @@ class RouteLocationCard extends StatelessWidget {
             Row(
               children: [
                 // Icono de origen
-                SvgPicture.asset(
-                  'assets/routeLogo/inicio_ruta.svg',
+                SizedBox(
                   width: 24,
                   height: 24,
+                  child: SvgPicture.asset(
+                    'assets/routeLogo/inicio_ruta.svg',
+                    width: 24,
+                    height: 24,
+                    fit: BoxFit.contain,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 // Campo de origen
@@ -116,10 +121,15 @@ class RouteLocationCard extends StatelessWidget {
             Row(
               children: [
                 // Icono de destino
-                SvgPicture.asset(
-                  'assets/routeLogo/llegada_logo.svg',
+                SizedBox(
                   width: 24,
                   height: 24,
+                  child: SvgPicture.asset(
+                    'assets/routeLogo/llegada_logo.svg',
+                    width: 24,
+                    height: 24,
+                    fit: BoxFit.contain,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 // Campo de destino
