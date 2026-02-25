@@ -38,9 +38,22 @@ class RouteInfo extends Equatable {
     return '${km.toStringAsFixed(1)} km';
   }
 
-  /// Formatea la duración en minutos
+  /// Formatea la duración en minutos u horas según corresponda
   String get formattedDuration {
-    final minutes = (durationSeconds / 60).round();
-    return '$minutes min';
+    final totalMinutes = (durationSeconds / 60).round();
+    
+    if (totalMinutes < 60) {
+      return '$totalMinutes min';
+    }
+    
+    final hours = totalMinutes ~/ 60;
+    final minutes = totalMinutes % 60;
+    
+    if (minutes == 0) {
+      return hours == 1 ? '1 hora' : '$hours horas';
+    }
+    
+    final hourText = hours == 1 ? '1 hora' : '$hours horas';
+    return '$hourText $minutes min';
   }
 }

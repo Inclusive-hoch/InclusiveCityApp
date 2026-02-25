@@ -55,7 +55,7 @@ class ProfileDetailsView extends StatelessWidget {
                   const Divider(color: AppColor.primaryLight, height: 1),
                   // Avatar y nombre
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
                     child: Column(
                       children: [
                         ProfileAvatar(
@@ -70,6 +70,7 @@ class ProfileDetailsView extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                             color: AppColor.secondaryNormal,
                           ),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),

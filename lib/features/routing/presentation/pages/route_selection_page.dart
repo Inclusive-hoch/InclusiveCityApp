@@ -104,18 +104,19 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
   Future<void> _loadCustomIcons() async {
   try {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // 1. Usa el tamaño de tu Figma directamente (ej: 33 o 30)
-      // No lo multipliques por el ratio aquí, la función lo hará por ti.
-      const double targetSize = 33.0; 
+      // Tamaño para el icono de origen (cuadrado 33x33)
+      const double originSize = 33.0; 
 
       final origin = await bitmap_utils.bitmapDescriptorFromSvgAsset(
         'assets/routeLogo/inicio_ruta.svg',
-        const Size(targetSize, targetSize),
+        const Size(originSize, originSize),
       );
       
+      // Tamaño para el icono de destino respetando su aspect ratio original (25:32)
+      // El SVG original es 25x32, mantenemos esa proporción
       final dest = await bitmap_utils.bitmapDescriptorFromSvgAsset(
         'assets/routeLogo/llegada_logo.svg',
-        const Size(targetSize, targetSize),
+        const Size(25, 32),
       );
       
       if (mounted) {
@@ -309,7 +310,7 @@ void _setupMarkers() {
         PolylineDecoder.createPolyline(
           polylineId: 'secure_route',
           encodedPolyline: state.alternativeRoute!.encodedPolyline,
-          color: AppColor.primaryNormal,
+          color: const Color(0xFF7878FF), // Color más claro para diferenciarlo del icono de origen
           width: 8,
           isHere: false,
           zIndex: 1,

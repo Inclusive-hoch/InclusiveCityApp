@@ -100,7 +100,7 @@ class _MapPageState extends State<MapPage> {
                           polylineId: 'secure_route',
                           encodedPolyline:
                               routeState.alternativeRoute!.encodedPolyline,
-                          color: AppColor.primaryNormal,
+                          color: const Color(0xFF7878FF), // Color más claro para diferenciarlo
                           width: 6,
                           isHere: false,
                           zIndex: 1,

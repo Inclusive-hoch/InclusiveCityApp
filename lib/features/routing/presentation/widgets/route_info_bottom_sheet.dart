@@ -71,21 +71,27 @@ class RouteInfoBottomSheet extends StatelessWidget {
   }
 
   Widget _buildRouteInfo(RouteLoaded state, BuildContext context) {
+    final duration = state.alternativeRoute!.formattedDuration;
+    final isLongDuration = duration.contains('hora');
+    
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Duración
-          Text(
-            state.alternativeRoute!.formattedDuration,
-            style: const TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.w900,
-              color: Colors.black87,
-              letterSpacing: -0.5,
+          if (isLongDuration)
+            _buildMultiLineDuration(duration)
+          else
+            Text(
+              duration,
+              style: const TextStyle(
+                fontSize: 36,
+                fontWeight: FontWeight.w900,
+                color: Colors.black87,
+                letterSpacing: -0.5,
+              ),
             ),
-          ),
           const SizedBox(width: 20),
 
           // Información de distancia y ruta
@@ -126,6 +132,55 @@ class RouteInfoBottomSheet extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildMultiLineDuration(String duration) {
+    // Divide la duración en líneas cuando contiene horas
+    // Ejemplo: "20 horas 26 min" -> "20 horas" + "26 min"
+    final parts = duration.split(' ');
+    
+    if (parts.length >= 4) {
+      // Formato: "X hora(s) Y min"
+      final hoursPart = '${parts[0]} ${parts[1]}';
+      final minutesPart = '${parts[2]} ${parts[3]}';
+      
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            hoursPart,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              color: Colors.black87,
+              letterSpacing: -0.5,
+              height: 1.1,
+            ),
+          ),
+          Text(
+            minutesPart,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              color: Colors.black87,
+              letterSpacing: -0.5,
+              height: 1.1,
+            ),
+          ),
+        ],
+      );
+    } else {
+      // Formato solo horas: "X hora(s)"
+      return Text(
+        duration,
+        style: const TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.w900,
+          color: Colors.black87,
+          letterSpacing: -0.5,
+        ),
+      );
+    }
   }
 
   Widget _buildCancelButton() {

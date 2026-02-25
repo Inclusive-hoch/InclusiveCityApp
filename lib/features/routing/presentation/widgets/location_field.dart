@@ -5,7 +5,7 @@ import 'package:inclusive_app/core/theme/app_color.dart';
 class LocationField extends StatelessWidget {
   final String locationName;
   final Color iconColor;
-  final IconData iconData;
+  final IconData? iconData;
   final bool isEditable;
   final VoidCallback? onTap;
 
@@ -13,7 +13,7 @@ class LocationField extends StatelessWidget {
     super.key,
     required this.locationName,
     required this.iconColor,
-    required this.iconData,
+    this.iconData,
     this.isEditable = false,
     this.onTap,
   });
@@ -30,11 +30,13 @@ class LocationField extends StatelessWidget {
             color: iconColor,
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            iconData,
-            color: Colors.white,
-            size: 14,
-          ),
+          child: iconData != null
+              ? Icon(
+                  iconData!,
+                  color: Colors.white,
+                  size: 14,
+                )
+              : null,
         ),
         const SizedBox(width: 12),
         
