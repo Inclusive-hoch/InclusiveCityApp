@@ -156,45 +156,24 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               ),
               const SizedBox(height: 16),
 
-              // Botones de ruta
+              // Botón de ruta
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _onGenerateRoute(context),
-                        icon: const Icon(Icons.route, size: 20),
-                        label: const Text('Generar ruta'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColor.primaryNormal,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _onGenerateRoute(context),
+                    icon: const Icon(Icons.route, size: 20),
+                    label: const Text('Generar ruta'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColor.primaryNormal,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          // TODO: Iniciar navegación
-                          print('Iniciar ruta');
-                        },
-                        icon: const Icon(Icons.navigation, size: 20),
-                        label: const Text('Iniciar ruta'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColor.primaryNormal,
-                          side: BorderSide(color: AppColor.primaryNormal),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
