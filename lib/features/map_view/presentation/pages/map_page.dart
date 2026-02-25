@@ -13,7 +13,6 @@ import 'package:inclusive_app/features/places/presentation/screen/place_details_
 import 'package:inclusive_app/core/utils/polyline_decoder.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/incidents/presentation/views/incident_type_container.dart';
-import 'package:inclusive_app/features/reviews/presentation/views/review_container.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -181,17 +180,6 @@ class _MapPageState extends State<MapPage> {
             ),
           ),
 
-          /// BOTÓN REVIW (TEMPORAL)
-          Positioned(
-            top: 48,
-            right: 16,
-            child: CustomFloatingActionButton.square(
-              icon: Icons.rate_review_outlined,
-              heroTag: 'map_review_fab',
-              onPressed: () => _showReviewModal(context),
-            ),
-          ),
-
           /// SEARCH / BOTTOM SHEET
           DraggableScrollableSheet(
             initialChildSize: 0.15,
@@ -218,15 +206,6 @@ class _MapPageState extends State<MapPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const IncidentTypeContainer(),
-    );
-  }
-
-  void _showReviewModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const ReviewContainer(),
     );
   }
 

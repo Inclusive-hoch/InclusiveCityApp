@@ -8,7 +8,6 @@ import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:inclusive_app/features/spot/presentation/widgets/add_place_app_bar.dart';
 import 'package:inclusive_app/features/spot/presentation/widgets/place_name_dialog.dart';
 import 'package:inclusive_app/features/spot/presentation/widgets/recent_place_item.dart';
-import 'package:flutter/foundation.dart';
 
 /// Página para agregar un nuevo lugar guardado.
 /// 

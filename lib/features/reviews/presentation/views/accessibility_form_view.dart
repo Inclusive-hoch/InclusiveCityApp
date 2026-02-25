@@ -20,107 +20,121 @@ class AccessibilityFormView extends StatelessWidget {
 
         final currentQuestion = state.questions[state.currentQuestionIndex];
 
-        return ListView(
-          controller: scrollController,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        return Column(
           children: [
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () {
-                    context.read<ReviewBloc>().add(ReviewBackRequested());
-                  },
-                  icon: const Icon(Icons.arrow_back),
-                  color: AppColor.primaryNormalActive,
+            // Contenido scrolleable
+            Expanded(
+              child: ListView(
+                controller: scrollController,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
                 ),
-                Expanded(
-                  child: Text(
-                    'Formulario de accesibilidad',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColor.primaryNormalActive,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          context.read<ReviewBloc>().add(ReviewBackRequested());
+                        },
+                        icon: const Icon(Icons.arrow_back),
+                        color: AppColor.primaryNormalActive,
+                      ),
+                      Expanded(
+                        child: Text(
+                          'Formulario de accesibilidad',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColor.primaryNormalActive,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  ProgressDots(
+                    totalSteps: state.questions.length,
+                    currentStep: state.currentQuestionIndex,
+                    stepsAnsweredState: state.questions
+                        .map((q) => q.answer)
+                        .toList(),
+                    onPrevious: state.currentQuestionIndex > 0
+                        ? () => context.read<ReviewBloc>().add(
+                            ReviewBackRequested(),
+                          )
+                        : null,
+                    onNext:
+                        state.currentQuestionIndex < state.questions.length - 1
+                        ? () => context.read<ReviewBloc>().add(
+                            ReviewNextRequested(),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(height: 40),
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColor.primaryLight.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      currentQuestion.question,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        color: AppColor.neutralDarkNormal,
+                        height: 1.4,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            ProgressDots(
-              totalSteps: state.questions.length,
-              currentStep: state.currentQuestionIndex,
-              stepsAnsweredState: state.questions.map((q) => q.answer).toList(),
-              onPrevious: state.currentQuestionIndex > 0
-                  ? () => context.read<ReviewBloc>().add(ReviewBackRequested())
-                  : null,
-              onNext: state.currentQuestionIndex < state.questions.length - 1
-                  ? () => context.read<ReviewBloc>().add(ReviewNextRequested())
-                  : null,
-            ),
-            const SizedBox(height: 40),
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColor.primaryLight.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                currentQuestion.question,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  color: AppColor.neutralDarkNormal,
-                  height: 1.4,
-                ),
+                ],
               ),
             ),
-            const SizedBox(height: 48),
-            CustomFilledButton(
-              label: 'Si cumple',
-              style: CustomButtonStyle.success,
-              icon: Icons.check,
-              width: double.infinity,
-              onPressed: () {
-                context.read<ReviewBloc>().add(
-                  ReviewQuestionAnswered(currentQuestion.id, true),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            CustomFilledButton(
-              label: 'No cumple',
-              style: CustomButtonStyle.error,
-              icon: Icons.close,
-              width: double.infinity,
-              onPressed: () {
-                context.read<ReviewBloc>().add(
-                  ReviewQuestionAnswered(currentQuestion.id, false),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            CustomFilledButton(
-              label: 'No aplica',
-              style: CustomButtonStyle.neutral,
-              icon: Icons.horizontal_rule,
-              width: double.infinity,
-              onPressed: () {
-                context.read<ReviewBloc>().add(
-                  ReviewQuestionAnswered(currentQuestion.id, false),
-                );
-              },
-            ),
-            const SizedBox(height: 32),
-            const Divider(),
-            const SizedBox(height: 16),
-            CustomFilledButton(
-              label: 'Finalizar el formulario',
-              style: CustomButtonStyle.success,
-              width: double.infinity,
-              onPressed: () {
-                context.read<ReviewBloc>().add(ReviewFinalizeRequested());
-              },
+            // Botones fijos abajo
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomFilledButton(
+                    label: 'Si cumple',
+                    style: CustomButtonStyle.success,
+                    icon: Icons.check,
+                    width: double.infinity,
+                    onPressed: () {
+                      context.read<ReviewBloc>().add(
+                        ReviewQuestionAnswered(currentQuestion.id, true),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  CustomFilledButton(
+                    label: 'No cumple',
+                    style: CustomButtonStyle.error,
+                    icon: Icons.close,
+                    width: double.infinity,
+                    onPressed: () {
+                      context.read<ReviewBloc>().add(
+                        ReviewQuestionAnswered(currentQuestion.id, false),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  CustomFilledButton(
+                    label: 'No aplica',
+                    style: CustomButtonStyle.neutral,
+                    icon: Icons.horizontal_rule,
+                    width: double.infinity,
+                    onPressed: () {
+                      context.read<ReviewBloc>().add(
+                        ReviewQuestionAnswered(currentQuestion.id, false),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ],
         );

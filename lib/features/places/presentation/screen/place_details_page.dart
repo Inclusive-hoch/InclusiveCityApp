@@ -5,32 +5,34 @@ import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/places/presentation/widget/photo_gallery.dart';
 import 'package:inclusive_app/features/places/presentation/widget/raiting.dart';
 import 'package:inclusive_app/features/places/presentation/widget/medals.dart';
-import 'package:inclusive_app/features/places/presentation/widget/feedback.dart' as place_feedback;
+import 'package:inclusive_app/features/places/presentation/widget/feedback.dart'
+    as place_feedback;
 import 'package:inclusive_app/shared/widgets/grabber.dart';
 import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart' as map_bloc;
 import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
 import 'package:inclusive_app/injection_container.dart' as di;
+import 'package:inclusive_app/features/reviews/presentation/views/review_container.dart';
 
 /// Página de detalles de un lugar con información de accesibilidad
-/// 
+///
 /// Panel deslizable que muestra información completa del lugar.
 /// Se puede deslizar hacia abajo para cerrar.
 class PlaceDetailsPage extends StatefulWidget {
   /// ID del lugar a mostrar
   final String placeId;
-  
+
   /// Nombre del lugar
   final String placeName;
-  
+
   /// Dirección del lugar
   final String address;
-  
+
   /// Referencias de las fotos del lugar
   final List<String> photoReferences;
-  
+
   /// Calificación del lugar (0-100)
   final double rating;
-  
+
   /// Lista de medallas de accesibilidad
   final List<String> medals;
 
@@ -92,7 +94,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               // Grabber para indicar que es deslizable
               const Center(child: Grabber()),
               const SizedBox(height: 8),
-              
+
               // Header con título y botones de acción
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -139,25 +141,21 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               // Rating y medallas
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  children: [
-                    Rating(rating: widget.rating),
-                  ],
-                ),
+                child: Row(children: [Rating(rating: widget.rating)]),
               ),
               const SizedBox(height: 12),
-              
+
               // Medallas de accesibilidad
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: AccessibilityMedalsSection(medals: widget.medals),
               ),
               const SizedBox(height: 16),
-              
+
               // Botones de ruta
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -200,7 +198,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 ),
               ),
               const SizedBox(height: 16),
-              
+
               // Galería de fotos
               SizedBox(
                 height: 250,
@@ -216,7 +214,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       ),
               ),
               const SizedBox(height: 16),
-              
+
               // Dirección
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -242,17 +240,14 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Botón de reseñar accesibilidad
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // TODO: Navegar a la página de reseña
-                      print('Reseñar Accesibilidad');
-                    },
+                    onPressed: () => _showReviewModal(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColor.primaryNormal,
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -272,7 +267,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Pregunta de feedback
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -304,16 +299,19 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     if (mapState is map_bloc.MapLocationLoaded) {
       // Cerrar el modal de detalles del lugar
       Navigator.pop(context);
-      
+
       // Navegar a la pantalla de selección de ruta
-      context.push('/route-selection', extra: {
-        'originLat': mapState.latitude,
-        'originLng': mapState.longitude,
-        'destLat': widget.latitude,
-        'destLng': widget.longitude,
-        'originName': 'Mi ubicación',
-        'destName': widget.placeName,
-      });
+      context.push(
+        '/route-selection',
+        extra: {
+          'originLat': mapState.latitude,
+          'originLng': mapState.longitude,
+          'destLat': widget.latitude,
+          'destLng': widget.longitude,
+          'originName': 'Mi ubicación',
+          'destName': widget.placeName,
+        },
+      );
     } else {
       // No tenemos ubicación del usuario, mostrar error
       ScaffoldMessenger.of(context).showSnackBar(
@@ -326,5 +324,15 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         ),
       );
     }
+  }
+
+  /// Abre el modal de reseña de accesibilidad
+  void _showReviewModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const ReviewContainer(),
+    );
   }
 }

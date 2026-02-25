@@ -14,48 +14,57 @@ class ComplianceMenuView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      controller: scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+    return Column(
       children: [
-        Text(
-          'Formulario de cumplimiento',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: AppColor.secondaryNormal,
+        // Contenido scrolleable
+        Expanded(
+          child: ListView(
+            controller: scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            children: [
+              Text(
+                'Formulario de cumplimiento',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColor.secondaryNormal,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 16),
+              ...ReviewCategory.values.map((category) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Column(
+                    children: [
+                      ReviewOptionTile(
+                        title: category.label,
+                        iconPath: category.iconPath,
+                        onTap: () {
+                          context.read<ReviewBloc>().add(
+                            ReviewCategorySelected(category),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
           ),
         ),
-        const SizedBox(height: 16),
-        const Divider(),
-        const SizedBox(height: 16),
-        ...ReviewCategory.values.map((category) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Column(
-              children: [
-                ReviewOptionTile(
-                  title: category.label,
-                  iconPath: category.iconPath,
-                  onTap: () {
-                    context.read<ReviewBloc>().add(
-                      ReviewCategorySelected(category),
-                    );
-                  },
-                ),
-              ],
-            ),
-          );
-        }),
-        const Divider(),
-        const SizedBox(height: 16),
-        CustomFilledButton(
-          label: 'Finalizar el formulario',
-          style: CustomButtonStyle.success,
-          width: double.infinity,
-          onPressed: () {
-            context.read<ReviewBloc>().add(ReviewFinalizeRequested());
-          },
+        // Botón fijo abajo
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+          child: CustomFilledButton(
+            label: 'Finalizar el formulario',
+            style: CustomButtonStyle.success,
+            width: double.infinity,
+            onPressed: () {
+              context.read<ReviewBloc>().add(ReviewFinalizeRequested());
+            },
+          ),
         ),
       ],
     );
