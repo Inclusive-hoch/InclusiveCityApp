@@ -149,7 +149,7 @@ class IncidenceDetailSheet extends StatelessWidget {
     final incidence = incidences.first;
 
     try {
-      final userId = di.sl<FirebaseAuthService>().currentUser?.uid ?? '';
+      final userId = di.sl<FirebaseAuthService>().getCurrentUserId() ?? '';
       final repository = di.sl<IncidentRepository>();
 
       await repository.insertIncidence(
