@@ -84,8 +84,7 @@ class _OriginSheetContentState extends State<_OriginSheetContent> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
-  Spot? _homeSpot;
-  Spot? _workSpot;
+  List<Spot> _spots = [];
 
   @override
   void initState() {
@@ -136,25 +135,7 @@ class _OriginSheetContentState extends State<_OriginSheetContent> {
       listener: (context, state) {
         if (state is SpotsLoaded) {
           setState(() {
-            try {
-              _homeSpot = state.spots.firstWhere(
-                (s) =>
-                    s.type?.toLowerCase() == 'home' ||
-                    s.type?.toLowerCase() == 'casa',
-              );
-            } catch (_) {
-              _homeSpot = null;
-            }
-
-            try {
-              _workSpot = state.spots.firstWhere(
-                (s) =>
-                    s.type?.toLowerCase() == 'work' ||
-                    s.type?.toLowerCase() == 'trabajo',
-              );
-            } catch (_) {
-              _workSpot = null;
-            }
+            _spots = state.spots;
           });
         }
       },
@@ -251,23 +232,13 @@ class _OriginSheetContentState extends State<_OriginSheetContent> {
 
               // Acceso rápido: Casa y Trabajo
               SpotQuickAccessBar(
-                onHomeTap: _homeSpot != null
-                    ? () => widget.onOriginSelected(
-                          _homeSpot!.spotName,
-                          _homeSpot!.latitude,
-                          _homeSpot!.longitude,
-                        )
-                    : null,
-                onWorkTap: _workSpot != null
-                    ? () => widget.onOriginSelected(
-                          _workSpot!.spotName,
-                          _workSpot!.latitude,
-                          _workSpot!.longitude,
-                        )
-                    : null,
+                spots: _spots,
+                onSpotTap: (spot) => widget.onOriginSelected(
+                  spot.spotName,
+                  spot.latitude,
+                  spot.longitude,
+                ),
                 onAddTap: null,
-                hasHome: _homeSpot != null,
-                hasWork: _workSpot != null,
               ),
 
               // Resultados de búsqueda / Historial
