@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:markers_cluster_google_maps_flutter/markers_cluster_google_maps_flutter.dart';
 import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart'
     as map_bloc;
+import 'package:inclusive_app/features/incidents/domain/entities/sector_incidence_entity.dart';
+import 'package:inclusive_app/features/incidents/presentation/constants/incidence_marker_icons.dart';
+import 'package:inclusive_app/core/utils/marker_icon_generator.dart';
 import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart';
 import 'package:inclusive_app/features/routing/presentation/bloc/route_bloc.dart';
 import 'package:inclusive_app/shared/widgets/custom_floating_action_button.dart';
@@ -11,8 +15,8 @@ import 'package:inclusive_app/features/map_view/presentation/controller/map_page
 import 'package:inclusive_app/features/places/presentation/screen/search_page.dart';
 import 'package:inclusive_app/features/places/presentation/screen/place_details_page.dart';
 import 'package:inclusive_app/core/utils/polyline_decoder.dart';
-import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/incidents/presentation/views/incident_type_container.dart';
+import 'package:inclusive_app/features/incidents/presentation/views/incidence_detail_sheet.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -26,17 +30,54 @@ class _MapPageState extends State<MapPage> {
   late final MapPageController _controller;
   final Set<Polyline> _polylines = {};
 
+  /// Cluster manager para agrupar markers de incidencias.
+  late MarkersClusterManager _clusterManager;
+
+  /// Lista de incidencias actualmente cargadas (para lookup al hacer tap).
+  List<SectorIncidenceEntity> _loadedIncidences = [];
+
+  /// Zoom actual del mapa, usado por el cluster manager.
+  double _currentZoom = 2.0;
+
   static const double _userLocationZoom = 15;
+
+  /// Umbral de zoom a partir del cual se muestran incidencias.
+  static const double _incidenceZoomThreshold = 14.0;
+
+  /// Color del cluster de incidencias.
+  static const Color _clusterColor = Color(0xFFFF8C00);
+
+  /// Indica si actualmente se están mostrando incidencias.
+  bool _showingIncidences = false;
 
   static const CameraPosition _defaultPosition = CameraPosition(
     target: LatLng(0, 0),
     zoom: 2,
   );
 
+  /// Crea una nueva instancia del cluster manager con la configuración estándar.
+  MarkersClusterManager _buildClusterManager() {
+    return MarkersClusterManager(
+      clusterColor: _clusterColor,
+      clusterBorderThickness: 8.0,
+      clusterBorderColor: Colors.white,
+      clusterOpacity: 1.0,
+      clusterTextStyle: const TextStyle(
+        fontSize: 32,
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+      ),
+      onMarkerTap: (LatLng position) {
+        _onIncidenceMarkerTapped(position);
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     _controller = MapPageController();
+    _clusterManager = _buildClusterManager();
 
     context.read<map_bloc.MapBloc>().add(map_bloc.GetUserLocationEvent());
   }
@@ -86,6 +127,18 @@ class _MapPageState extends State<MapPage> {
                   if (state is map_bloc.MapError) {
                     _showError(context, state.message);
                   }
+
+                  // Manejar incidencias cargadas con clustering
+                  if (state is map_bloc.SectorIncidencesLoaded) {
+                    _handleIncidencesLoaded(state.incidences);
+                  }
+
+                  // Limpiar markers de incidencias
+                  if (state is map_bloc.SectorIncidencesCleared) {
+                    _loadedIncidences = [];
+                    _clusterManager = _buildClusterManager();
+                    _updateClusters();
+                  }
                 },
                 child: BlocListener<RouteBloc, RouteState>(
                   listener: (context, routeState) {
@@ -94,12 +147,11 @@ class _MapPageState extends State<MapPage> {
                       setState(() {
                         _polylines.clear();
 
-                        // Ruta segura (ORS) → evita incidencias
                         final securePolyline = PolylineDecoder.createPolyline(
                           polylineId: 'secure_route',
                           encodedPolyline:
                               routeState.alternativeRoute!.encodedPolyline,
-                          color: const Color(0xFF7878FF), // Color más claro para diferenciarlo
+                          color: const Color(0xFF7878FF),
                           width: 6,
                           isHere: false,
                           zIndex: 1,
@@ -108,7 +160,6 @@ class _MapPageState extends State<MapPage> {
                       });
                     }
 
-                    // Limpiar polylines cuando se cancelen las rutas
                     if (routeState is RouteInitial) {
                       setState(() {
                         _polylines.clear();
@@ -125,10 +176,20 @@ class _MapPageState extends State<MapPage> {
                       _mapController = controller;
                     },
                     polylines: _polylines,
+                    markers: Set<Marker>.of(
+                      _clusterManager.getClusteredMarkers(),
+                    ),
                     myLocationEnabled: true,
                     zoomControlsEnabled: false,
-                    onCameraMove: (_) => _controller.handleCameraMove(),
-                    onCameraIdle: () => _controller.handleCameraIdle(),
+                    onCameraMove: (position) {
+                      _currentZoom = position.zoom;
+                      _controller.handleCameraMove();
+                    },
+                    onCameraIdle: () {
+                      _controller.handleCameraIdle();
+                      _updateClusters();
+                      _checkZoomAndFetchIncidences();
+                    },
                   ),
                 ),
               ),
@@ -162,7 +223,7 @@ class _MapPageState extends State<MapPage> {
             ),
           ),
 
-          /// BOTÓN INCIDENCIA (CORREGIDO)
+          /// BOTÓN INCIDENCIA
           Positioned(
             bottom: MediaQuery.of(context).size.height * 0.18,
             right: 20,
@@ -191,6 +252,95 @@ class _MapPageState extends State<MapPage> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Procesa las incidencias cargadas: genera íconos personalizados
+  /// y los agrega al cluster manager.
+  Future<void> _handleIncidencesLoaded(
+    List<SectorIncidenceEntity> incidences,
+  ) async {
+    // Recrear el cluster manager para limpiar markers anteriores
+    _clusterManager = _buildClusterManager();
+    _loadedIncidences = incidences;
+
+    for (final incidence in incidences) {
+      final iconData = getIncidenceIcon(incidence.incidence);
+      final bitmapIcon = await MarkerIconGenerator.fromIconData(
+        iconData,
+        backgroundColor: _clusterColor,
+      );
+
+      _clusterManager.addMarker(
+        Marker(
+          markerId: MarkerId('incidence_${incidence.placeId}'),
+          position: LatLng(incidence.latitude, incidence.longitude),
+          icon: bitmapIcon,
+          onTap: () => _onIncidenceMarkerTapped(
+            LatLng(incidence.latitude, incidence.longitude),
+          ),
+        ),
+      );
+    }
+
+    await _updateClusters();
+  }
+
+  /// Actualiza los clusters según el nivel de zoom actual.
+  Future<void> _updateClusters() async {
+    await _clusterManager.updateClusters(zoomLevel: _currentZoom);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  /// Verifica el nivel de zoom y obtiene o limpia incidencias del sector.
+  Future<void> _checkZoomAndFetchIncidences() async {
+    if (_mapController == null) return;
+
+    final zoomLevel = await _mapController!.getZoomLevel();
+    final bounds = await _mapController!.getVisibleRegion();
+
+    if (zoomLevel >= _incidenceZoomThreshold) {
+      _showingIncidences = true;
+      if (!mounted) return;
+      context.read<map_bloc.MapBloc>().add(
+        map_bloc.FetchSectorIncidencesEvent(
+          northEastLat: bounds.northeast.latitude,
+          northEastLng: bounds.northeast.longitude,
+          southWestLat: bounds.southwest.latitude,
+          southWestLng: bounds.southwest.longitude,
+        ),
+      );
+    } else if (_showingIncidences) {
+      _showingIncidences = false;
+      if (!mounted) return;
+      context.read<map_bloc.MapBloc>().add(
+        map_bloc.ClearSectorIncidencesEvent(),
+      );
+    }
+  }
+
+  /// Busca las incidencias en la posición del marker y muestra el detalle.
+  void _onIncidenceMarkerTapped(LatLng position) {
+    // Buscar incidencias cercanas a esta posición (tolerancia por clustering)
+    final matching = _loadedIncidences.where((inc) {
+      return (inc.latitude - position.latitude).abs() < 0.0001 &&
+          (inc.longitude - position.longitude).abs() < 0.0001;
+    }).toList();
+
+    if (matching.isEmpty) return;
+
+    _showIncidenceDetail(matching);
+  }
+
+  /// Muestra el modal draggable con la lista de imágenes de incidencias.
+  void _showIncidenceDetail(List<SectorIncidenceEntity> incidences) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => IncidenceDetailSheet(incidences: incidences),
     );
   }
 

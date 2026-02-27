@@ -1,20 +1,22 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:inclusive_app/features/incidents/domain/entities/sector_incidence_entity.dart';
+import 'package:inclusive_app/features/incidents/domain/usecases/get_sector_incidences.dart';
 
 part 'map_event.dart';
 part 'map_state.dart';
 
 class MapBloc extends Bloc<MapEvent, MapState> {
-  MapBloc() : super(MapInitial()) {
+  final GetSectorIncidences getSectorIncidences;
+
+  MapBloc({required this.getSectorIncidences}) : super(MapInitial()) {
     on<GetUserLocationEvent>(_onGetUserLocation);
+    on<FetchSectorIncidencesEvent>(_onFetchSectorIncidences);
+    on<ClearSectorIncidencesEvent>(_onClearSectorIncidences);
   }
 
   /// Maneja el evento de obtención de ubicación del usuario
-  /// Valida permisos, obtiene la posición GPS actual y emite el estado correspondiente:
-  ///  - [MapLoading] mientras procesa
-  ///  - [MapLocationLoaded] si obtiene la ubicación exitosamente
-  ///  - [MapError] si hay algún error o falta de permisos
   Future<void> _onGetUserLocation(
     GetUserLocationEvent event,
     Emitter<MapState> emit,
@@ -34,22 +36,44 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     }
   }
 
-  
+  /// Maneja el evento de obtención de incidencias por sector.
+  Future<void> _onFetchSectorIncidences(
+    FetchSectorIncidencesEvent event,
+    Emitter<MapState> emit,
+  ) async {
+    try {
+      final incidences = await getSectorIncidences(
+        northEastLat: event.northEastLat,
+        northEastLng: event.northEastLng,
+        southWestLat: event.southWestLat,
+        southWestLng: event.southWestLng,
+      );
+      emit(SectorIncidencesLoaded(incidences));
+    } catch (e) {
+      emit(MapError('Error al cargar incidencias: ${e.toString()}'));
+    }
+  }
+
+  /// Limpia las incidencias del mapa cuando el zoom baja del umbral.
+  void _onClearSectorIncidences(
+    ClearSectorIncidencesEvent event,
+    Emitter<MapState> emit,
+  ) {
+    emit(SectorIncidencesCleared());
+  }
+
   /// Obtiene la posición actual del dispositivo
   Future<Position> _getCurrentPosition() async {
     final LocationSettings locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.high
+      accuracy: LocationAccuracy.high,
     );
 
     return await Geolocator.getCurrentPosition(
-      locationSettings: locationSettings
+      locationSettings: locationSettings,
     );
   }
 
   /// Valida que los servicios de ubicación estén activos y los permisos concedidos
-  /// Retorna:
-  ///  - `null` si todo está correcto
-  ///  - Un mensaje de error específico si hay algún problema
   Future<String?> _validateLocationPermissions() async {
     final serviceError = await _checkLocationService();
     if (serviceError != null) return serviceError;
@@ -60,15 +84,14 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     return null;
   }
 
-  
-  ///  Verifica si el servicio de ubicación está habilitado
+  /// Verifica si el servicio de ubicación está habilitado
   Future<String?> _checkLocationService() async {
     final isEnabled = await Geolocator.isLocationServiceEnabled();
-    
+
     if (!isEnabled) {
       return 'El GPS está desactivado. Actívalo en Configuración.';
     }
-    
+
     return null;
   }
 
@@ -83,8 +106,8 @@ class MapBloc extends Bloc<MapEvent, MapState> {
 
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      
-      if (permission != LocationPermission.whileInUse && 
+
+      if (permission != LocationPermission.whileInUse &&
           permission != LocationPermission.always) {
         return 'Permiso de ubicación denegado. '
             'La app necesita tu ubicación para funcionar.';

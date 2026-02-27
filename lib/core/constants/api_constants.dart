@@ -34,11 +34,12 @@ class ApiConstants {
       "$spotsBase/delete/custom-spot/list/${Uri.encodeComponent(listName)}";
   static String deleteSpotFromList(String listName) =>
       "$spotsBase/delete/custom-spot/spot/${Uri.encodeComponent(listName)}";
-  
+
   // Incidence endpoints
   static String get incidenceBase => "$baseUrl/incidence";
   static String get createIncidence => incidenceBase;
   static String get allIncidences => "$incidenceBase/all";
+  static String get incidenceBySector => "$baseUrl/location/incidence/sector";
 
   // === ROUTE API (puerto 8060) ===
   static String get routeBase => "$baseUrl/route";

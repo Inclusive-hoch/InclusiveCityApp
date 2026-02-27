@@ -1,4 +1,5 @@
 import '../models/incident_model.dart';
+import '../models/sector_incidence_model.dart';
 
 /// Contrato abstracto del datasource remoto de incidencias.
 abstract class IncidentRemoteDataSource {
@@ -9,5 +10,13 @@ abstract class IncidentRemoteDataSource {
   Future<IncidentModel> createIncident(
     IncidentModel model, {
     String? photoPath,
+  });
+
+  /// Obtiene las incidencias registradas en un sector del mapa.
+  Future<List<SectorIncidenceModel>> getIncidencesBySector({
+    required double northEastLat,
+    required double northEastLng,
+    required double southWestLat,
+    required double southWestLng,
   });
 }

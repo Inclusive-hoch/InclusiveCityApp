@@ -14,6 +14,11 @@ import 'package:inclusive_app/features/auth/domain/usecases/login_with_google.da
 import 'package:inclusive_app/features/auth/domain/usecases/register_with_email.dart';
 import 'package:inclusive_app/features/auth/domain/usecases/logout.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:inclusive_app/features/incidents/data/datasources/incident_remote_datasource.dart';
+import 'package:inclusive_app/features/incidents/data/datasources/incident_remote_datasource_impl.dart';
+import 'package:inclusive_app/features/incidents/data/repositories/incident_repository_impl.dart';
+import 'package:inclusive_app/features/incidents/domain/repositories/incident_repository.dart';
+import 'package:inclusive_app/features/incidents/domain/usecases/get_sector_incidences.dart';
 import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart';
 import 'package:inclusive_app/features/places/data/datasources/place_local_datasource.dart';
 import 'package:inclusive_app/features/places/data/datasources/place_remote_datasource.dart';
@@ -141,9 +146,7 @@ Future<void> init() async {
 
   // Repositories - Spots
   sl.registerLazySingleton<SpotRepository>(
-    () => SpotRepositoryImpl(
-      remoteDataSource: sl(),
-    ),
+    () => SpotRepositoryImpl(remoteDataSource: sl()),
   );
 
   // Use cases - Places
@@ -163,7 +166,23 @@ Future<void> init() async {
   sl.registerLazySingleton(() => DeleteSpotFromList(sl()));
 
   // BLoCs
-  sl.registerFactory(() => MapBloc());
+  // Incidents - DataSource
+  sl.registerLazySingleton<IncidentRemoteDataSource>(
+    () => IncidentRemoteDataSourceImpl(
+      client: sl(),
+      getToken: () => sl<FirebaseAuthService>().getIdToken(),
+    ),
+  );
+
+  // Incidents - Repository
+  sl.registerLazySingleton<IncidentRepository>(
+    () => IncidentRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Incidents - UseCases
+  sl.registerLazySingleton(() => GetSectorIncidences(sl()));
+
+  sl.registerFactory(() => MapBloc(getSectorIncidences: sl()));
 
   sl.registerFactory(
     () => PlaceBloc(
@@ -175,12 +194,12 @@ Future<void> init() async {
   );
 
   // User Evaluations - DataSource
-sl.registerLazySingleton<UserEvaluationRemoteDataSource>(
-  () => UserEvaluationRemoteDataSourceImpl(
-    client: sl(),
-    getToken: () => sl<FirebaseAuthService>().getIdToken(),
-  ),
-);
+  sl.registerLazySingleton<UserEvaluationRemoteDataSource>(
+    () => UserEvaluationRemoteDataSourceImpl(
+      client: sl(),
+      getToken: () => sl<FirebaseAuthService>().getIdToken(),
+    ),
+  );
 
   // User Evaluations - Repository
   sl.registerLazySingleton<UserEvaluationRepository>(
@@ -192,10 +211,9 @@ sl.registerLazySingleton<UserEvaluationRemoteDataSource>(
   sl.registerLazySingleton(() => GetUserEvaluations(sl()));
 
   // User Evaluations - Bloc
-  sl.registerFactory(() => UserEvaluationBloc(
-    getUserEvaluations: sl(),
-    placeRepository: sl(),
-  ));
+  sl.registerFactory(
+    () => UserEvaluationBloc(getUserEvaluations: sl(), placeRepository: sl()),
+  );
 
   // Routing - DataSource
   sl.registerLazySingleton<RouteRemoteDataSource>(
@@ -214,11 +232,7 @@ sl.registerLazySingleton<UserEvaluationRemoteDataSource>(
   sl.registerLazySingleton(() => GetAlternativeRoute(sl()));
 
   // Routing - Bloc
-  sl.registerFactory(
-    () => RouteBloc(
-      getAlternativeRoute: sl(),
-    ),
-  );
+  sl.registerFactory(() => RouteBloc(getAlternativeRoute: sl()));
 
   sl.registerFactory(
     () => SpotBloc(

@@ -28,3 +28,16 @@ class MapError extends MapState {
   @override
   List<Object?> get props => [message];
 }
+
+/// Estado emitido cuando se cargan incidencias del sector visible.
+class SectorIncidencesLoaded extends MapState {
+  final List<SectorIncidenceEntity> incidences;
+
+  const SectorIncidencesLoaded(this.incidences);
+
+  @override
+  List<Object?> get props => [incidences];
+}
+
+/// Estado emitido cuando se limpian las incidencias (zoom bajo).
+class SectorIncidencesCleared extends MapState {}

@@ -1,4 +1,5 @@
 import '../../domain/entities/incident_entity.dart';
+import '../../domain/entities/sector_incidence_entity.dart';
 import '../../domain/repositories/incident_repository.dart';
 import '../datasources/incident_remote_datasource.dart';
 import '../models/incident_model.dart';
@@ -20,5 +21,21 @@ class IncidentRepositoryImpl implements IncidentRepository {
       photoPath: incident.photoPath,
     );
     return result.toEntity();
+  }
+
+  @override
+  Future<List<SectorIncidenceEntity>> getIncidencesBySector({
+    required double northEastLat,
+    required double northEastLng,
+    required double southWestLat,
+    required double southWestLng,
+  }) async {
+    final models = await remoteDataSource.getIncidencesBySector(
+      northEastLat: northEastLat,
+      northEastLng: northEastLng,
+      southWestLat: southWestLat,
+      southWestLng: southWestLng,
+    );
+    return models.map((model) => model.toEntity()).toList();
   }
 }

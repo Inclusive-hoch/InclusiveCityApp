@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
-import 'package:inclusive_app/features/routing/presentation/widgets/location_field.dart';
 
 /// Widget flotante que muestra los campos de origen y destino de la ruta
 class RouteLocationCard extends StatelessWidget {
