@@ -1,0 +1,218 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:inclusive_app/core/theme/app_color.dart';
+import 'package:inclusive_app/core/widgets/custom_filled_button.dart';
+import 'package:inclusive_app/features/incidents/presentation/widgets/incident_item.dart';
+import 'package:inclusive_app/features/incidents/presentation/bloc/incident_type_bloc.dart';
+import 'package:inclusive_app/features/incidents/presentation/bloc/incident_type_event.dart';
+import 'package:inclusive_app/features/incidents/presentation/bloc/incident_type_state.dart';
+import 'package:inclusive_app/features/incidents/presentation/views/incident_report.dart';
+import 'package:inclusive_app/features/incidents/presentation/views/incident_photo_prompt.dart';
+
+class IncidentTypeContainer extends StatefulWidget {
+  const IncidentTypeContainer({super.key});
+
+  @override
+  State<IncidentTypeContainer> createState() => _IncidentTypeContainerState();
+}
+
+class _IncidentTypeContainerState extends State<IncidentTypeContainer> {
+  final DraggableScrollableController _sheetController =
+      DraggableScrollableController();
+
+  @override
+  void dispose() {
+    _sheetController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => IncidentTypeBloc(),
+      child: DraggableScrollableSheet(
+        controller: _sheetController,
+        initialChildSize: 0.50,
+        minChildSize: 0.35,
+        maxChildSize: 0.70,
+        builder: (draggableContext, scrollController) {
+          return Container(
+            decoration: BoxDecoration(
+              color: AppColor.neutralLight,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 10,
+                  offset: Offset(0, -2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '¿Ocurre algo en el camino?',
+                          style: TextStyle(
+                            color: AppColor.primaryNormalActive,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      BlocBuilder<IncidentTypeBloc, IncidentTypeState>(
+                        builder: (context, state) {
+                          return IconButton(
+                            icon: Icon(
+                              size: 32,
+                              Icons.close,
+                              color: AppColor.primaryNormalActive,
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              Future.microtask(() {
+                                context.read<IncidentTypeBloc>().add(
+                                  IncidentTypeReset(),
+                                );
+                              });
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: BlocConsumer<IncidentTypeBloc, IncidentTypeState>(
+                    listener: (context, state) {
+                      // Expandir el sheet cuando llegamos al paso de foto
+                      if (state.currentStep == IncidentStep.photoPrompt) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (_sheetController.isAttached) {
+                            _sheetController.animateTo(
+                              0.55,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        });
+                      }
+                    },
+                    builder: (context, state) {
+                      switch (state.currentStep) {
+                        case IncidentStep.selectingType:
+                          return _buildTypeSelector(
+                            context,
+                            state,
+                            scrollController,
+                          );
+                        case IncidentStep.selectingSubType:
+                          return IncidentSubTypeSelector(
+                            scrollController: scrollController,
+                          );
+                        case IncidentStep.photoPrompt:
+                          return IncidentPhotoPrompt(
+                            scrollController: scrollController,
+                          );
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTypeSelector(
+    BuildContext context,
+    IncidentTypeState state,
+    ScrollController scrollController,
+  ) {
+    return ListView(
+      controller: scrollController,
+      padding: const EdgeInsets.all(16),
+      children: [
+        Wrap(
+          direction: Axis.horizontal,
+          spacing: 16,
+          runSpacing: 16,
+          alignment: WrapAlignment.spaceAround,
+          children: [
+            IncidentItem(
+              icon: Icons.terrain,
+              title: 'Veredas y superficies',
+              isSelected: state.temporaryType == 'Veredas y superficies',
+              onTap: () => context.read<IncidentTypeBloc>().add(
+                const IncidentTypeTemporarilySelected('Veredas y superficies'),
+              ),
+            ),
+            IncidentItem(
+              icon: Icons.traffic,
+              title: 'Cruces peatonales',
+              isSelected: state.temporaryType == 'Cruces peatonales',
+              onTap: () => context.read<IncidentTypeBloc>().add(
+                const IncidentTypeTemporarilySelected('Cruces peatonales'),
+              ),
+            ),
+            IncidentItem(
+              icon: Icons.construction,
+              title: 'Problemas temporales',
+              isSelected: state.temporaryType == 'Problemas temporales',
+              onTap: () => context.read<IncidentTypeBloc>().add(
+                const IncidentTypeTemporarilySelected('Problemas temporales'),
+              ),
+            ),
+            IncidentItem(
+              icon: Icons.accessible,
+              title: 'Rampas',
+              isSelected: state.temporaryType == 'Rampas',
+              onTap: () => context.read<IncidentTypeBloc>().add(
+                const IncidentTypeTemporarilySelected('Rampas'),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: CustomFilledButton(
+                label: 'Atrás',
+                style: CustomButtonStyle.secondary,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Future.microtask(() {
+                    context.read<IncidentTypeBloc>().add(IncidentTypeReset());
+                  });
+                },
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: CustomFilledButton(
+                label: 'Siguiente',
+                style: CustomButtonStyle.primary,
+                onPressed: state.hasTemporaryType
+                    ? () => context.read<IncidentTypeBloc>().add(
+                        IncidentTypeConfirmed(),
+                      )
+                    : null,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}

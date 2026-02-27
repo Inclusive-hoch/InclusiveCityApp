@@ -8,6 +8,6 @@ abstract class AuthFirebaseDataSource {
     String email,
     String password,
   );
-  UserModel? getCurrentUser();
+  Future<UserModel?> getCurrentUser();
   Future<void> logout();
 }

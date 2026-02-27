@@ -43,6 +43,12 @@ import 'package:inclusive_app/features/profile/data/repositories/user_evaluation
 import 'package:inclusive_app/features/profile/domain/repositories/user_evaluation_repository.dart';
 import 'package:inclusive_app/features/profile/domain/usecases/get_user_evaluations.dart';
 import 'package:inclusive_app/features/profile/application/bloc/user_evaluation_bloc.dart';
+import 'package:inclusive_app/features/routing/data/datasources/route_remote_datasource.dart';
+import 'package:inclusive_app/features/routing/data/datasources/route_remote_datasource_impl.dart';
+import 'package:inclusive_app/features/routing/data/repositories/route_repository_impl.dart';
+import 'package:inclusive_app/features/routing/domain/repositories/route_repository.dart';
+import 'package:inclusive_app/features/routing/domain/usecases/get_alternative_route.dart';
+import 'package:inclusive_app/features/routing/presentation/bloc/route_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -190,6 +196,29 @@ sl.registerLazySingleton<UserEvaluationRemoteDataSource>(
     getUserEvaluations: sl(),
     placeRepository: sl(),
   ));
+
+  // Routing - DataSource
+  sl.registerLazySingleton<RouteRemoteDataSource>(
+    () => RouteRemoteDataSourceImpl(
+      client: sl(),
+      getToken: () => sl<FirebaseAuthService>().getIdToken(),
+    ),
+  );
+
+  // Routing - Repository
+  sl.registerLazySingleton<RouteRepository>(
+    () => RouteRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Routing - UseCases
+  sl.registerLazySingleton(() => GetAlternativeRoute(sl()));
+
+  // Routing - Bloc
+  sl.registerFactory(
+    () => RouteBloc(
+      getAlternativeRoute: sl(),
+    ),
+  );
 
   sl.registerFactory(
     () => SpotBloc(

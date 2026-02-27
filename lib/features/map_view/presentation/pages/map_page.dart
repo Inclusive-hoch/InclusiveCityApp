@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -6,10 +5,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart'
     as map_bloc;
 import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart';
+import 'package:inclusive_app/features/routing/presentation/bloc/route_bloc.dart';
 import 'package:inclusive_app/shared/widgets/custom_floating_action_button.dart';
 import 'package:inclusive_app/features/map_view/presentation/controller/map_page_controller.dart';
 import 'package:inclusive_app/features/places/presentation/screen/search_page.dart';
 import 'package:inclusive_app/features/places/presentation/screen/place_details_page.dart';
+import 'package:inclusive_app/core/utils/polyline_decoder.dart';
+import 'package:inclusive_app/core/theme/app_color.dart';
+import 'package:inclusive_app/features/incidents/presentation/views/incident_type_container.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -21,6 +24,7 @@ class MapPage extends StatefulWidget {
 class _MapPageState extends State<MapPage> {
   GoogleMapController? _mapController;
   late final MapPageController _controller;
+  final Set<Polyline> _polylines = {};
 
   static const double _userLocationZoom = 15;
 
@@ -83,15 +87,49 @@ class _MapPageState extends State<MapPage> {
                     _showError(context, state.message);
                   }
                 },
-                child: GoogleMap(
-                  initialCameraPosition: _defaultPosition,
-                  onMapCreated: (controller) {
-                    _mapController = controller;
+                child: BlocListener<RouteBloc, RouteState>(
+                  listener: (context, routeState) {
+                    if (routeState is RouteLoaded &&
+                        routeState.alternativeRoute != null) {
+                      setState(() {
+                        _polylines.clear();
+
+                        // Ruta segura (ORS) → evita incidencias
+                        final securePolyline = PolylineDecoder.createPolyline(
+                          polylineId: 'secure_route',
+                          encodedPolyline:
+                              routeState.alternativeRoute!.encodedPolyline,
+                          color: const Color(0xFF7878FF), // Color más claro para diferenciarlo
+                          width: 6,
+                          isHere: false,
+                          zIndex: 1,
+                        );
+                        _polylines.add(securePolyline);
+                      });
+                    }
+
+                    // Limpiar polylines cuando se cancelen las rutas
+                    if (routeState is RouteInitial) {
+                      setState(() {
+                        _polylines.clear();
+                      });
+                    }
+
+                    if (routeState is RouteError) {
+                      _showError(context, routeState.message);
+                    }
                   },
-                  myLocationEnabled: true,
-                  zoomControlsEnabled: false,
-                  onCameraMove: (_) => _controller.handleCameraMove(),
-                  onCameraIdle: () => _controller.handleCameraIdle(),
+                  child: GoogleMap(
+                    initialCameraPosition: _defaultPosition,
+                    onMapCreated: (controller) {
+                      _mapController = controller;
+                    },
+                    polylines: _polylines,
+                    myLocationEnabled: true,
+                    zoomControlsEnabled: false,
+                    onCameraMove: (_) => _controller.handleCameraMove(),
+                    onCameraIdle: () => _controller.handleCameraIdle(),
+                  ),
                 ),
               ),
             ),
@@ -136,7 +174,7 @@ class _MapPageState extends State<MapPage> {
                 return CustomFloatingActionButton.incidence(
                   icon: Icons.add_location_alt,
                   heroTag: 'map_incidence_fab',
-                  onPressed: () => log("Nueva incidencia"),
+                  onPressed: () => _showIncidentTypeSelection(context),
                 );
               },
             ),
@@ -160,6 +198,15 @@ class _MapPageState extends State<MapPage> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _showIncidentTypeSelection(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const IncidentTypeContainer(),
+    );
   }
 
   void _showPlaceDetails(BuildContext context, place) {
@@ -190,6 +237,8 @@ class _MapPageState extends State<MapPage> {
             photoReferences: place.photos,
             rating: place.rating,
             medals: place.medals,
+            latitude: place.latitude,
+            longitude: place.longitude,
           );
         },
       ),

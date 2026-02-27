@@ -98,14 +98,19 @@ class AuthFirebaseDataSourceImpl implements AuthFirebaseDataSource {
   }
 
   @override
-  UserModel? getCurrentUser() {
+  Future<UserModel?> getCurrentUser() async {
     final user = firebaseAuth.currentUser;
     if (user == null) return null;
 
+    // Reload user to ensure we have the latest data (important for maintained sessions)
+    await user.reload();
+    final reloadedUser = firebaseAuth.currentUser;
+    if (reloadedUser == null) return null;
+
     // Get displayName from providerData if not available in main user object
-    String? displayName = user.displayName;
-    if (displayName == null && user.providerData.isNotEmpty) {
-      for (var provider in user.providerData) {
+    String? displayName = reloadedUser.displayName;
+    if (displayName == null && reloadedUser.providerData.isNotEmpty) {
+      for (var provider in reloadedUser.providerData) {
         if (provider.displayName != null) {
           displayName = provider.displayName;
           break;
@@ -115,16 +120,16 @@ class AuthFirebaseDataSourceImpl implements AuthFirebaseDataSource {
 
     // Debug logging
     print('Firebase Current User Data:');
-    print('  - UID: ${user.uid}');
-    print('  - Email: ${user.email}');
-    print('  - DisplayName: ${user.displayName}');
+    print('  - UID: ${reloadedUser.uid}');
+    print('  - Email: ${reloadedUser.email}');
+    print('  - DisplayName: ${reloadedUser.displayName}');
     print('  - DisplayName from providerData: $displayName');
-    print('  - PhotoURL: ${user.photoURL}');
+    print('  - PhotoURL: ${reloadedUser.photoURL}');
     print(
-      '  - ProviderData: ${user.providerData.map((p) => p.providerId).toList()}',
+      '  - ProviderData: ${reloadedUser.providerData.map((p) => p.providerId).toList()}',
     );
 
-    return _createUserModel(user, displayName);
+    return _createUserModel(reloadedUser, displayName);
   }
 
   @override
