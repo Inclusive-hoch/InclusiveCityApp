@@ -40,6 +40,7 @@ class ApiConstants {
   static String get createIncidence => incidenceBase;
   static String get allIncidences => "$incidenceBase/all";
   static String get incidenceBySector => "$baseUrl/location/incidence/sector";
+  static String get insertIncidence => "$baseUrl/location/incidence/insert";
 
   // === ROUTE API (puerto 8060) ===
   static String get routeBase => "$baseUrl/route";

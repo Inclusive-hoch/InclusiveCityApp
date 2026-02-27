@@ -38,4 +38,23 @@ class IncidentRepositoryImpl implements IncidentRepository {
     );
     return models.map((model) => model.toEntity()).toList();
   }
+
+  @override
+  Future<void> insertIncidence({
+    required String placeId,
+    required double latitude,
+    required double longitude,
+    required String incidence,
+    required String userId,
+    String image = '',
+  }) async {
+    await remoteDataSource.insertIncidence(
+      placeId: placeId,
+      latitude: latitude,
+      longitude: longitude,
+      incidence: incidence,
+      userId: userId,
+      image: image,
+    );
+  }
 }

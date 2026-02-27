@@ -1,7 +1,11 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/incidents/domain/entities/sector_incidence_entity.dart';
+import 'package:inclusive_app/features/incidents/domain/repositories/incident_repository.dart';
 import 'package:inclusive_app/features/incidents/presentation/constants/incidence_marker_icons.dart';
+import 'package:inclusive_app/injection_container.dart' as di;
 import 'package:inclusive_app/shared/widgets/grabber.dart';
 
 /// Vista de detalle de incidencias como bottom sheet draggable.
@@ -29,7 +33,7 @@ class IncidenceDetailSheet extends StatelessWidget {
           ),
           child: Column(
             children: [
-              // Grabber (mismo que PlaceDetailsPage)
+              // Grabber
               const Center(child: Grabber()),
               const SizedBox(height: 8),
 
@@ -38,7 +42,6 @@ class IncidenceDetailSheet extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
-                    // Ícono en círculo (mismo estilo que IncidentItem)
                     Container(
                       height: 40,
                       width: 40,
@@ -104,13 +107,7 @@ class IncidenceDetailSheet extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
-                        onPressed: () {
-                          debugPrint(
-                            'Reportar nuevamente: ${incidences.first.incidence} '
-                            '(placeId: ${incidences.first.placeId})',
-                          );
-                          Navigator.pop(context);
-                        },
+                        onPressed: () => _onReportAgain(context),
                         icon: const Icon(Icons.refresh, size: 20),
                         label: const Text('Reportar nuevamente'),
                         style: ElevatedButton.styleFrom(
@@ -145,6 +142,49 @@ class IncidenceDetailSheet extends StatelessWidget {
         );
       },
     );
+  }
+
+  /// Re-reporta la incidencia usando los datos existentes y el userId actual.
+  Future<void> _onReportAgain(BuildContext context) async {
+    final incidence = incidences.first;
+
+    try {
+      final userId = di.sl<FirebaseAuthService>().currentUser?.uid ?? '';
+      final repository = di.sl<IncidentRepository>();
+
+      await repository.insertIncidence(
+        placeId: incidence.placeId,
+        latitude: incidence.latitude,
+        longitude: incidence.longitude,
+        incidence: incidence.incidence,
+        userId: userId,
+      );
+
+      log(
+        'Incidencia re-reportada: ${incidence.incidence} '
+        '(placeId: ${incidence.placeId})',
+      );
+
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Incidencia reportada nuevamente'),
+            backgroundColor: AppColor.greenNormal,
+          ),
+        );
+      }
+    } catch (e) {
+      log('Error al re-reportar: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al reportar la incidencia'),
+            backgroundColor: AppColor.redNormal,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildImageCard(SectorIncidenceEntity incidence) {

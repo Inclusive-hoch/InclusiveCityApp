@@ -13,4 +13,14 @@ abstract class IncidentRepository {
     required double southWestLat,
     required double southWestLng,
   });
+
+  /// Inserta/re-reporta una incidencia.
+  Future<void> insertIncidence({
+    required String placeId,
+    required double latitude,
+    required double longitude,
+    required String incidence,
+    required String userId,
+    String image,
+  });
 }

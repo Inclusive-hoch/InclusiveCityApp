@@ -84,4 +84,37 @@ class IncidentRemoteDataSourceImpl implements IncidentRemoteDataSource {
       );
     }
   }
+
+  @override
+  Future<void> insertIncidence({
+    required String placeId,
+    required double latitude,
+    required double longitude,
+    required String incidence,
+    required String userId,
+    String image = '',
+  }) async {
+    final token = await getToken();
+    final response = await client.post(
+      Uri.parse(ApiConstants.insertIncidence),
+      headers: {...ApiConstants.authHeaders(token)},
+      body: json.encode({
+        'placeId': placeId,
+        'location': {
+          'latitude': latitude.toString(),
+          'longitude': longitude.toString(),
+        },
+        'incidence': incidence,
+        'userId': userId,
+        'image': image,
+      }),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw ServerException(
+        'Error al reportar la incidencia',
+        response.statusCode,
+      );
+    }
+  }
 }
