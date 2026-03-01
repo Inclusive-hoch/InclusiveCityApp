@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:markers_cluster_google_maps_flutter/markers_cluster_google_maps_flutter.dart';
 import 'package:inclusive_app/core/utils/polyline_decoder.dart';
 import 'package:inclusive_app/features/routing/presentation/bloc/route_bloc.dart';
 import 'package:inclusive_app/features/routing/presentation/widgets/origin_location_sheet.dart';
@@ -8,6 +9,10 @@ import 'package:inclusive_app/features/routing/presentation/widgets/route_locati
 import 'package:inclusive_app/features/routing/presentation/widgets/route_info_bottom_sheet.dart';
 import 'package:inclusive_app/core/utils/bitmap_descriptor.dart'
     as bitmap_utils;
+import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart' as map_bloc;
+import 'package:inclusive_app/features/incidents/domain/entities/sector_incidence_entity.dart';
+import 'package:inclusive_app/features/incidents/presentation/constants/incidence_marker_icons.dart';
+import 'package:inclusive_app/core/utils/marker_icon_generator.dart';
 
 /// Página de selección de ruta que muestra el mapa con la ruta generada.
 ///
@@ -52,7 +57,6 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
   final Set<Marker> _markers = {};
   BitmapDescriptor? _originIcon;
   BitmapDescriptor? _destIcon;
-  bool _iconsLoaded = false;
 
   // Estado mutable para el origen y destino (pueden cambiar si el usuario los edita)
   late double _originLat;
@@ -62,6 +66,15 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
   late double _destLat;
   late double _destLng;
   late String _destName;
+
+  /// Cluster manager para agrupar markers de incidencias.
+  late MarkersClusterManager _clusterManager;
+
+  /// Zoom actual del mapa.
+  double _currentZoom = 14.0;
+
+  /// Color del cluster de incidencias.
+  static const Color _clusterColor = Color(0xFFFF8C00);
 
   @override
   void initState() {
@@ -75,6 +88,9 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
     _destLat = widget.destLat;
     _destLng = widget.destLng;
     _destName = widget.destName;
+
+    // Inicializar cluster manager
+    _clusterManager = _buildClusterManager();
 
     // Cargar iconos personalizados
     _loadCustomIcons();
@@ -97,6 +113,21 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
   void dispose() {
     _mapController?.dispose();
     super.dispose();
+  }
+
+  /// Crea una nueva instancia del cluster manager con la configuración estándar.
+  MarkersClusterManager _buildClusterManager() {
+    return MarkersClusterManager(
+      clusterColor: _clusterColor,
+      clusterBorderThickness: 8.0,
+      clusterBorderColor: Colors.white,
+      clusterOpacity: 1.0,
+      clusterTextStyle: const TextStyle(
+        fontSize: 32,
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+      ),
+    );
   }
 
   /// Carga los iconos personalizados desde los assets SVG
@@ -122,7 +153,6 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
         setState(() {
           _originIcon = origin;
           _destIcon = dest;
-          _iconsLoaded = true;
           _setupMarkers(); // Refrescamos los marcadores
         });
       }
@@ -156,11 +186,70 @@ void _setupMarkers() {
     ),
   );
 
+  // Agregar marcadores de incidencias del cluster manager
+  newMarkers.addAll(_clusterManager.getClusteredMarkers());
+
   setState(() {
     _markers.clear();
     _markers.addAll(newMarkers);
   });
 }
+
+  /// Procesa las incidencias cargadas: genera íconos personalizados
+  /// y los agrega al cluster manager.
+  Future<void> _handleIncidencesLoaded(
+    List<SectorIncidenceEntity> incidences,
+  ) async {
+    // Recrear el cluster manager para limpiar markers anteriores
+    _clusterManager = _buildClusterManager();
+
+    for (final incidence in incidences) {
+      final iconData = getIncidenceIcon(incidence.incidence);
+      final bitmapIcon = await MarkerIconGenerator.fromIconData(
+        iconData,
+        backgroundColor: _clusterColor,
+      );
+
+      _clusterManager.addMarker(
+        Marker(
+          markerId: MarkerId('incidence_${incidence.placeId}'),
+          position: LatLng(incidence.latitude, incidence.longitude),
+          icon: bitmapIcon,
+        ),
+      );
+    }
+
+    await _updateClusters();
+  }
+
+  /// Actualiza los clusters según el nivel de zoom actual.
+  Future<void> _updateClusters() async {
+    await _clusterManager.updateClusters(zoomLevel: _currentZoom);
+    if (mounted) {
+      _setupMarkers(); // Refrescar marcadores
+    }
+  }
+
+  /// Carga las incidencias del sector visible en el mapa.
+  Future<void> _fetchSectorIncidences() async {
+    if (_mapController == null) return;
+
+    try {
+      final bounds = await _mapController!.getVisibleRegion();
+      
+      if (!mounted) return;
+      context.read<map_bloc.MapBloc>().add(
+        map_bloc.FetchSectorIncidencesEvent(
+          northEastLat: bounds.northeast.latitude,
+          northEastLng: bounds.northeast.longitude,
+          southWestLat: bounds.southwest.latitude,
+          southWestLng: bounds.southwest.longitude,
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error fetching sector incidences: $e');
+    }
+  }
 
   /// Actualiza el origen y recalcula la ruta.
   void _onOriginSelected(String name, double lat, double lng) {
@@ -268,25 +357,41 @@ void _setupMarkers() {
   /// Construye el GoogleMap con las rutas y marcadores
   Widget _buildMap() {
     return Positioned.fill(
-      child: BlocConsumer<RouteBloc, RouteState>(
-        listener: _handleRouteStateChange,
-        builder: (context, state) {
-          return GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: LatLng(widget.destLat, widget.destLng),
-              zoom: 14,
-            ),
-            onMapCreated: (controller) {
-              _mapController = controller;
-              _fitRouteBounds();
-            },
-            polylines: _polylines,
-            markers: _markers,
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: false,
-          );
+      child: BlocListener<map_bloc.MapBloc, map_bloc.MapState>(
+        listener: (context, mapState) {
+          if (mapState is map_bloc.SectorIncidencesLoaded) {
+            _handleIncidencesLoaded(mapState.incidences);
+          }
         },
+        child: BlocConsumer<RouteBloc, RouteState>(
+          listener: _handleRouteStateChange,
+          builder: (context, state) {
+            return GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: LatLng(widget.destLat, widget.destLng),
+                zoom: 14,
+              ),
+              onMapCreated: (controller) {
+                _mapController = controller;
+                _fitRouteBounds();
+                // Cargar incidencias al crear el mapa
+                _fetchSectorIncidences();
+              },
+              onCameraMove: (position) {
+                _currentZoom = position.zoom;
+              },
+              onCameraIdle: () {
+                _updateClusters();
+                _fetchSectorIncidences();
+              },
+              polylines: _polylines,
+              markers: _markers,
+              myLocationEnabled: true,
+              myLocationButtonEnabled: false,
+              zoomControlsEnabled: false,
+            );
+          },
+        ),
       ),
     );
   }
