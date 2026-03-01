@@ -10,9 +10,11 @@ import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart'
 import 'package:inclusive_app/features/places/presentation/widget/history_list.dart';
 import 'package:inclusive_app/features/places/presentation/widget/search_bar.dart' as custom;
 import 'package:inclusive_app/features/places/presentation/widget/search_result_list.dart';
+import 'package:inclusive_app/features/spot/domain/entities/custom_spot.dart';
 import 'package:inclusive_app/features/spot/domain/entities/spot.dart';
 import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:inclusive_app/features/spot/presentation/pages/saved_spots_page.dart';
+import 'package:inclusive_app/features/spot/presentation/widgets/custom_lists_section.dart';
 import 'package:inclusive_app/features/spot/presentation/widgets/spot_quick_access_bar.dart';
 import 'package:inclusive_app/shared/widgets/grabber.dart';
 import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart' as map_bloc;
@@ -41,12 +43,17 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   // Lista de todos los spots del usuario
   List<Spot> userSpots = [];
+  
+  // Lista de custom spots (listas personalizadas) del usuario
+  List<CustomSpot> customSpots = [];
 
   @override
   void initState() {
     super.initState();
     // Cargar spots del usuario si está disponible
     _loadUserSpots();
+    // Cargar custom spots (listas personalizadas)
+    _loadCustomSpots();
     // Cargar historial de búsquedas
     context.read<PlaceBloc>().add(LoadSearchHistoryEvent());
   }
@@ -59,6 +66,11 @@ class _SearchPageState extends State<SearchPage> {
       final userId = authState.user.uid;
       context.read<SpotBloc>().add(LoadUserSpotsEvent(userId: userId));
     }
+  }
+
+  /// Carga las listas personalizadas del usuario.
+  void _loadCustomSpots() {
+    context.read<SpotBloc>().add(LoadCustomSpotsEvent());
   }
 
   /// Maneja el tap en una píldora de spot - genera ruta automáticamente.
@@ -192,6 +204,29 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
+  /// Maneja el tap en "Agregar lista".
+  void _onAddListTap() {
+    // Mostrar mensaje informativo: no se pueden crear listas vacías
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Crear nueva lista'),
+        content: const Text(
+          'Para crear una lista personalizada, primero busca un lugar que te guste '
+          'y guárdalo. Cuando presiones el ícono de guardar, podrás crear una nueva lista '
+          'con ese lugar.\n\n'
+          'Las listas predeterminadas "Destacados" y "Favoritos" ya están disponibles.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Entendido'),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Navega a la pantalla de selección de ruta.
   void _navigateToRoute(
     BuildContext context,
@@ -222,6 +257,37 @@ class _SearchPageState extends State<SearchPage> {
           setState(() {
             userSpots = state.spots;
           });
+        }
+        
+        // Actualizar lista de custom spots
+        if (state is CustomSpotsLoaded) {
+          setState(() {
+            customSpots = state.customSpots;
+          });
+        }
+        
+        // Mostrar mensaje de éxito al crear lista
+        if (state is CustomSpotCreated) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Lista "${state.customSpot.listName}" creada'),
+              backgroundColor: AppColor.success,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          // Recargar custom spots
+          _loadCustomSpots();
+        }
+        
+        // Mostrar error si falla
+        if (state is SpotError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColor.error,
+              duration: const Duration(seconds: 3),
+            ),
+          );
         }
       },
       child: Container(
@@ -279,15 +345,27 @@ class _SearchPageState extends State<SearchPage> {
               if (state is SearchHistoryLoaded || state is PlacesInitial) {
                 final List<PlaceSearchResult> history = (state is SearchHistoryLoaded) ? state.history : [];
 
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: HistoryList(
-                    history: history,
-                    focusNode: FocusNode(),
-                    onPlaceSelected: (placeId) {
-                      context.read<PlaceBloc>().add(SelectPlaceEvent(placeId));
-                    },
-                  ),
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Historial de búsquedas
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: HistoryList(
+                        history: history,
+                        focusNode: FocusNode(),
+                        onPlaceSelected: (placeId) {
+                          context.read<PlaceBloc>().add(SelectPlaceEvent(placeId));
+                        },
+                      ),
+                    ),
+                    
+                    // Sección de Mis listas (siempre visible)
+                    CustomListsSection(
+                      customSpots: customSpots,
+                      onAddListTap: _onAddListTap,
+                    ),
+                  ],
                 );
               }
 
