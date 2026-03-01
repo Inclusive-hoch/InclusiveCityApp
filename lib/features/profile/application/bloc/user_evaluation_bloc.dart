@@ -21,16 +21,25 @@ class UserEvaluationBloc extends Bloc<UserEvaluationEvent, UserEvaluationState> 
   Future<Map<String, PlaceDetails>> _loadPlacesDetails(
     List<String> placeIds,
   ) async {
-    final Map<String, PlaceDetails> placesDetails = {};
-    for (final placeId in placeIds) {
+    // generar una lista de peticiones en proceso 
+    // el .map itera sobre la lista sin esperar 
+    final futures = placeIds.map((placeId) async{
       try {
         final details = await placeRepository.getPlaceDetails(placeId);
-        placesDetails[placeId] = details;
-      } catch (_) {
-        // Si falla la carga de un lugar, continuamos con los demás
+        //retornar un MapEntry
+        return MapEntry(placeId, details);
+      }catch (_){
+        //si falla alguno retorna null sin detener el resto de peticiones
+        return null;
       }
-    }
-    return placesDetails;
+    });
+    // Ejecutar todas las peticiones al mismo tiempo y espera que 
+    final results = await Future.wait(futures);
+    // se filtran las peticiones nulas y se construye el mapa de evaluaciones
+    return Map.fromEntries(
+      results.whereType<MapEntry<String, PlaceDetails>>()
+    );
+
   }
 
   Future<void> _onLoadUserEvaluations(
