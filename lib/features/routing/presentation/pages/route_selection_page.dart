@@ -197,6 +197,9 @@ void _setupMarkers() {
 
   /// Procesa las incidencias cargadas: genera íconos personalizados
   /// y los agrega al cluster manager.
+  /// 
+  /// Los iconos se generan con alta resolución (pixelRatio 3.0) para
+  /// mejorar la calidad visual en las rutas.
   Future<void> _handleIncidencesLoaded(
     List<SectorIncidenceEntity> incidences,
   ) async {
@@ -205,6 +208,7 @@ void _setupMarkers() {
 
     for (final incidence in incidences) {
       final iconData = getIncidenceIcon(incidence.incidence);
+      // Generar ícono de alta resolución (48px físicos = 16px visual × 3.0)
       final bitmapIcon = await MarkerIconGenerator.fromIconData(
         iconData,
         backgroundColor: _clusterColor,
