@@ -13,6 +13,8 @@ import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart'
 import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
 import 'package:inclusive_app/injection_container.dart' as di;
 import 'package:inclusive_app/features/reviews/presentation/views/review_container.dart';
+import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
+import 'package:inclusive_app/features/spot/presentation/widgets/list_selector_bottom_sheet.dart';
 
 /// Página de detalles de un lugar con información de accesibilidad
 ///
@@ -79,6 +81,25 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     }
   }
 
+  /// Muestra el bottom sheet para seleccionar o crear lista
+  void _showListSelectorBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => BlocProvider.value(
+        value: context.read<SpotBloc>(),
+        child: ListSelectorBottomSheet(
+          placeId: widget.placeId,
+          placeName: widget.placeName,
+          address: widget.address,
+          latitude: widget.latitude,
+          longitude: widget.longitude,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -113,9 +134,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     ),
                     // Botones de acción inline
                     IconButton(
-                      onPressed: () {
-                        setState(() => isSaved = !isSaved);
-                      },
+                      onPressed: _showListSelectorBottomSheet,
                       icon: Icon(
                         isSaved ? Icons.bookmark : Icons.bookmark_border,
                         color: AppColor.primaryNormal,
