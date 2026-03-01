@@ -331,7 +331,7 @@ class _SearchPageState extends State<SearchPage> {
                 );
               }
 
-              if (state is PlacesLoaded) {
+              if (state is PlacesLoaded && state.suggestions.isNotEmpty) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: SearchResultsList(
@@ -342,7 +342,12 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                 );
               }
-              if (state is SearchHistoryLoaded || state is PlacesInitial) {
+              
+              // Mostrar contenido base cuando no hay búsqueda activa o no hay resultados
+              if (state is SearchHistoryLoaded || 
+                  state is PlacesInitial || 
+                  state is PlacesEmpty ||
+                  (state is PlacesLoaded && state.suggestions.isEmpty)) {
                 final List<PlaceSearchResult> history = (state is SearchHistoryLoaded) ? state.history : [];
 
                 return Column(
@@ -360,7 +365,7 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                     ),
                     
-                    // Sección de Mis listas (siempre visible)
+                    // Sección de Mis listas (siempre visible cuando no hay búsqueda)
                     CustomListsSection(
                       customSpots: customSpots,
                       onAddListTap: _onAddListTap,
