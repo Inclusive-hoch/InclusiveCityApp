@@ -32,6 +32,18 @@ class SelectPlaceEvent extends PlacesEvent {
   List<Object> get props => [placeId];
 }
 
+/// Evento para obtener detalles de un lugar sin seleccionarlo.
+/// No dispara navegación automática.
+class FetchPlaceDetailsEvent extends PlacesEvent {
+  /// ID del lugar.
+  final String placeId;
+
+  FetchPlaceDetailsEvent(this.placeId);
+
+  @override
+  List<Object> get props => [placeId];
+}
+
 /// Evento para obtener la ubicación actual del usuario.
 class GetUserLocationEvent extends PlacesEvent {}
 

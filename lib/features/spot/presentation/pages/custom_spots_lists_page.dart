@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:inclusive_app/features/spot/presentation/widgets/custom_spot_list_card.dart';
+import 'package:inclusive_app/features/spot/presentation/widgets/list_detail_bottom_sheet.dart';
 
 /// Página que muestra todas las listas personalizadas del usuario.
 /// 
@@ -27,9 +28,7 @@ class _CustomSpotsListsPageState extends State<CustomSpotsListsPage> {
   }
 
   void _onListTap(String listName, int spotCount) {
-    context.push('/list-detail', extra: {
-      'listName': listName,
-    });
+    ListDetailBottomSheet.show(context, listName);
   }
 
   void _onDeleteList(String listName) {

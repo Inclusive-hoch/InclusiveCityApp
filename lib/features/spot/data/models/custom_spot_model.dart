@@ -17,13 +17,27 @@ class CustomSpotModel extends CustomSpot {
   /// 
   /// Deserializa la lista de spots desde el campo 'spots'.
   factory CustomSpotModel.fromJson(Map<String, dynamic> json) {
+    // Obtener lista de spots, manejar null y lista vacía
+    final spotsJson = json['spots'] as List<dynamic>?;
+    final List<SpotModel> parsedSpots = [];
+    
+    if (spotsJson != null && spotsJson.isNotEmpty) {
+      for (var spotJson in spotsJson) {
+        try {
+          final spot = SpotModel.fromJson(spotJson as Map<String, dynamic>);
+          parsedSpots.add(spot);
+        } catch (e) {
+          // Si un spot individual falla al parsear, registrar pero continuar
+          print('⚠️ [CustomSpotModel] Error parseando spot en lista "${json['listName']}": $e');
+        }
+      }
+    }
+    
     return CustomSpotModel(
       id: json['id'] as String?,
       listName: json['listName'] as String,
       userId: json['userId'] as String,
-      spotList: (json['spots'] as List<dynamic>)
-          .map((spot) => SpotModel.fromJson(spot as Map<String, dynamic>))
-          .toList(),
+      spotList: parsedSpots,
     );
   }
 

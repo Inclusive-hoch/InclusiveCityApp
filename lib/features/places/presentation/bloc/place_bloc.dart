@@ -52,6 +52,8 @@ class PlaceBloc extends Bloc<PlacesEvent, PlacesState> {
 
     on<SelectPlaceEvent>(_onSelectPlace);
 
+    on<FetchPlaceDetailsEvent>(_onFetchPlaceDetails);
+
     on<LoadSearchHistoryEvent>(_onLoadSearchHistory);
 
     on<SaveToHistoryEvent>(_onSaveToHistory);
@@ -120,6 +122,21 @@ class PlaceBloc extends Bloc<PlacesEvent, PlacesState> {
       emit(PlaceDetailsLoaded(placeDetails));
     } catch (e) {
       emit(PlacesError('No se pudieron cargar los detalles del lugar'));
+    }
+  }
+
+  /// Obtiene detalles de un lugar sin disparar lógica de selección.
+  /// Usado para previsualizar información en tarjetas de listas.
+  Future<void> _onFetchPlaceDetails(
+    FetchPlaceDetailsEvent event,
+    Emitter<PlacesState> emit,
+  ) async {
+    try {
+      final placeDetails = await getPlaceDetailsUseCase(event.placeId);
+      emit(PlaceDetailsFetched(placeDetails));
+    } catch (e) {
+      // No emitir error, solo fallar silenciosamente
+      log('Error al obtener detalles del lugar: $e');
     }
   }
 

@@ -5,6 +5,7 @@ import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/spot/domain/entities/spot.dart';
 import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:inclusive_app/features/spot/presentation/widgets/place_list_item_card.dart';
+import 'package:inclusive_app/features/places/presentation/screen/place_details_page.dart';
 
 /// Página que muestra el detalle de una lista personalizada.
 /// 
@@ -68,12 +69,43 @@ class _ListDetailPageState extends State<ListDetailPage> {
     );
   }
 
-  void _onPlaceTap(Spot spot) {
-    // TODO: Navegar a place_details con el placeId
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Ver detalles de: ${spot.spotName}'),
-        duration: const Duration(seconds: 1),
+  void _onPlaceTap(
+    Spot spot, {
+    required List<String> photoReferences,
+    required double rating,
+    required List<String> medals,
+  }) {
+    final sheetController = DraggableScrollableController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        controller: sheetController,
+        initialChildSize: 0.9,
+        minChildSize: 0.3,
+        maxChildSize: 0.95,
+        snap: true,
+        snapSizes: const [0.3, 0.9],
+        builder: (context, scrollController) {
+          sheetController.addListener(() {
+            if (sheetController.size <= 0.31) {
+              Navigator.pop(context);
+            }
+          });
+
+          return PlaceDetailsPage(
+            placeId: spot.placeId,
+            placeName: spot.spotName,
+            address: spot.address,
+            photoReferences: photoReferences,
+            rating: rating,
+            medals: medals,
+            latitude: spot.latitude,
+            longitude: spot.longitude,
+          );
+        },
       ),
     );
   }
@@ -250,7 +282,16 @@ class _ListDetailPageState extends State<ListDetailPage> {
               final spot = _spots[index];
               return PlaceListItemCard(
                 spot: spot,
-                onTap: () => _onPlaceTap(spot),
+                onTap: ({
+                  required List<String> photoReferences,
+                  required double rating,
+                  required List<String> medals,
+                }) => _onPlaceTap(
+                  spot,
+                  photoReferences: photoReferences,
+                  rating: rating,
+                  medals: medals,
+                ),
                 onDelete: () => _onDeleteSpotFromList(spot),
               );
             },

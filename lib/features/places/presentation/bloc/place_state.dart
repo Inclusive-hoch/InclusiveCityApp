@@ -76,3 +76,15 @@ class SearchHistoryLoaded extends PlacesState {
   @override
   List<Object> get props => [history];
 }
+
+/// Estado cuando se han obtenido detalles de un lugar sin seleccionarlo.
+/// No dispara navegación automática.
+class PlaceDetailsFetched extends PlacesState {
+  /// Detalles del lugar.
+  final PlaceDetails placeDetails;
+
+  PlaceDetailsFetched(this.placeDetails);
+
+  @override
+  List<Object> get props => [placeDetails];
+}

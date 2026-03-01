@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/spot/domain/entities/custom_spot.dart';
+import 'package:inclusive_app/features/spot/presentation/widgets/list_detail_bottom_sheet.dart';
 
 /// Sección que muestra las listas personalizadas del usuario.
 /// 
@@ -80,13 +80,13 @@ class CustomListsSection extends StatelessWidget {
         _CustomListItem(
           customSpot: destacadosSpot,
           onTap: () {
-            context.push('/list-detail', extra: {'listName': destacadosName});
+            ListDetailBottomSheet.show(context, destacadosName);
           },
         ),
         _CustomListItem(
           customSpot: favoritosSpot,
           onTap: () {
-            context.push('/list-detail', extra: {'listName': favoritosName});
+            ListDetailBottomSheet.show(context, favoritosName);
           },
         ),
         
@@ -94,7 +94,7 @@ class CustomListsSection extends StatelessWidget {
         ...otherSpots.map((customSpot) => _CustomListItem(
           customSpot: customSpot,
           onTap: () {
-            context.push('/list-detail', extra: {'listName': customSpot.listName});
+            ListDetailBottomSheet.show(context, customSpot.listName);
           },
         )),
         
