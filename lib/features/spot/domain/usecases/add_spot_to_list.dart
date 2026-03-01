@@ -1,5 +1,5 @@
-import 'package:inclusive_app/features/spot/data/models/custom_spot_model.dart';
-import 'package:inclusive_app/features/spot/data/models/spot_model.dart';
+import 'package:inclusive_app/features/spot/domain/entities/custom_spot.dart';
+import 'package:inclusive_app/features/spot/domain/entities/spot.dart';
 import 'package:inclusive_app/features/spot/domain/repositories/spot_repository.dart';
 
 /// Caso de uso para agregar un spot a una lista personalizada.
@@ -8,7 +8,7 @@ class AddSpotToList {
 
   AddSpotToList(this.repository);
 
-  Future<CustomSpotModel> call(String listName, SpotModel spot) async {
+  Future<CustomSpot> call(String listName, Spot spot) async {
     return await repository.addSpotToList(listName, spot);
   }
 }
