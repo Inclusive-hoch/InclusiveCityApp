@@ -52,6 +52,8 @@ import 'package:inclusive_app/features/profile/domain/usecases/get_user_evaluati
 import 'package:inclusive_app/features/profile/application/bloc/user_evaluation_bloc.dart';
 import 'package:inclusive_app/features/routing/data/datasources/route_remote_datasource.dart';
 import 'package:inclusive_app/features/routing/data/datasources/route_remote_datasource_impl.dart';
+import 'package:inclusive_app/features/routing/data/datasources/route_local_datasource.dart';
+import 'package:inclusive_app/features/routing/data/datasources/route_local_datasource_impl.dart';
 import 'package:inclusive_app/features/routing/data/repositories/route_repository_impl.dart';
 import 'package:inclusive_app/features/routing/domain/repositories/route_repository.dart';
 import 'package:inclusive_app/features/routing/domain/usecases/get_alternative_route.dart';
@@ -230,6 +232,10 @@ Future<void> init() async {
       client: sl(),
       getToken: () => sl<FirebaseAuthService>().getIdToken(),
     ),
+  );
+
+  sl.registerLazySingleton<RouteLocalDataSource>(
+    () => RouteLocalDataSourceImpl(sharedPreferences: sl()),
   );
 
   // Routing - Repository
