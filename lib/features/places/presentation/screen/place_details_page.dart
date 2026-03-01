@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/places/presentation/widget/photo_gallery.dart';
 import 'package:inclusive_app/features/places/presentation/widget/raiting.dart';
@@ -271,38 +272,86 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   /// Genera la ruta desde la ubicación del usuario hasta este lugar
-  void _onGenerateRoute(BuildContext context) {
+  void _onGenerateRoute(BuildContext context) async {
     // Obtener el estado actual del MapBloc para conseguir la ubicación del usuario
-    final mapState = context.read<map_bloc.MapBloc>().state;
+    final mapBloc = context.read<map_bloc.MapBloc>();
+    final mapState = mapBloc.state;
 
+    // Si ya tenemos la ubicación, navegar directamente
     if (mapState is map_bloc.MapLocationLoaded) {
-      // Cerrar el modal de detalles del lugar
-      Navigator.pop(context);
-
-      // Navegar a la pantalla de selección de ruta
-      context.push(
-        '/route-selection',
-        extra: {
-          'originLat': mapState.latitude,
-          'originLng': mapState.longitude,
-          'destLat': widget.latitude,
-          'destLng': widget.longitude,
-          'originName': 'Mi ubicación',
-          'destName': widget.placeName,
-        },
-      );
-    } else {
-      // No tenemos ubicación del usuario, mostrar error
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'No se pudo obtener tu ubicación. Activa el GPS e intenta de nuevo.',
-          ),
-          duration: Duration(seconds: 3),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _navigateToRoute(context, mapState.latitude, mapState.longitude);
+      return;
     }
+
+    // Si no tenemos ubicación, intentar obtenerla
+    // Mostrar indicador de carga
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          color: AppColor.primaryNormal,
+        ),
+      ),
+    );
+
+    // Disparar el evento para obtener la ubicación
+    mapBloc.add(map_bloc.GetUserLocationEvent());
+
+    // Esperar el resultado
+    await for (final state in mapBloc.stream) {
+      if (state is map_bloc.MapLocationLoaded) {
+        // Cerrar el diálogo de carga
+        if (mounted) Navigator.of(context).pop();
+        
+        // Navegar a la ruta
+        _navigateToRoute(context, state.latitude, state.longitude);
+        break;
+      } else if (state is map_bloc.MapError) {
+        // Cerrar el diálogo de carga
+        if (mounted) Navigator.of(context).pop();
+        
+        // Mostrar el error al usuario
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              duration: const Duration(seconds: 4),
+              backgroundColor: Colors.red,
+              action: SnackBarAction(
+                label: 'Configuración',
+                textColor: Colors.white,
+                onPressed: () {
+                  // Abrir la configuración del dispositivo
+                  Geolocator.openLocationSettings();
+                },
+              ),
+            ),
+          );
+        }
+        break;
+      }
+    }
+  }
+
+  /// Navega a la pantalla de selección de ruta
+  void _navigateToRoute(BuildContext context, double userLat, double userLng) {
+    // Cerrar el modal de detalles del lugar
+    Navigator.pop(context);
+
+    // Navegar a la pantalla de selección de ruta
+    context.push(
+      '/route-selection',
+      extra: {
+        'originLat': userLat,
+        'originLng': userLng,
+        'destLat': widget.latitude,
+        'destLng': widget.longitude,
+        'originName': 'Mi ubicación',
+        'destName': widget.placeName,
+      },
+    );
   }
 
   /// Abre el modal de reseña de accesibilidad
