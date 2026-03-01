@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:go_router/go_router.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_state.dart';
@@ -13,6 +15,7 @@ import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:inclusive_app/features/spot/presentation/pages/saved_spots_page.dart';
 import 'package:inclusive_app/features/spot/presentation/widgets/spot_quick_access_bar.dart';
 import 'package:inclusive_app/shared/widgets/grabber.dart';
+import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart' as map_bloc;
 
 /// Página de búsqueda de lugares con panel deslizable.
 /// 
@@ -58,10 +61,78 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  /// Maneja el tap en una píldora de spot.
-  void _onSpotTap(Spot spot) {
-    // Seleccionar el lugar del spot
-    context.read<PlaceBloc>().add(SelectPlaceEvent(spot.placeId));
+  /// Maneja el tap en una píldora de spot - genera ruta automáticamente.
+  void _onSpotTap(Spot spot) async {
+    // Obtener el MapBloc para verificar ubicación
+    final mapBloc = context.read<map_bloc.MapBloc>();
+    final mapState = mapBloc.state;
+
+    // Si ya tenemos la ubicación, navegar directamente
+    if (mapState is map_bloc.MapLocationLoaded) {
+      _navigateToRoute(
+        context,
+        mapState.latitude,
+        mapState.longitude,
+        spot,
+      );
+      return;
+    }
+
+    // Si no tenemos ubicación, intentar obtenerla
+    // Mostrar indicador de carga
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          color: AppColor.primaryNormal,
+        ),
+      ),
+    );
+
+    // Disparar el evento para obtener la ubicación
+    mapBloc.add(map_bloc.GetUserLocationEvent());
+
+    // Esperar el resultado
+    await for (final state in mapBloc.stream) {
+      if (state is map_bloc.MapLocationLoaded) {
+        // Cerrar el diálogo de carga
+        if (mounted) Navigator.of(context).pop();
+        
+        // Navegar a la ruta
+        _navigateToRoute(
+          context,
+          state.latitude,
+          state.longitude,
+          spot,
+        );
+        break;
+      } else if (state is map_bloc.MapError) {
+        // Cerrar el diálogo de carga
+        if (mounted) Navigator.of(context).pop();
+        
+        // Mostrar el error al usuario
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              duration: const Duration(seconds: 4),
+              backgroundColor: Colors.red,
+              action: SnackBarAction(
+                label: 'Configuración',
+                textColor: Colors.white,
+                onPressed: () {
+                  // Abrir la configuración del dispositivo
+                  Geolocator.openLocationSettings();
+                },
+              ),
+            ),
+          );
+        }
+        break;
+      }
+    }
   }
 
   /// Maneja el tap en la píldora Casa cuando no está asignada.
@@ -119,6 +190,27 @@ class _SearchPageState extends State<SearchPage> {
         ),
       );
     }
+  }
+
+  /// Navega a la pantalla de selección de ruta.
+  void _navigateToRoute(
+    BuildContext context,
+    double userLat,
+    double userLng,
+    Spot spot,
+  ) {
+    // Navegar a la pantalla de selección de ruta
+    context.push(
+      '/route-selection',
+      extra: {
+        'originLat': userLat,
+        'originLng': userLng,
+        'destLat': spot.latitude,
+        'destLng': spot.longitude,
+        'originName': 'Mi ubicación',
+        'destName': spot.spotName,
+      },
+    );
   }
 
   @override
