@@ -234,7 +234,11 @@ Future<void> init() async {
 
   // Routing - Repository
   sl.registerLazySingleton<RouteRepository>(
-    () => RouteRepositoryImpl(remoteDataSource: sl()),
+    () => RouteRepositoryImpl(
+      remoteDataSource: sl(),
+      localDataSource: sl(),
+      networkInfo: sl(),
+    ),
   );
 
   // Routing - UseCases
