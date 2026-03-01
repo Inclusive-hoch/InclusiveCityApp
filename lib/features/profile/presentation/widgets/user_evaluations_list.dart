@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_state.dart';
+import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart';
 import 'package:inclusive_app/features/profile/application/bloc/user_evaluation_bloc.dart';
 import 'package:inclusive_app/features/profile/application/bloc/user_evaluation_event.dart';
 import 'package:inclusive_app/features/profile/application/bloc/user_evaluation_state.dart';
@@ -28,6 +29,14 @@ class _UserEvaluationsListState extends State<UserEvaluationsList> {
         LoadUserEvaluations(userId: authState.user.uid),
       );
     }
+  }
+
+  /// Navega al mapa y muestra los detalles del lugar
+  void _navigateToPlaceDetails(BuildContext context, String placeId) {
+    // Disparar evento para cargar detalles del lugar
+    context.read<PlaceBloc>().add(SelectPlaceEvent(placeId));
+    // Navegar al mapa
+    context.go('/map');
   }
 
   @override
@@ -129,9 +138,10 @@ class _UserEvaluationsListState extends State<UserEvaluationsList> {
                     evaluation: evaluation,
                     placeName: placeDetails?.name,
                     placeType: placeDetails?.address,
-                    imageUrl: placeDetails?.photos.isNotEmpty == true
+                    photoReference: placeDetails?.photos.isNotEmpty == true
                         ? placeDetails!.photos.first
                         : null,
+                    onTap: () => _navigateToPlaceDetails(context, evaluation.placeId),
                   );
                 },
               ),
