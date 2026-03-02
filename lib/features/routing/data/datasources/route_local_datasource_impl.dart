@@ -8,8 +8,16 @@ class RouteLocalDataSourceImpl implements RouteLocalDataSource {
 
   RouteLocalDataSourceImpl({required this.sharedPreferences});
 
+  /// Genera una clave única para la ruta con coordenadas redondeadas.
+  /// 
+  /// Redondea las coordenadas a 4 decimales (~11 metros de precisión)
+  /// para evitar problemas de precisión flotante y reducir claves duplicadas.
   String _generateKey(double oLat, double oLng, double dLat, double dLng) {
-    return 'ROUTE_${oLat}_${oLng}_${dLat}_${dLng}';
+    final oLatRounded = (oLat * 10000).round() / 10000;
+    final oLngRounded = (oLng * 10000).round() / 10000;
+    final dLatRounded = (dLat * 10000).round() / 10000;
+    final dLngRounded = (dLng * 10000).round() / 10000;
+    return 'ROUTE_${oLatRounded}_${oLngRounded}_${dLatRounded}_${dLngRounded}';
   }
 
   String _generateTimeKey(String routeKey) => '${routeKey}_TIMESTAMP';
@@ -32,7 +40,7 @@ class RouteLocalDataSourceImpl implements RouteLocalDataSource {
       final expirationTime = saveTime.add(const Duration(hours: 24));
 
       if (DateTime.now().isBefore(expirationTime)) {
-        return RouteInfoModel.fromJson(jsonDecode(routeString));
+        return RouteInfoModel.fromCacheJson(jsonDecode(routeString));
       } else {
         await sharedPreferences.remove(routeKey);
         await sharedPreferences.remove(timeKey);

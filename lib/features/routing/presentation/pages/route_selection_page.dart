@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:markers_cluster_google_maps_flutter/markers_cluster_google_maps_flutter.dart';
 import 'package:inclusive_app/core/utils/polyline_decoder.dart';
-import 'package:inclusive_app/features/routing/presentation/bloc/route_bloc.dart';
+import 'package:inclusive_app/features/routing/application/bloc/route_bloc.dart';
 import 'package:inclusive_app/features/routing/presentation/widgets/origin_location_sheet.dart';
 import 'package:inclusive_app/features/routing/presentation/widgets/route_location_card.dart';
 import 'package:inclusive_app/features/routing/presentation/widgets/route_info_bottom_sheet.dart';
@@ -13,6 +13,7 @@ import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart'
 import 'package:inclusive_app/features/incidents/domain/entities/sector_incidence_entity.dart';
 import 'package:inclusive_app/features/incidents/presentation/constants/incidence_marker_icons.dart';
 import 'package:inclusive_app/core/utils/marker_icon_generator.dart';
+import 'package:inclusive_app/features/routing/utils/route_icon_cache.dart';
 
 /// Página de selección de ruta que muestra el mapa con la ruta generada.
 ///
@@ -132,34 +133,14 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
 
   /// Carga los iconos personalizados desde los assets SVG
   Future<void> _loadCustomIcons() async {
-  try {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Tamaño para el icono de origen (cuadrado 33x33)
-      const double originSize = 33.0; 
-
-      final origin = await bitmap_utils.bitmapDescriptorFromSvgAsset(
-        'assets/routeLogo/inicio_ruta.svg',
-        const Size(originSize, originSize),
-      );
-      
-      // Tamaño para el icono de destino respetando su aspect ratio original (25:32)
-      // El SVG original es 25x32, mantenemos esa proporción
-      final dest = await bitmap_utils.bitmapDescriptorFromSvgAsset(
-        'assets/routeLogo/llegada_logo.svg',
-        const Size(25, 32),
-      );
-      
-      if (mounted) {
-        setState(() {
-          _originIcon = origin;
-          _destIcon = dest;
-          _setupMarkers(); // Refrescamos los marcadores
-        });
-      }
-    });
-  } catch (e) {
-    debugPrint('Error cargando iconos: $e');
-  }
+  // 1. Esperamos a que el caché termine (si es que aún no terminó de cargar en el main)
+  await RouteIconCache().preloadIcons();
+  
+  // 2. Simplemente pedimos los iconos ya procesados de la memoria RAM
+  setState(() {
+    _originIcon = RouteIconCache().originIcon;
+    _destIcon = RouteIconCache().destIcon;
+  });
 }
 
 void _setupMarkers() {
