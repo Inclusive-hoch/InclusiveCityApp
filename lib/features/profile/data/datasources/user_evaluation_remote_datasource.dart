@@ -26,7 +26,6 @@ class UserEvaluationRemoteDataSourceImpl
   Future<List<UserEvaluationModel>> getUserEvaluations(String userId) async {
     final token = await getToken();
     developer.log('🔍 Buscando evaluaciones para userId: $userId', name: 'UserEvaluations');
-    developer.log('🔑 Token del usuario: $token', name: 'UserEvaluations');
     
     final response = await client.get(
       Uri.parse(ApiConstants.userEvaluations),
