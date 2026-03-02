@@ -44,16 +44,20 @@ import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:inclusive_app/features/profile/data/datasources/user_evaluation_remote_datasource.dart';
+import 'package:inclusive_app/features/profile/data/datasources/user_evaluation_local_datasource.dart';
+import 'package:inclusive_app/features/profile/data/datasources/user_evaluation_local_datasource_impl.dart';
 import 'package:inclusive_app/features/profile/data/repositories/user_evaluation_repository_impl.dart';
 import 'package:inclusive_app/features/profile/domain/repositories/user_evaluation_repository.dart';
 import 'package:inclusive_app/features/profile/domain/usecases/get_user_evaluations.dart';
 import 'package:inclusive_app/features/profile/application/bloc/user_evaluation_bloc.dart';
 import 'package:inclusive_app/features/routing/data/datasources/route_remote_datasource.dart';
 import 'package:inclusive_app/features/routing/data/datasources/route_remote_datasource_impl.dart';
+import 'package:inclusive_app/features/routing/data/datasources/route_local_datasource.dart';
+import 'package:inclusive_app/features/routing/data/datasources/route_local_datasource_impl.dart';
 import 'package:inclusive_app/features/routing/data/repositories/route_repository_impl.dart';
 import 'package:inclusive_app/features/routing/domain/repositories/route_repository.dart';
 import 'package:inclusive_app/features/routing/domain/usecases/get_alternative_route.dart';
-import 'package:inclusive_app/features/routing/presentation/bloc/route_bloc.dart';
+import 'package:inclusive_app/features/routing/application/bloc/route_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -201,10 +205,17 @@ Future<void> init() async {
     ),
   );
 
+  sl.registerLazySingleton<UserEvaluationLocalDatasource>(
+    () => UserEvaluationLocalDatasourceImpl(sharedPreferences: sl()),
+  );
+
   // User Evaluations - Repository
   sl.registerLazySingleton<UserEvaluationRepository>(
-    () =>
-        UserEvaluationRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
+    () => UserEvaluationRepositoryImpl(
+      remoteDataSource: sl(),
+      localDatasource: sl(),
+      networkInfo: sl(),
+    ),
   );
 
   // User Evaluations - UseCase
@@ -223,9 +234,17 @@ Future<void> init() async {
     ),
   );
 
+  sl.registerLazySingleton<RouteLocalDataSource>(
+    () => RouteLocalDataSourceImpl(sharedPreferences: sl()),
+  );
+
   // Routing - Repository
   sl.registerLazySingleton<RouteRepository>(
-    () => RouteRepositoryImpl(remoteDataSource: sl()),
+    () => RouteRepositoryImpl(
+      remoteDataSource: sl(),
+      localDataSource: sl(),
+      networkInfo: sl(),
+    ),
   );
 
   // Routing - UseCases

@@ -4,7 +4,7 @@ import 'package:inclusive_app/core/router/app_router.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart';
 import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart';
-import 'package:inclusive_app/features/routing/presentation/bloc/route_bloc.dart';
+import 'package:inclusive_app/features/routing/application/bloc/route_bloc.dart';
 import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:inclusive_app/injection_container.dart' as di;
 

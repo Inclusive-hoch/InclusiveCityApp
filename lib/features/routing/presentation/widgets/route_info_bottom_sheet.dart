@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
-import 'package:inclusive_app/features/routing/presentation/bloc/route_bloc.dart';
+import 'package:inclusive_app/features/routing/application/bloc/route_bloc.dart';
 
 /// Panel inferior que muestra información de la ruta y botón de cancelar
 class RouteInfoBottomSheet extends StatelessWidget {

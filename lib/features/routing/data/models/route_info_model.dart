@@ -66,6 +66,18 @@ class RouteInfoModel extends RouteInfo {
     return value; // Ya está en segundos
   }
 
+  /// Crea un modelo desde JSON almacenado en caché.
+  /// 
+  /// Este método lee el formato simplificado que se guarda en el caché local.
+  factory RouteInfoModel.fromCacheJson(Map<String, dynamic> json) {
+    return RouteInfoModel(
+      encodedPolyline: json['polyline'] as String,
+      distanceMeters: (json['distance'] as num).toDouble(),
+      durationSeconds: (json['duration'] as num).toDouble(),
+      routeType: json['routeType'] as String? ?? 'main',
+    );
+  }
+
   /// Convierte el modelo a JSON.
   Map<String, dynamic> toJson() {
     return {

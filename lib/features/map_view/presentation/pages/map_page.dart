@@ -9,7 +9,7 @@ import 'package:inclusive_app/features/incidents/domain/entities/sector_incidenc
 import 'package:inclusive_app/features/incidents/presentation/constants/incidence_marker_icons.dart';
 import 'package:inclusive_app/core/utils/marker_icon_generator.dart';
 import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart';
-import 'package:inclusive_app/features/routing/presentation/bloc/route_bloc.dart';
+import 'package:inclusive_app/features/routing/application/bloc/route_bloc.dart';
 import 'package:inclusive_app/shared/widgets/custom_floating_action_button.dart';
 import 'package:inclusive_app/features/map_view/presentation/controller/map_page_controller.dart';
 import 'package:inclusive_app/features/places/presentation/screen/search_page.dart';

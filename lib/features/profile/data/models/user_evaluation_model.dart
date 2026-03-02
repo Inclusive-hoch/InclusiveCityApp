@@ -32,12 +32,21 @@ class UserEvaluationModel extends UserEvaluation {
     // Obtener los datos del usuario actual desde statsData
     final userStats = statsData[currentUserId] as Map<String, dynamic>?;
 
+    // Si no hay statsData (formato de caché), leer directamente del JSON
+    final rateChoice = userStats?['rateChoice'] as String? ?? 
+                      json['rateChoice'] as String? ?? 
+                      'UNKNOWN';
+    
+    final forms = userStats?['forms'] != null 
+        ? List<String>.from(userStats!['forms'])
+        : List<String>.from(json['forms'] ?? []);
+
     return UserEvaluationModel(
       placeId: json['placeId'] as String,
       medals: List<String>.from(json['medals'] ?? []),
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
-      rateChoice: userStats?['rateChoice'] as String? ?? 'UNKNOWN',
-      forms: List<String>.from(userStats?['forms'] ?? []),
+      rateChoice: rateChoice,
+      forms: forms,
     );
   }
 
