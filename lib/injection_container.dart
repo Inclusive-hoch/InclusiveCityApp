@@ -57,7 +57,7 @@ import 'package:inclusive_app/features/routing/data/datasources/route_local_data
 import 'package:inclusive_app/features/routing/data/repositories/route_repository_impl.dart';
 import 'package:inclusive_app/features/routing/domain/repositories/route_repository.dart';
 import 'package:inclusive_app/features/routing/domain/usecases/get_alternative_route.dart';
-import 'package:inclusive_app/features/routing/presentation/bloc/route_bloc.dart';
+import 'package:inclusive_app/features/routing/application/bloc/route_bloc.dart';
 
 final sl = GetIt.instance;
 
