@@ -36,6 +36,12 @@ class _MapPageState extends State<MapPage> {
   /// Lista de incidencias actualmente cargadas (para lookup al hacer tap).
   List<SectorIncidenceEntity> _loadedIncidences = [];
 
+  /// Markers de lugares buscados/seleccionados.
+  final Set<Marker> _placeMarkers = {};
+
+  /// Mapa de detalles de lugares por markerId para acceso rápido.
+  final Map<String, dynamic> _placeDetailsMap = {};
+
   /// Zoom actual del mapa, usado por el cluster manager.
   double _currentZoom = 2.0;
 
@@ -108,6 +114,9 @@ class _MapPageState extends State<MapPage> {
                     ),
                   );
 
+                  // Agregar marker del lugar
+                  _addPlaceMarker(place);
+
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     _showPlaceDetails(context, place);
                   });
@@ -176,9 +185,10 @@ class _MapPageState extends State<MapPage> {
                       _mapController = controller;
                     },
                     polylines: _polylines,
-                    markers: Set<Marker>.of(
-                      _clusterManager.getClusteredMarkers(),
-                    ),
+                    markers: {
+                      ..._clusterManager.getClusteredMarkers(),
+                      ..._placeMarkers,
+                    },
                     myLocationEnabled: true,
                     zoomControlsEnabled: false,
                     onCameraMove: (position) {
@@ -397,5 +407,34 @@ class _MapPageState extends State<MapPage> {
         },
       ),
     );
+  }
+
+  /// Agrega un marker para un lugar en el mapa.
+  /// El marker es clickeable y muestra los detalles del lugar al hacer tap.
+  void _addPlaceMarker(dynamic place) {
+    final markerId = 'place_${place.placeId}';
+    
+    // Guardar detalles del lugar para acceso rápido
+    _placeDetailsMap[markerId] = place;
+
+    // Crear marker con ícono por defecto de Google Maps (rojo)
+    final marker = Marker(
+      markerId: MarkerId(markerId),
+      position: LatLng(place.latitude, place.longitude),
+      infoWindow: InfoWindow(
+        title: place.name,
+        snippet: place.address,
+      ),
+      onTap: () {
+        // Mostrar detalles cuando se hace tap en el marker
+        _showPlaceDetails(context, place);
+      },
+    );
+
+    setState(() {
+      // Limpiar markers anteriores de lugares (solo mostrar el más reciente)
+      _placeMarkers.clear();
+      _placeMarkers.add(marker);
+    });
   }
 }
