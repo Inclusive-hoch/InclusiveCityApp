@@ -44,9 +44,6 @@ class FetchPlaceDetailsEvent extends PlacesEvent {
   List<Object> get props => [placeId];
 }
 
-/// Evento para obtener la ubicación actual del usuario.
-class GetUserLocationEvent extends PlacesEvent {}
-
 /// Evento para cargar el historial de búsquedas.
 class LoadSearchHistoryEvent extends PlacesEvent {}
 
