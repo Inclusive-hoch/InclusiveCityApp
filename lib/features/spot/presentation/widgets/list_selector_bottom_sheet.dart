@@ -348,7 +348,14 @@ class _ListSelectorBottomSheetState extends State<ListSelectorBottomSheet> {
 
           // Lista de custom spots
           Flexible(
-            child: BlocBuilder<SpotBloc, SpotState>(
+          child: BlocConsumer<SpotBloc, SpotState>(
+            listener: (context, state) {
+              if (state is CustomSpotsLoaded) {
+                setState(() {
+                  _allLists = state.customSpots;
+                });
+              }
+            },
               builder: (context, state) {
                 if (state is SpotLoading) {
                   return const Padding(
@@ -362,9 +369,6 @@ class _ListSelectorBottomSheetState extends State<ListSelectorBottomSheet> {
                 }
 
                 if (state is CustomSpotsLoaded) {
-                  // Guardar las listas para validaciones
-                  _allLists = state.customSpots;
-                  
                   // Listas predeterminadas
                   const destacadosName = 'Destacados';
                   const favoritosName = 'Favoritos';
