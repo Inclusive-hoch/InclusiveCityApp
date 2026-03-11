@@ -65,232 +65,160 @@ class _PlaceListItemCardState extends State<PlaceListItemCard> {
           });
         }
       },
-      child: Card(
-        margin: EdgeInsets.zero,
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.1),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: InkWell(
-          onTap: !_isLoading && _photoReferences != null && _rating != null && _medals != null
-              ? () => widget.onTap(
-                    photoReferences: _photoReferences ?? [],
-                    rating: _rating ?? 0.0,
-                    medals: _medals ?? [],
-                  )
-              : null,
-          borderRadius: BorderRadius.circular(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Información del lugar (arriba)
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Nombre del lugar
-                    Text(
+      child: InkWell(
+        onTap: !_isLoading && _photoReferences != null && _rating != null && _medals != null
+            ? () => widget.onTap(
+                  photoReferences: _photoReferences ?? [],
+                  rating: _rating ?? 0.0,
+                  medals: _medals ?? [],
+                )
+            : null,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Nombre + botón eliminar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 8, 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
                       widget.spot.spotName,
                       style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                         color: Color(0xFF1A1A1A),
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    
-                    // Rating
-                    if (_rating != null && _rating! > 0) ...[
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.thumb_up,
-                            size: 16,
-                            color: AppColor.primaryNormal,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Al ${_rating!.toInt()}% le gusta este lugar',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: AppColor.primaryNormal,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 20, color: Colors.grey),
+                    onPressed: widget.onDelete,
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+            ),
 
-                    // Medallas de accesibilidad
-                    if (_medals != null && _medals!.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Row(
-                        children: _medals!.take(3).map((medal) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 16),
-                            child: _buildAccessibilityIcon(medal),
-                          );
-                        }).toList(),
+            // Rating
+            if (_rating != null && _rating! > 0)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                child: Row(
+                  children: [
+                    Icon(Icons.thumb_up, size: 18, color: AppColor.primaryNormal),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Al ${_rating!.toInt()}% le gusta este lugar',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColor.primaryNormal,
+                        fontWeight: FontWeight.w500,
                       ),
-                    ],
-
-                    // Loading indicator
-                    if (_isLoading) ...[
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 16,
-                        width: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColor.primaryNormal,
-                        ),
-                      ),
-                    ],
+                    ),
                   ],
                 ),
               ),
 
-              // Imagen del lugar con dirección en overlay
-              if (_photoUrl != null)
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(16),
-                  ),
-                  child: Stack(
-                    children: [
-                      Image.network(
-                        _photoUrl!,
-                        height: 200,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return _buildPlaceholder();
-                        },
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return _buildPlaceholder();
-                        },
-                      ),
-                      // Overlay con dirección
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withOpacity(0.75),
-                              ],
-                            ),
-                          ),
-                          child: Text(
-                            widget.spot.address,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w400,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else if (_isLoading)
-                _buildPlaceholder()
-              else
-                Container(
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: const BorderRadius.vertical(
-                      bottom: Radius.circular(16),
-                    ),
-                  ),
-                  child: Stack(
-                    children: [
-                      Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.image_not_supported_outlined,
-                              size: 48,
-                              color: Colors.grey[400],
-                            ),
-                            const SizedBox(height: 8),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: Text(
-                                'Sin imagen disponible',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 13,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Dirección en la parte inferior
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.6),
-                          ),
-                          child: Text(
-                            widget.spot.address,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w400,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ),
-                    ],
+            // Loading
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                child: SizedBox(
+                  height: 18,
+                  width: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColor.primaryNormal),
+                ),
+              ),
+
+            // Medallas de accesibilidad
+            if (_medals != null && _medals!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Row(
+                  children: _medals!.take(3).map((medal) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: _buildAccessibilityIcon(medal),
+                    );
+                  }).toList(),
+                ),
+              ),
+
+            const SizedBox(height: 12),
+
+            // Foto
+            if (_photoUrl != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    _photoUrl!,
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => _buildPhotoPlaceholder(),
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return _buildPhotoPlaceholder();
+                    },
                   ),
                 ),
-            ],
-          ),
+              )
+            else if (_isLoading)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _buildPhotoPlaceholder(),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    height: 160,
+                    color: Colors.grey[100],
+                    child: Center(
+                      child: Icon(Icons.image_not_supported_outlined, size: 40, color: Colors.grey[400]),
+                    ),
+                  ),
+                ),
+              ),
+
+            // Dirección
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.location_on, size: 15, color: Colors.grey[600]),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      widget.spot.address,
+                      style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildPhotoPlaceholder() {
     return Container(
-      height: 200,
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: const BorderRadius.vertical(
-          bottom: Radius.circular(16),
-        ),
-      ),
+      height: 180,
+      color: Colors.grey[200],
       child: Center(
         child: CircularProgressIndicator(
           color: AppColor.primaryNormal,
@@ -301,46 +229,34 @@ class _PlaceListItemCardState extends State<PlaceListItemCard> {
   }
 
   Widget _buildAccessibilityIcon(String medal) {
-    IconData icon;
-    Color color;
+    final key = medal.toLowerCase();
+    Widget iconWidget;
 
-    switch (medal.toLowerCase()) {
-      case 'wheelchair':
-      case 'accesible':
-      case 'rampa':
-      case 'silla de ruedas':
-        icon = Icons.accessible;
-        color = const Color(0xFF4B7BEC);
-        break;
-      case 'parking':
-      case 'estacionamiento':
-        icon = Icons.local_parking;
-        color = const Color(0xFF4B7BEC);
-        break;
-      case 'elevator':
-      case 'ascensor':
-        icon = Icons.elevator;
-        color = const Color(0xFF4B7BEC);
-        break;
-      case 'bathroom':
-      case 'baño':
-      case 'baño accesible':
-        icon = Icons.wc;
-        color = const Color(0xFF4B7BEC);
-        break;
-      case 'braille':
-        icon = Icons.text_fields;
-        color = const Color(0xFF4B7BEC);
-        break;
-      default:
-        icon = Icons.check_circle;
-        color = const Color(0xFF4B7BEC);
+    if (key == 'wheelchair' || key == 'accesible' || key == 'rampa' || key == 'silla de ruedas') {
+      iconWidget = const Icon(Icons.accessible, size: 22, color: Colors.white);
+    } else if (key == 'parking' || key == 'estacionamiento') {
+      iconWidget = const Icon(Icons.local_parking, size: 22, color: Colors.white);
+    } else if (key == 'elevator' || key == 'ascensor') {
+      iconWidget = const Text(
+        'E',
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+      );
+    } else if (key == 'bathroom' || key == 'baño' || key == 'baño accesible') {
+      iconWidget = const Icon(Icons.wc, size: 22, color: Colors.white);
+    } else if (key == 'braille') {
+      iconWidget = const Icon(Icons.text_fields, size: 22, color: Colors.white);
+    } else {
+      iconWidget = const Icon(Icons.check_circle, size: 22, color: Colors.white);
     }
 
-    return Icon(
-      icon,
-      size: 32,
-      color: color,
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: const Color(0xFF4B7BEC),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Center(child: iconWidget),
     );
   }
 }
