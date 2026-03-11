@@ -90,37 +90,35 @@ class _ListDetailBottomSheetState extends State<ListDetailBottomSheet> {
   }) {
     final sheetController = DraggableScrollableController();
 
-    showModalBottomSheet(
+    sheetController.addListener(() {
+      if (sheetController.isAttached && sheetController.size <= 0.31) {
+        Navigator.pop(context);
+      }
+    });
+
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
+      builder: (innerContext) => DraggableScrollableSheet(
         controller: sheetController,
         initialChildSize: 0.9,
         minChildSize: 0.3,
         maxChildSize: 0.95,
         snap: true,
         snapSizes: const [0.3, 0.9],
-        builder: (context, scrollController) {
-          sheetController.addListener(() {
-            if (sheetController.size <= 0.31) {
-              Navigator.pop(context);
-            }
-          });
-
-          return PlaceDetailsPage(
-            placeId: spot.placeId,
-            placeName: spot.spotName,
-            address: spot.address,
-            photoReferences: photoReferences,
-            rating: rating,
-            medals: medals,
-            latitude: spot.latitude,
-            longitude: spot.longitude,
-          );
-        },
+        builder: (innerContext, scrollController) => PlaceDetailsPage(
+          placeId: spot.placeId,
+          placeName: spot.spotName,
+          address: spot.address,
+          photoReferences: photoReferences,
+          rating: rating,
+          medals: medals,
+          latitude: spot.latitude,
+          longitude: spot.longitude,
+        ),
       ),
-    );
+    ).whenComplete(sheetController.dispose);
   }
 
   void _onShare() {
@@ -310,18 +308,18 @@ Compartido desde Inclusive City App 🌍''';
                   );
                 }
 
-                if (_spots.isEmpty) {
-                  return _buildEmptyState();
-                }
-
                 if (state is SpotError) {
                   return _buildErrorState(state.message);
+                }
+
+                if (_spots.isEmpty) {
+                  return _buildEmptyState();
                 }
 
                 return ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: _spots.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  separatorBuilder: (context, index) => const Divider(height: 1, thickness: 1, indent: 16, endIndent: 16),
                   itemBuilder: (context, index) {
                     final spot = _spots[index];
                     return PlaceListItemCard(
