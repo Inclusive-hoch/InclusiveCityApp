@@ -47,6 +47,9 @@ class _SearchPageState extends State<SearchPage> {
   // Lista de custom spots (listas personalizadas) del usuario
   List<CustomSpot> customSpots = [];
 
+  // Historial de búsquedas
+  List<PlaceSearchResult> _searchHistory = [];
+
   @override
   void initState() {
     super.initState();
@@ -250,7 +253,18 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<SpotBloc, SpotState>(
+    return BlocListener<PlaceBloc, PlacesState>(
+      listener: (context, placeState) {
+        if (placeState is SearchHistoryLoaded) {
+          setState(() {
+            _searchHistory = placeState.history;
+          });
+        }
+        if (placeState is PlaceDetailsLoaded || placeState is PlaceDetailsLoading) {
+          FocusScope.of(context).unfocus();
+        }
+      },
+      child: BlocListener<SpotBloc, SpotState>(
       listener: (context, state) {
         // Actualizar lista de spots
         if (state is SpotsLoaded) {
@@ -337,6 +351,7 @@ class _SearchPageState extends State<SearchPage> {
                   child: SearchResultsList(
                     results: state.suggestions,
                     onSuggestionSelected: (place) {
+                      FocusScope.of(context).unfocus();
                       context.read<PlaceBloc>().add(SelectPlaceEvent(place.placeId));
                     },
                   ),
@@ -347,9 +362,9 @@ class _SearchPageState extends State<SearchPage> {
               if (state is SearchHistoryLoaded || 
                   state is PlacesInitial || 
                   state is PlacesEmpty ||
+                  state is PlaceDetailsLoaded ||
+                  state is PlaceDetailsLoading ||
                   (state is PlacesLoaded && state.suggestions.isEmpty)) {
-                final List<PlaceSearchResult> history = (state is SearchHistoryLoaded) ? state.history : [];
-
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -357,9 +372,10 @@ class _SearchPageState extends State<SearchPage> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: HistoryList(
-                        history: history,
+                        history: _searchHistory,
                         focusNode: FocusNode(),
                         onPlaceSelected: (placeId) {
+                          FocusScope.of(context).unfocus();
                           context.read<PlaceBloc>().add(SelectPlaceEvent(placeId));
                         },
                       ),
@@ -392,6 +408,7 @@ class _SearchPageState extends State<SearchPage> {
           
           const SizedBox(height: 30),
         ],
+      ),
       ),
       ),
     );

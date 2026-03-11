@@ -4,6 +4,7 @@ import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
 import 'package:inclusive_app/features/spot/domain/entities/custom_spot.dart';
 import 'package:inclusive_app/features/spot/domain/entities/spot.dart';
+import 'package:inclusive_app/features/spot/data/models/spot_model.dart';
 import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:inclusive_app/features/spot/presentation/widgets/create_list_dialog.dart';
 import 'package:inclusive_app/injection_container.dart' as di;
@@ -130,7 +131,7 @@ class _ListSelectorBottomSheetState extends State<ListSelectorBottomSheet> {
         if (list.listName == existingList) {
           spotToMove = list.spotList.firstWhere(
             (s) => s.placeId == widget.placeId,
-            orElse: () => Spot(
+            orElse: () => SpotModel(
               userId: userId,
               spotName: widget.placeName,
               placeId: widget.placeId,
@@ -238,7 +239,7 @@ class _ListSelectorBottomSheetState extends State<ListSelectorBottomSheet> {
         if (list.listName == existingList) {
           spotToMove = list.spotList.firstWhere(
             (s) => s.placeId == widget.placeId,
-            orElse: () => Spot(
+            orElse: () => SpotModel(
               userId: userId,
               spotName: widget.placeName,
               placeId: widget.placeId,
