@@ -77,37 +77,35 @@ class _ListDetailPageState extends State<ListDetailPage> {
   }) {
     final sheetController = DraggableScrollableController();
 
-    showModalBottomSheet(
+    sheetController.addListener(() {
+      if (sheetController.isAttached && sheetController.size <= 0.31) {
+        Navigator.pop(context);
+      }
+    });
+
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
+      builder: (innerContext) => DraggableScrollableSheet(
         controller: sheetController,
         initialChildSize: 0.9,
         minChildSize: 0.3,
         maxChildSize: 0.95,
         snap: true,
         snapSizes: const [0.3, 0.9],
-        builder: (context, scrollController) {
-          sheetController.addListener(() {
-            if (sheetController.size <= 0.31) {
-              Navigator.pop(context);
-            }
-          });
-
-          return PlaceDetailsPage(
-            placeId: spot.placeId,
-            placeName: spot.spotName,
-            address: spot.address,
-            photoReferences: photoReferences,
-            rating: rating,
-            medals: medals,
-            latitude: spot.latitude,
-            longitude: spot.longitude,
-          );
-        },
+        builder: (innerContext, scrollController) => PlaceDetailsPage(
+          placeId: spot.placeId,
+          placeName: spot.spotName,
+          address: spot.address,
+          photoReferences: photoReferences,
+          rating: rating,
+          medals: medals,
+          latitude: spot.latitude,
+          longitude: spot.longitude,
+        ),
       ),
-    );
+    ).whenComplete(sheetController.dispose);
   }
 
   @override
@@ -168,6 +166,43 @@ class _ListDetailPageState extends State<ListDetailPage> {
             return const Center(
               child: CircularProgressIndicator(
                 color: AppColor.primaryNormal,
+              ),
+            );
+          }
+
+          if (state is SpotError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 80,
+                      color: Colors.red[300],
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Error al cargar lugares',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      state.message,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _loadListData,
+                      child: const Text('Reintentar'),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -238,46 +273,10 @@ class _ListDetailPageState extends State<ListDetailPage> {
             );
           }
 
-          if (state is SpotError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 80,
-                      color: Colors.red[300],
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Error al cargar lugares',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      state.message,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _loadListData,
-                      child: const Text('Reintentar'),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          return ListView.builder(
+          return ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: _spots.length,
+            separatorBuilder: (context, index) => const Divider(height: 1, thickness: 1, indent: 16, endIndent: 16),
             itemBuilder: (context, index) {
               final spot = _spots[index];
               return PlaceListItemCard(
