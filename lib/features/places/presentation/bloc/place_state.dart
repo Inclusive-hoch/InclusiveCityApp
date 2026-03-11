@@ -52,20 +52,6 @@ class PlaceDetailsLoaded extends PlacesState {
   List<Object> get props => [placeDetails];
 }
 
-/// Estado cuando se ha obtenido la ubicación del usuario.
-class UserLocationLoaded extends PlacesState {
-  /// Latitud de la ubicación del usuario.
-  final double latitude;
-
-  /// Longitud de la ubicación del usuario.
-  final double longitude;
-
-  UserLocationLoaded(this.latitude, this.longitude);
-
-  @override
-  List<Object> get props => [latitude, longitude];
-}
-
 /// Estado cuando se ha cargado el historial de búsquedas.
 class SearchHistoryLoaded extends PlacesState {
   /// Lista de lugares del historial de búsquedas.
