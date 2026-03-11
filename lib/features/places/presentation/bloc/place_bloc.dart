@@ -109,6 +109,7 @@ class PlaceBloc extends Bloc<PlacesEvent, PlacesState> {
     if (state is PlacesLoaded) {
       final suggestion = (state as PlacesLoaded).suggestions.firstWhere(
         (s) => s.placeId == event.placeId,
+        orElse: () => PlaceSearchResult(placeId: event.placeId, description: ''),
       );
 
       add(SaveToHistoryEvent(suggestion));
