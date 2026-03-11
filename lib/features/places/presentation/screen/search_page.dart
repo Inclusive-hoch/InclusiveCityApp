@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -49,6 +50,15 @@ class _SearchPageState extends State<SearchPage> {
 
   // Historial de búsquedas
   List<PlaceSearchResult> _searchHistory = [];
+
+  // FocusNode para la lista de historial
+  final FocusNode _historyFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _historyFocusNode.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -109,44 +119,42 @@ class _SearchPageState extends State<SearchPage> {
     // Disparar el evento para obtener la ubicación
     mapBloc.add(map_bloc.GetUserLocationEvent());
 
-    // Esperar el resultado
-    await for (final state in mapBloc.stream) {
-      if (state is map_bloc.MapLocationLoaded) {
-        // Cerrar el diálogo de carga
-        if (mounted) Navigator.of(context).pop();
-        
-        // Navegar a la ruta
-        _navigateToRoute(
-          context,
-          state.latitude,
-          state.longitude,
-          spot,
-        );
-        break;
-      } else if (state is map_bloc.MapError) {
-        // Cerrar el diálogo de carga
-        if (mounted) Navigator.of(context).pop();
-        
-        // Mostrar el error al usuario
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              duration: const Duration(seconds: 4),
-              backgroundColor: Colors.red,
-              action: SnackBarAction(
-                label: 'Configuración',
-                textColor: Colors.white,
-                onPressed: () {
-                  // Abrir la configuración del dispositivo
-                  Geolocator.openLocationSettings();
-                },
-              ),
+    // Esperar el resultado con timeout para evitar espera indefinida
+    try {
+      final resultState = await mapBloc.stream
+          .firstWhere(
+            (s) => s is map_bloc.MapLocationLoaded || s is map_bloc.MapError,
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Cerrar diálogo de carga
+
+      if (resultState is map_bloc.MapLocationLoaded) {
+        _navigateToRoute(context, resultState.latitude, resultState.longitude, spot);
+      } else if (resultState is map_bloc.MapError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(resultState.message),
+            duration: const Duration(seconds: 4),
+            backgroundColor: Colors.red,
+            action: SnackBarAction(
+              label: 'Configuración',
+              textColor: Colors.white,
+              onPressed: () => Geolocator.openLocationSettings(),
             ),
-          );
-        }
-        break;
+          ),
+        );
       }
+    } on TimeoutException {
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo obtener la ubicación. Verifica tu GPS.'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -373,7 +381,7 @@ class _SearchPageState extends State<SearchPage> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: HistoryList(
                         history: _searchHistory,
-                        focusNode: FocusNode(),
+                        focusNode: _historyFocusNode,
                         onPlaceSelected: (placeId) {
                           FocusScope.of(context).unfocus();
                           context.read<PlaceBloc>().add(SelectPlaceEvent(placeId));
