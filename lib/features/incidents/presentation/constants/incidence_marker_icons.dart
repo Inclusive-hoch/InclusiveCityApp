@@ -31,8 +31,51 @@ const Map<String, IconData> incidenceBackendIcons = {
 /// Ícono por defecto cuando el tipo de incidencia no se reconoce.
 const IconData defaultIncidenceIcon = Icons.warning_amber;
 
+/// Mapeo de nombres de incidencia (backend o UI) a etiquetas legibles.
+const Map<String, String> incidenceDisplayNames = {
+  // Veredas y superficies
+  'GRIETAS': 'Grietas',
+  'BACHES': 'Baches',
+  'DESNIVELES': 'Desniveles',
+  'SUPERFICIE_RESBALADIZA': 'Superficie resbaladiza',
+
+  // Cruces peatonales
+  'FALTA_DE_REBAJE': 'Falta de rebaje',
+  'SEMAFORO_SIN_SENAL_AUDITIVA': 'Semáforo sin señal auditiva',
+
+  // Problemas temporales
+  'ILUMINACION': 'Problema alumbrado público',
+  'ALUMBRADO_PUBLICO': 'Problema alumbrado público',
+  'OBRA': 'Obra',
+  'ESCOMBROS': 'Escombros',
+  'BLOQUEO_DE_RUTA': 'Bloqueo de ruta',
+  'BLOQUEDO_RUTA': 'Bloqueo de ruta',
+
+  // Rampas
+  'FALTA_DE_RAMPA': 'Falta de rampa',
+  'NO_RAMPA': 'Falta de rampa',
+  'RAMPA_DANADA': 'Rampa dañada',
+  'RAMPA_BLOQUEADA': 'Rampa bloqueada',
+};
+
 /// Retorna el ícono asociado a un nombre de incidencia del backend.
 IconData getIncidenceIcon(String backendName) {
   return incidenceBackendIcons[backendName.toUpperCase()] ??
       defaultIncidenceIcon;
+}
+
+/// Retorna una etiqueta legible para mostrar en UI.
+String getIncidenceDisplayName(String incidenceName) {
+  final normalized = incidenceName.trim().toUpperCase();
+  final mapped = incidenceDisplayNames[normalized];
+  if (mapped != null) return mapped;
+
+  return incidenceName
+      .trim()
+      .replaceAll('_', ' ')
+      .toLowerCase()
+      .split(' ')
+      .where((part) => part.isNotEmpty)
+      .map((part) => part[0].toUpperCase() + part.substring(1))
+      .join(' ');
 }
