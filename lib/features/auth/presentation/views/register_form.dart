@@ -20,6 +20,8 @@ class _RegisterFormState extends State<RegisterForm> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _emailRegex = RegExp(r'^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$');
+  String? _authErrorMessage;
 
   @override
   void dispose() {
@@ -50,6 +52,9 @@ class _RegisterFormState extends State<RegisterForm> {
             if (state is AuthAuthenticated) {
               GoRouter.of(context).go('/map');
             } else if (state is AuthError) {
+              setState(() {
+                _authErrorMessage = state.message;
+              });
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.message),
@@ -58,145 +63,197 @@ class _RegisterFormState extends State<RegisterForm> {
               );
             }
           },
-          child: SingleChildScrollView(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                spacing: 40,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SvgPicture.asset(
-                    'assets/logo/title.svg',
-                    width: 200,
-                    height: 200,
-                  ),
-                  const Text(
-                    'Crear cuenta',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  Column(
-                    spacing: 20,
+          child: BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              final isLoading = state is AuthLoading;
+
+              return SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    spacing: 40,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Name field
-                      SizedBox(
-                        width: 300,
-                        child: TextFormField(
-                          controller: _nameController,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Nombre completo',
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa tu nombre';
-                            }
-                            return null;
-                          },
+                      SvgPicture.asset(
+                        'assets/logo/title.svg',
+                        width: 200,
+                        height: 200,
+                      ),
+                      const Text(
+                        'Crear cuenta',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      // Email field
-                      SizedBox(
-                        width: 300,
-                        child: TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Correo electrónico',
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa tu correo';
-                            }
-                            // Email regex validation
-                            final emailRegex = RegExp(
-                              r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                            );
-                            if (!emailRegex.hasMatch(value)) {
-                              return 'Por favor ingresa un correo válido';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      // Password field
-                      SizedBox(
-                        width: 300,
-                        child: TextFormField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          enableSuggestions: false,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Contraseña',
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa una contraseña';
-                            }
-                            if (value.length < 6) {
-                              return 'La contraseña debe tener al menos 6 caracteres';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      // Confirm password field
-                      SizedBox(
-                        width: 300,
-                        child: TextFormField(
-                          controller: _confirmPasswordController,
-                          obscureText: true,
-                          enableSuggestions: false,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Confirmar contraseña',
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor confirma tu contraseña';
-                            }
-                            if (value != _passwordController.text) {
-                              return 'Las contraseñas no coinciden';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      // Submit button
-                      FilledButton(
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            context.read<AuthBloc>().add(
-                              RegisterWithEmailRequested(
-                                _nameController.text,
-                                _emailController.text,
-                                _passwordController.text,
+                      Column(
+                        spacing: 20,
+                        children: [
+                          // Name field
+                          SizedBox(
+                            width: 300,
+                            child: TextFormField(
+                              controller: _nameController,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Nombre completo',
                               ),
-                            );
-                          }
-                        },
-                        style: ButtonStyle(
-                          elevation: const WidgetStatePropertyAll(2),
-                          fixedSize: const WidgetStatePropertyAll(
-                            Size(300, 43),
-                          ),
-                          shape: WidgetStatePropertyAll(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              validator: (value) {
+                                final name = value?.trim() ?? '';
+                                if (name.isEmpty) {
+                                  return 'Por favor ingresa tu nombre';
+                                }
+                                if (name.length < 3) {
+                                  return 'Ingresa un nombre válido.';
+                                }
+                                return null;
+                              },
                             ),
                           ),
-                          backgroundColor: const WidgetStatePropertyAll(
-                            AppColor.primaryNormal,
+                          // Email field
+                          SizedBox(
+                            width: 300,
+                            child: TextFormField(
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Correo electrónico',
+                              ),
+                              validator: (value) {
+                                final email = value?.trim() ?? '';
+                                if (email.isEmpty) {
+                                  return 'Por favor ingresa tu correo';
+                                }
+                                if (!_emailRegex.hasMatch(email)) {
+                                  return 'Por favor ingresa un correo válido';
+                                }
+                                return null;
+                              },
+                            ),
                           ),
-                        ),
-                        child: const Text('Registrarse'),
+                          // Password field
+                          SizedBox(
+                            width: 300,
+                            child: TextFormField(
+                              controller: _passwordController,
+                              obscureText: true,
+                              enableSuggestions: false,
+                              autocorrect: false,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Contraseña',
+                              ),
+                              validator: (value) {
+                                final password = value ?? '';
+                                if (password.isEmpty) {
+                                  return 'Por favor ingresa una contraseña';
+                                }
+                                if (password.length < 6) {
+                                  return 'La contraseña debe tener al menos 6 caracteres';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          // Confirm password field
+                          SizedBox(
+                            width: 300,
+                            child: TextFormField(
+                              controller: _confirmPasswordController,
+                              obscureText: true,
+                              enableSuggestions: false,
+                              autocorrect: false,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Confirmar contraseña',
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor confirma tu contraseña';
+                                }
+                                if (value != _passwordController.text) {
+                                  return 'Las contraseñas no coinciden';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          if (_authErrorMessage != null)
+                            Container(
+                              width: 300,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.red.shade300),
+                              ),
+                              child: Text(
+                                _authErrorMessage!,
+                                style: TextStyle(color: Colors.red.shade800),
+                              ),
+                            ),
+                          // Submit button
+                          FilledButton(
+                            onPressed: isLoading
+                                ? null
+                                : () {
+                                    if (_formKey.currentState!.validate()) {
+                                      setState(() {
+                                        _authErrorMessage = null;
+                                      });
+                                      context.read<AuthBloc>().add(
+                                        RegisterWithEmailRequested(
+                                          _nameController.text.trim(),
+                                          _emailController.text.trim(),
+                                          _passwordController.text,
+                                        ),
+                                      );
+                                    }
+                                  },
+                            style: ButtonStyle(
+                              elevation: const WidgetStatePropertyAll(2),
+                              fixedSize: const WidgetStatePropertyAll(
+                                Size(300, 43),
+                              ),
+                              shape: WidgetStatePropertyAll(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              backgroundColor: const WidgetStatePropertyAll(
+                                AppColor.primaryNormal,
+                              ),
+                            ),
+                            child: isLoading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text('Registrarse'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
         ),
       ),

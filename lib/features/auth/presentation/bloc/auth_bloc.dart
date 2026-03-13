@@ -6,6 +6,7 @@ import 'package:inclusive_app/features/auth/domain/usecases/register_with_email.
 import 'package:inclusive_app/features/auth/domain/usecases/logout.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_event.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_state.dart';
+import 'package:inclusive_app/features/auth/presentation/utils/auth_error_mapper.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoginWithEmail loginWithEmail;
@@ -38,8 +39,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
-    final user = await loginWithEmail(event.email, event.password);
-    emit(AuthAuthenticated(user));
+    try {
+      final user = await loginWithEmail(event.email, event.password);
+      emit(AuthAuthenticated(user));
+    } catch (e) {
+      emit(AuthError(mapAuthErrorToMessage(e)));
+    }
   }
 
   Future<void> _onLoginGoogle(
@@ -47,8 +52,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
-    final user = await loginWithGoogle();
-    emit(AuthAuthenticated(user));
+    try {
+      final user = await loginWithGoogle();
+      emit(AuthAuthenticated(user));
+    } catch (e) {
+      emit(AuthError(mapAuthErrorToMessage(e)));
+    }
   }
 
   Future<void> _onRegister(
@@ -64,7 +73,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       emit(AuthAuthenticated(user));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthError(mapAuthErrorToMessage(e)));
     }
   }
 
