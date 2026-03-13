@@ -26,7 +26,6 @@ abstract class IncidentRemoteDataSource {
     required double latitude,
     required double longitude,
     required String incidence,
-    required String userId,
     String image,
   });
 }

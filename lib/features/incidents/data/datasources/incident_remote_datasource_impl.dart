@@ -91,7 +91,6 @@ class IncidentRemoteDataSourceImpl implements IncidentRemoteDataSource {
     required double latitude,
     required double longitude,
     required String incidence,
-    required String userId,
     String image = '',
   }) async {
     final token = await getToken();
@@ -105,7 +104,6 @@ class IncidentRemoteDataSourceImpl implements IncidentRemoteDataSource {
           'longitude': longitude.toString(),
         },
         'incidence': incidence,
-        'userId': userId,
         'image': image,
       }),
     );

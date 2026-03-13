@@ -17,6 +17,7 @@ import 'package:inclusive_app/features/places/presentation/screen/place_details_
 import 'package:inclusive_app/core/utils/polyline_decoder.dart';
 import 'package:inclusive_app/features/incidents/presentation/views/incident_type_container.dart';
 import 'package:inclusive_app/features/incidents/presentation/views/incidence_detail_sheet.dart';
+import 'package:inclusive_app/features/incidents/application/bloc/incident_report_bloc.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -94,170 +95,186 @@ class _MapPageState extends State<MapPage> {
     return Scaffold(
       body: Stack(
         children: [
-          /// MAPA
-          Positioned.fill(
-            child: BlocListener<PlaceBloc, PlacesState>(
-              listener: (context, placeState) {
-                if (placeState is PlaceDetailsLoaded) {
-                  final place = placeState.placeDetails;
+            /// MAPA
+            Positioned.fill(
+              child: BlocListener<IncidentReportBloc, IncidentReportState>(
+                listener: (context, incidentState) {
+                  if (incidentState is IncidentReportSuccess) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(incidentState.message)),
+                    );
+                    _checkZoomAndFetchIncidences();
+                  }
 
-                  _mapController?.animateCamera(
-                    CameraUpdate.newLatLngZoom(
-                      LatLng(place.latitude, place.longitude),
-                      16,
-                    ),
-                  );
-
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    _showPlaceDetails(context, place);
-                  });
-                }
-              },
-              child: BlocListener<map_bloc.MapBloc, map_bloc.MapState>(
-                listener: (context, state) {
-                  if (state is map_bloc.MapLocationLoaded) {
-                    _mapController?.animateCamera(
-                      CameraUpdate.newLatLngZoom(
-                        LatLng(state.latitude, state.longitude),
-                        _userLocationZoom,
-                      ),
+                  if (incidentState is IncidentReportFailure) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(incidentState.message)),
                     );
                   }
-
-                  if (state is map_bloc.MapError) {
-                    _showError(context, state.message);
-                  }
-
-                  // Manejar incidencias cargadas con clustering
-                  if (state is map_bloc.SectorIncidencesLoaded) {
-                    _handleIncidencesLoaded(state.incidences);
-                  }
-
-                  // Limpiar markers de incidencias
-                  if (state is map_bloc.SectorIncidencesCleared) {
-                    _loadedIncidences = [];
-                    _clusterManager = _buildClusterManager();
-                    _updateClusters();
-                  }
                 },
-                child: BlocListener<RouteBloc, RouteState>(
-                  listener: (context, routeState) {
-                    if (routeState is RouteLoaded &&
-                        routeState.alternativeRoute != null) {
-                      setState(() {
-                        _polylines.clear();
+                child: BlocListener<PlaceBloc, PlacesState>(
+                  listener: (context, placeState) {
+                    if (placeState is PlaceDetailsLoaded) {
+                      final place = placeState.placeDetails;
 
-                        final securePolyline = PolylineDecoder.createPolyline(
-                          polylineId: 'secure_route',
-                          encodedPolyline:
-                              routeState.alternativeRoute!.encodedPolyline,
-                          color: const Color(0xFF7878FF),
-                          width: 6,
-                          isHere: false,
-                          zIndex: 1,
-                        );
-                        _polylines.add(securePolyline);
+                      _mapController?.animateCamera(
+                        CameraUpdate.newLatLngZoom(
+                          LatLng(place.latitude, place.longitude),
+                          16,
+                        ),
+                      );
+
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _showPlaceDetails(context, place);
                       });
-                    }
-
-                    if (routeState is RouteInitial) {
-                      setState(() {
-                        _polylines.clear();
-                      });
-                    }
-
-                    if (routeState is RouteError) {
-                      _showError(context, routeState.message);
                     }
                   },
-                  child: GoogleMap(
-                    initialCameraPosition: _defaultPosition,
-                    onMapCreated: (controller) {
-                      _mapController = controller;
+                  child: BlocListener<map_bloc.MapBloc, map_bloc.MapState>(
+                    listener: (context, state) {
+                      if (state is map_bloc.MapLocationLoaded) {
+                        _mapController?.animateCamera(
+                          CameraUpdate.newLatLngZoom(
+                            LatLng(state.latitude, state.longitude),
+                            _userLocationZoom,
+                          ),
+                        );
+                      }
+
+                      if (state is map_bloc.MapError) {
+                        _showError(context, state.message);
+                      }
+
+                      if (state is map_bloc.SectorIncidencesLoaded) {
+                        _handleIncidencesLoaded(state.incidences);
+                      }
+
+                      if (state is map_bloc.SectorIncidencesCleared) {
+                        _loadedIncidences = [];
+                        _clusterManager = _buildClusterManager();
+                        _updateClusters();
+                      }
                     },
-                    polylines: _polylines,
-                    markers: Set<Marker>.of(
-                      _clusterManager.getClusteredMarkers(),
+                    child: BlocListener<RouteBloc, RouteState>(
+                      listener: (context, routeState) {
+                        if (routeState is RouteLoaded &&
+                            routeState.alternativeRoute != null) {
+                          setState(() {
+                            _polylines.clear();
+
+                            final securePolyline =
+                                PolylineDecoder.createPolyline(
+                                  polylineId: 'secure_route',
+                                  encodedPolyline: routeState
+                                      .alternativeRoute!
+                                      .encodedPolyline,
+                                  color: const Color(0xFF7878FF),
+                                  width: 6,
+                                  isHere: false,
+                                  zIndex: 1,
+                                );
+                            _polylines.add(securePolyline);
+                          });
+                        }
+
+                        if (routeState is RouteInitial) {
+                          setState(() {
+                            _polylines.clear();
+                          });
+                        }
+
+                        if (routeState is RouteError) {
+                          _showError(context, routeState.message);
+                        }
+                      },
+                      child: GoogleMap(
+                        initialCameraPosition: _defaultPosition,
+                        onMapCreated: (controller) {
+                          _mapController = controller;
+                        },
+                        polylines: _polylines,
+                        markers: Set<Marker>.of(
+                          _clusterManager.getClusteredMarkers(),
+                        ),
+                        myLocationEnabled: true,
+                        zoomControlsEnabled: false,
+                        onCameraMove: (position) {
+                          _currentZoom = position.zoom;
+                          _controller.handleCameraMove();
+                        },
+                        onCameraIdle: () {
+                          _controller.handleCameraIdle();
+                          _updateClusters();
+                          _checkZoomAndFetchIncidences();
+                        },
+                      ),
                     ),
-                    myLocationEnabled: true,
-                    zoomControlsEnabled: false,
-                    onCameraMove: (position) {
-                      _currentZoom = position.zoom;
-                      _controller.handleCameraMove();
-                    },
-                    onCameraIdle: () {
-                      _controller.handleCameraIdle();
-                      _updateClusters();
-                      _checkZoomAndFetchIncidences();
-                    },
                   ),
                 ),
               ),
             ),
-          ),
 
-          /// BOTÓN MENÚ
-          Positioned(
-            top: 48,
-            left: 16,
-            child: CustomFloatingActionButton.square(
-              icon: Icons.menu,
-              heroTag: 'map_menu_fab',
-              onPressed: () => GoRouter.of(context).push('/profile'),
+            /// BOTÓN MENÚ
+            Positioned(
+              top: 48,
+              left: 16,
+              child: CustomFloatingActionButton.square(
+                icon: Icons.menu,
+                heroTag: 'map_menu_fab',
+                onPressed: () => GoRouter.of(context).push('/profile'),
+              ),
             ),
-          ),
 
-          /// BOTÓN CENTRAR USUARIO
-          Positioned(
-            bottom: MediaQuery.of(context).size.height * 0.18,
-            left: 20,
-            child: CustomFloatingActionButton.primary(
-              icon: Icons.navigation,
-              heroTag: 'map_center_user_fab',
-              onPressed: () {
-                _controller.startCentering();
-                context.read<map_bloc.MapBloc>().add(
-                  map_bloc.GetUserLocationEvent(),
-                );
+            /// BOTÓN CENTRAR USUARIO
+            Positioned(
+              bottom: MediaQuery.of(context).size.height * 0.18,
+              left: 20,
+              child: CustomFloatingActionButton.primary(
+                icon: Icons.navigation,
+                heroTag: 'map_center_user_fab',
+                onPressed: () {
+                  _controller.startCentering();
+                  context.read<map_bloc.MapBloc>().add(
+                    map_bloc.GetUserLocationEvent(),
+                  );
+                },
+              ),
+            ),
+
+            /// BOTÓN INCIDENCIA
+            Positioned(
+              bottom: MediaQuery.of(context).size.height * 0.18,
+              right: 20,
+              child: ValueListenableBuilder<bool>(
+                valueListenable: _controller.isCenteredOnUser,
+                builder: (context, isCentered, _) {
+                  if (!isCentered) return const SizedBox.shrink();
+
+                  return CustomFloatingActionButton.incidence(
+                    icon: Icons.add_location_alt,
+                    heroTag: 'map_incidence_fab',
+                    onPressed: () => _showIncidentTypeSelection(context),
+                  );
+                },
+              ),
+            ),
+
+            /// SEARCH / BOTTOM SHEET
+            DraggableScrollableSheet(
+              initialChildSize: 0.15,
+              minChildSize: 0.15,
+              maxChildSize: 0.9,
+              builder: (context, scrollController) {
+                return SearchPage(scrollController: scrollController);
               },
             ),
-          ),
-
-          /// BOTÓN INCIDENCIA
-          Positioned(
-            bottom: MediaQuery.of(context).size.height * 0.18,
-            right: 20,
-            child: ValueListenableBuilder<bool>(
-              valueListenable: _controller.isCenteredOnUser,
-              builder: (context, isCentered, _) {
-                if (!isCentered) return const SizedBox.shrink();
-
-                return CustomFloatingActionButton.incidence(
-                  icon: Icons.add_location_alt,
-                  heroTag: 'map_incidence_fab',
-                  onPressed: () => _showIncidentTypeSelection(context),
-                );
-              },
-            ),
-          ),
-
-          /// SEARCH / BOTTOM SHEET
-          DraggableScrollableSheet(
-            initialChildSize: 0.15,
-            minChildSize: 0.15,
-            maxChildSize: 0.9,
-            builder: (context, scrollController) {
-              return SearchPage(scrollController: scrollController);
-            },
-          ),
-        ],
-      ),
+          ],
+        ),
     );
   }
 
   /// Procesa las incidencias cargadas: genera íconos personalizados
   /// y los agrega al cluster manager.
-  /// 
+  ///
   /// Los iconos se generan con alta resolución (pixelRatio 3.0) para
   /// mejorar la calidad visual en el mapa.
   Future<void> _handleIncidencesLoaded(
@@ -355,11 +372,37 @@ class _MapPageState extends State<MapPage> {
   }
 
   void _showIncidentTypeSelection(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<IncidentSelectionResult>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const IncidentTypeContainer(),
+    ).then((result) async {
+      if (result == null || !mounted) return;
+      await _reportIncident(result);
+    });
+  }
+
+  Future<void> _reportIncident(IncidentSelectionResult selection) async {
+    if (_mapController == null) {
+      _showError(context, 'No se pudo obtener la ubicación del mapa.');
+      return;
+    }
+
+    final bounds = await _mapController!.getVisibleRegion();
+    final latitude =
+        (bounds.northeast.latitude + bounds.southwest.latitude) / 2;
+    final longitude =
+        (bounds.northeast.longitude + bounds.southwest.longitude) / 2;
+
+    if (!mounted) return;
+    context.read<IncidentReportBloc>().add(
+      ReportIncidentRequested(
+        latitude: latitude,
+        longitude: longitude,
+        incidence: selection.subType,
+        image: selection.photoPath ?? '',
+      ),
     );
   }
 

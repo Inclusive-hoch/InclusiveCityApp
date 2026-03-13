@@ -17,8 +17,10 @@ import 'package:inclusive_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:inclusive_app/features/incidents/data/datasources/incident_remote_datasource.dart';
 import 'package:inclusive_app/features/incidents/data/datasources/incident_remote_datasource_impl.dart';
 import 'package:inclusive_app/features/incidents/data/repositories/incident_repository_impl.dart';
+import 'package:inclusive_app/features/incidents/application/bloc/incident_report_bloc.dart';
 import 'package:inclusive_app/features/incidents/domain/repositories/incident_repository.dart';
 import 'package:inclusive_app/features/incidents/domain/usecases/get_sector_incidences.dart';
+import 'package:inclusive_app/features/incidents/domain/usecases/insert_incidence.dart';
 import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart';
 import 'package:inclusive_app/features/places/data/datasources/place_local_datasource.dart';
 import 'package:inclusive_app/features/places/data/datasources/place_remote_datasource.dart';
@@ -185,8 +187,10 @@ Future<void> init() async {
 
   // Incidents - UseCases
   sl.registerLazySingleton(() => GetSectorIncidences(sl()));
+  sl.registerLazySingleton(() => InsertIncidence(sl()));
 
   sl.registerFactory(() => MapBloc(getSectorIncidences: sl()));
+  sl.registerFactory(() => IncidentReportBloc(insertIncidence: sl()));
 
   sl.registerFactory(
     () => PlaceBloc(

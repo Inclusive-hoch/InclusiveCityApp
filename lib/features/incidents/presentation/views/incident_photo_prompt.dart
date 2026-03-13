@@ -9,8 +9,17 @@ import 'package:inclusive_app/features/incidents/presentation/bloc/incident_type
 /// Paso 3: Pregunta al usuario si desea agregar una foto de la incidencia.
 class IncidentPhotoPrompt extends StatelessWidget {
   final ScrollController scrollController;
+  final VoidCallback onSkip;
+  final ValueChanged<String> onPhotoAccepted;
+  final VoidCallback onCancel;
 
-  const IncidentPhotoPrompt({super.key, required this.scrollController});
+  const IncidentPhotoPrompt({
+    super.key,
+    required this.scrollController,
+    required this.onSkip,
+    required this.onPhotoAccepted,
+    required this.onCancel,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +60,7 @@ class IncidentPhotoPrompt extends StatelessWidget {
                 style: CustomButtonStyle.secondary,
                 onPressed: () {
                   context.read<IncidentTypeBloc>().add(IncidentPhotoSkipped());
-                  Navigator.of(context).pop();
+                  onSkip();
                 },
               ),
             ),
@@ -76,13 +85,13 @@ class IncidentPhotoPrompt extends StatelessWidget {
                             IncidentPhotoCaptured(photoPath),
                           );
                           debugPrint('Incidencia con foto — Path: $photoPath');
-                          Navigator.of(context).pop();
+                          onPhotoAccepted(photoPath);
                         } else {
                           // Cancelado desde cámara → resetear y cerrar modal
                           context.read<IncidentTypeBloc>().add(
                             IncidentTypeReset(),
                           );
-                          Navigator.of(context).pop();
+                          onCancel();
                         }
                       });
                 },
@@ -97,7 +106,7 @@ class IncidentPhotoPrompt extends StatelessWidget {
           child: TextButton(
             onPressed: () {
               context.read<IncidentTypeBloc>().add(IncidentTypeReset());
-              Navigator.of(context).pop();
+              onCancel();
             },
             child: Text(
               'Cancelar registro',

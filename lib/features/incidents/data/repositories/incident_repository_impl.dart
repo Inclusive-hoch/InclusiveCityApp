@@ -45,7 +45,6 @@ class IncidentRepositoryImpl implements IncidentRepository {
     required double latitude,
     required double longitude,
     required String incidence,
-    required String userId,
     String image = '',
   }) async {
     await remoteDataSource.insertIncidence(
@@ -53,7 +52,6 @@ class IncidentRepositoryImpl implements IncidentRepository {
       latitude: latitude,
       longitude: longitude,
       incidence: incidence,
-      userId: userId,
       image: image,
     );
   }

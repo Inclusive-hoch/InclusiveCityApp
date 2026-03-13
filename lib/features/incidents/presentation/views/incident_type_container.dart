@@ -9,6 +9,13 @@ import 'package:inclusive_app/features/incidents/presentation/bloc/incident_type
 import 'package:inclusive_app/features/incidents/presentation/views/incident_report.dart';
 import 'package:inclusive_app/features/incidents/presentation/views/incident_photo_prompt.dart';
 
+class IncidentSelectionResult {
+  final String subType;
+  final String? photoPath;
+
+  const IncidentSelectionResult({required this.subType, this.photoPath});
+}
+
 class IncidentTypeContainer extends StatefulWidget {
   const IncidentTypeContainer({super.key});
 
@@ -120,6 +127,10 @@ class _IncidentTypeContainerState extends State<IncidentTypeContainer> {
                         case IncidentStep.photoPrompt:
                           return IncidentPhotoPrompt(
                             scrollController: scrollController,
+                            onSkip: () => _finishSelection(context, state),
+                            onPhotoAccepted: (photoPath) =>
+                                _finishSelection(context, state, photoPath),
+                            onCancel: () => Navigator.of(context).pop(),
                           );
                       }
                     },
@@ -130,6 +141,20 @@ class _IncidentTypeContainerState extends State<IncidentTypeContainer> {
           );
         },
       ),
+    );
+  }
+
+  void _finishSelection(
+    BuildContext context,
+    IncidentTypeState state, [
+    String? photoPath,
+  ]) {
+    final selectedSubType = state.selectedSubType;
+    if (selectedSubType == null) return;
+
+    context.read<IncidentTypeBloc>().add(IncidentTypeReset());
+    Navigator.of(context).pop(
+      IncidentSelectionResult(subType: selectedSubType, photoPath: photoPath),
     );
   }
 

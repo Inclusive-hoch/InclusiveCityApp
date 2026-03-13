@@ -20,7 +20,6 @@ abstract class IncidentRepository {
     required double latitude,
     required double longitude,
     required String incidence,
-    required String userId,
     String image,
   });
 }
