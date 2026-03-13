@@ -7,8 +7,6 @@ import 'package:inclusive_app/features/routing/application/bloc/route_bloc.dart'
 import 'package:inclusive_app/features/routing/presentation/widgets/origin_location_sheet.dart';
 import 'package:inclusive_app/features/routing/presentation/widgets/route_location_card.dart';
 import 'package:inclusive_app/features/routing/presentation/widgets/route_info_bottom_sheet.dart';
-import 'package:inclusive_app/core/utils/bitmap_descriptor.dart'
-    as bitmap_utils;
 import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart' as map_bloc;
 import 'package:inclusive_app/features/incidents/domain/entities/sector_incidence_entity.dart';
 import 'package:inclusive_app/features/incidents/presentation/constants/incidence_marker_icons.dart';
