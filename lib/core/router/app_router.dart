@@ -1,7 +1,9 @@
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inclusive_app/core/router/auth_router_notifier.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_state.dart';
+import 'package:inclusive_app/features/incidents/application/bloc/incident_report_bloc.dart';
 import 'package:inclusive_app/features/auth/presentation/pages/auth_page.dart';
 import 'package:inclusive_app/features/auth/presentation/views/login_form.dart';
 import 'package:inclusive_app/features/auth/presentation/views/register_form.dart';
@@ -10,6 +12,7 @@ import 'package:inclusive_app/features/profile/presentation/pages/evaluated_plac
 import 'package:inclusive_app/features/profile/presentation/pages/profile_details_page.dart';
 import 'package:inclusive_app/features/profile/presentation/pages/profile_page.dart';
 import 'package:inclusive_app/features/routing/presentation/pages/route_selection_page.dart';
+import 'package:inclusive_app/injection_container.dart' as di;
 
 GoRouter createRouter(AuthBloc authBloc) {
   return GoRouter(
@@ -35,7 +38,13 @@ GoRouter createRouter(AuthBloc authBloc) {
       GoRoute(path: '/login', builder: (_, __) => const AuthPage()),
       GoRoute(path: '/login_form', builder: (_, __) => const LoginForm()),
       GoRoute(path: '/register_form', builder: (_, __) => const RegisterForm()),
-      GoRoute(path: '/map', builder: (_, __) => const MapPage()),
+      GoRoute(
+        path: '/map',
+        builder: (_, __) => BlocProvider(
+          create: (_) => di.sl<IncidentReportBloc>(),
+          child: const MapPage(),
+        ),
+      ),
       GoRoute(path: '/profile', builder: (_, __) => const ProfilePage()),
       GoRoute(
         path: '/profile/details',
