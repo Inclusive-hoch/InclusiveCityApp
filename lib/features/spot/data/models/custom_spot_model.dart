@@ -22,9 +22,20 @@ class CustomSpotModel extends CustomSpot {
     final List<SpotModel> parsedSpots = [];
     
     if (spotsJson != null && spotsJson.isNotEmpty) {
+      // Obtenemos el userId de la lista (padre) para inyectarlo en los hijos si hacer falta
+      final parentUserId = json['userId'] as String? ?? '';
+
       for (var spotJson in spotsJson) {
         try {
-          final spot = SpotModel.fromJson(spotJson as Map<String, dynamic>);
+          // Clonamos el mapa para poder modificarlo (algunas veces el map de un JSON es read-only)
+          final spotMap = Map<String, dynamic>.from(spotJson as Map);
+          
+          // Si el spot anidado no trae un userId, inyectamos el userId de la lista
+          if (spotMap['userId'] == null) {
+            spotMap['userId'] = parentUserId;
+          }
+
+          final spot = SpotModel.fromJson(spotMap);
           parsedSpots.add(spot);
         } catch (e) {
           // Si un spot individual falla al parsear, registrar pero continuar
