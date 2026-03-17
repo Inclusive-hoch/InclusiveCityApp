@@ -329,6 +329,9 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
         
         debugPrint('✅ [SpotDataSource] ${customSpots.length} listas obtenidas exitosamente');
         return customSpots;
+      } else if (response.statusCode == 404) {
+        debugPrint('⚠️ [SpotDataSource] 404 en custom spots - usuario sin listas, retornando vacío');
+        return [];
       } else {
         final errorMsg = 'Error al obtener listas personalizadas. Status ${response.statusCode}: $responseBody';
         debugPrint('❌ [SpotDataSource] $errorMsg');
@@ -397,6 +400,9 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
         
         debugPrint('✅ [SpotDataSource] ${spots.length} spots obtenidos exitosamente');
         return spots;
+      } else if (response.statusCode == 404) {
+        debugPrint('⚠️ [SpotDataSource] 404 en user spots - usuario sin spots, retornando vacío');
+        return [];
       } else {
         final errorMsg = 'Error al obtener spots del usuario. Status ${response.statusCode}: $responseBody';
         debugPrint('❌ [SpotDataSource] $errorMsg');
