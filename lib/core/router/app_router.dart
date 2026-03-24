@@ -12,7 +12,8 @@ import 'package:inclusive_app/features/profile/presentation/pages/evaluated_plac
 import 'package:inclusive_app/features/profile/presentation/pages/profile_details_page.dart';
 import 'package:inclusive_app/features/profile/presentation/pages/profile_page.dart';
 import 'package:inclusive_app/features/routing/presentation/pages/route_selection_page.dart';
-import 'package:inclusive_app/injection_container.dart' as di;
+import 'package:inclusive_app/features/spot/presentation/pages/custom_spots_lists_page.dart';
+import 'package:inclusive_app/features/spot/presentation/pages/list_detail_page.dart';
 
 GoRouter createRouter(AuthBloc authBloc) {
   return GoRouter(
@@ -65,6 +66,19 @@ GoRouter createRouter(AuthBloc authBloc) {
             destLng: extra['destLng'] as double,
             originName: extra['originName'] as String,
             destName: extra['destName'] as String,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/custom-spots-lists',
+        builder: (_, __) => const CustomSpotsListsPage(),
+      ),
+      GoRoute(
+        path: '/list-detail',
+        builder: (_, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return ListDetailPage(
+            listName: extra['listName'] as String,
           );
         },
       ),

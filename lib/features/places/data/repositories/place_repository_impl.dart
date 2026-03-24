@@ -76,6 +76,8 @@ class PlaceRepositoryImpl implements PlaceRepository {
         placeId: place.placeId,
         description: place.description,
         address: place.address,
+        latitude: place.latitude,
+        longitude: place.longitude,
       );
       await localDataSource.cacheSearch(placeSearchResultModel);
     } on CacheException catch (e) {

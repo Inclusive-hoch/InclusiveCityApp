@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -10,9 +11,11 @@ import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart'
 import 'package:inclusive_app/features/places/presentation/widget/history_list.dart';
 import 'package:inclusive_app/features/places/presentation/widget/search_bar.dart' as custom;
 import 'package:inclusive_app/features/places/presentation/widget/search_result_list.dart';
+import 'package:inclusive_app/features/spot/domain/entities/custom_spot.dart';
 import 'package:inclusive_app/features/spot/domain/entities/spot.dart';
 import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:inclusive_app/features/spot/presentation/pages/saved_spots_page.dart';
+import 'package:inclusive_app/features/spot/presentation/widgets/custom_lists_section.dart';
 import 'package:inclusive_app/features/spot/presentation/widgets/spot_quick_access_bar.dart';
 import 'package:inclusive_app/shared/widgets/grabber.dart';
 import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart' as map_bloc;
@@ -41,12 +44,29 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   // Lista de todos los spots del usuario
   List<Spot> userSpots = [];
+  
+  // Lista de custom spots (listas personalizadas) del usuario
+  List<CustomSpot> customSpots = [];
+
+  // Historial de búsquedas
+  List<PlaceSearchResult> _searchHistory = [];
+
+  // FocusNode para la lista de historial
+  final FocusNode _historyFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _historyFocusNode.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
     // Cargar spots del usuario si está disponible
     _loadUserSpots();
+    // Cargar custom spots (listas personalizadas)
+    _loadCustomSpots();
     // Cargar historial de búsquedas
     context.read<PlaceBloc>().add(LoadSearchHistoryEvent());
   }
@@ -59,6 +79,11 @@ class _SearchPageState extends State<SearchPage> {
       final userId = authState.user.uid;
       context.read<SpotBloc>().add(LoadUserSpotsEvent(userId: userId));
     }
+  }
+
+  /// Carga las listas personalizadas del usuario.
+  void _loadCustomSpots() {
+    context.read<SpotBloc>().add(LoadCustomSpotsEvent());
   }
 
   /// Maneja el tap en una píldora de spot - genera ruta automáticamente.
@@ -94,44 +119,42 @@ class _SearchPageState extends State<SearchPage> {
     // Disparar el evento para obtener la ubicación
     mapBloc.add(map_bloc.GetUserLocationEvent());
 
-    // Esperar el resultado
-    await for (final state in mapBloc.stream) {
-      if (state is map_bloc.MapLocationLoaded) {
-        // Cerrar el diálogo de carga
-        if (mounted) Navigator.of(context).pop();
-        
-        // Navegar a la ruta
-        _navigateToRoute(
-          context,
-          state.latitude,
-          state.longitude,
-          spot,
-        );
-        break;
-      } else if (state is map_bloc.MapError) {
-        // Cerrar el diálogo de carga
-        if (mounted) Navigator.of(context).pop();
-        
-        // Mostrar el error al usuario
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              duration: const Duration(seconds: 4),
-              backgroundColor: Colors.red,
-              action: SnackBarAction(
-                label: 'Configuración',
-                textColor: Colors.white,
-                onPressed: () {
-                  // Abrir la configuración del dispositivo
-                  Geolocator.openLocationSettings();
-                },
-              ),
+    // Esperar el resultado con timeout para evitar espera indefinida
+    try {
+      final resultState = await mapBloc.stream
+          .firstWhere(
+            (s) => s is map_bloc.MapLocationLoaded || s is map_bloc.MapError,
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Cerrar diálogo de carga
+
+      if (resultState is map_bloc.MapLocationLoaded) {
+        _navigateToRoute(context, resultState.latitude, resultState.longitude, spot);
+      } else if (resultState is map_bloc.MapError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(resultState.message),
+            duration: const Duration(seconds: 4),
+            backgroundColor: Colors.red,
+            action: SnackBarAction(
+              label: 'Configuración',
+              textColor: Colors.white,
+              onPressed: () => Geolocator.openLocationSettings(),
             ),
-          );
-        }
-        break;
+          ),
+        );
       }
+    } on TimeoutException {
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo obtener la ubicación. Verifica tu GPS.'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -192,6 +215,29 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
+  /// Maneja el tap en "Agregar lista".
+  void _onAddListTap() {
+    // Mostrar mensaje informativo: no se pueden crear listas vacías
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Crear nueva lista'),
+        content: const Text(
+          'Para crear una lista personalizada, primero busca un lugar que te guste '
+          'y guárdalo. Cuando presiones el ícono de guardar, podrás crear una nueva lista '
+          'con ese lugar.\n\n'
+          'Las listas predeterminadas "Destacados" y "Favoritos" ya están disponibles.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Entendido'),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Navega a la pantalla de selección de ruta.
   void _navigateToRoute(
     BuildContext context,
@@ -215,13 +261,55 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<SpotBloc, SpotState>(
+    return BlocListener<PlaceBloc, PlacesState>(
+      listener: (context, placeState) {
+        if (placeState is SearchHistoryLoaded) {
+          setState(() {
+            _searchHistory = placeState.history;
+          });
+        }
+        if (placeState is PlaceDetailsLoaded || placeState is PlaceDetailsLoading) {
+          FocusScope.of(context).unfocus();
+        }
+      },
+      child: BlocListener<SpotBloc, SpotState>(
       listener: (context, state) {
         // Actualizar lista de spots
         if (state is SpotsLoaded) {
           setState(() {
             userSpots = state.spots;
           });
+        }
+        
+        // Actualizar lista de custom spots
+        if (state is CustomSpotsLoaded) {
+          setState(() {
+            customSpots = state.customSpots;
+          });
+        }
+        
+        // Mostrar mensaje de éxito al crear lista
+        if (state is CustomSpotCreated) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Lista "${state.customSpot.listName}" creada'),
+              backgroundColor: AppColor.success,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          // Recargar custom spots
+          _loadCustomSpots();
+        }
+        
+        // Mostrar error si falla
+        if (state is SpotError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColor.error,
+              duration: const Duration(seconds: 3),
+            ),
+          );
         }
       },
       child: Container(
@@ -265,29 +353,48 @@ class _SearchPageState extends State<SearchPage> {
                 );
               }
 
-              if (state is PlacesLoaded) {
+              if (state is PlacesLoaded && state.suggestions.isNotEmpty) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: SearchResultsList(
                     results: state.suggestions,
                     onSuggestionSelected: (place) {
+                      FocusScope.of(context).unfocus();
                       context.read<PlaceBloc>().add(SelectPlaceEvent(place.placeId));
                     },
                   ),
                 );
               }
-              if (state is SearchHistoryLoaded || state is PlacesInitial) {
-                final List<PlaceSearchResult> history = (state is SearchHistoryLoaded) ? state.history : [];
-
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: HistoryList(
-                    history: history,
-                    focusNode: FocusNode(),
-                    onPlaceSelected: (placeId) {
-                      context.read<PlaceBloc>().add(SelectPlaceEvent(placeId));
-                    },
-                  ),
+              
+              // Mostrar contenido base cuando no hay búsqueda activa o no hay resultados
+              if (state is SearchHistoryLoaded || 
+                  state is PlacesInitial || 
+                  state is PlacesEmpty ||
+                  state is PlaceDetailsLoaded ||
+                  state is PlaceDetailsLoading ||
+                  (state is PlacesLoaded && state.suggestions.isEmpty)) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Historial de búsquedas
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: HistoryList(
+                        history: _searchHistory,
+                        focusNode: _historyFocusNode,
+                        onPlaceSelected: (placeId) {
+                          FocusScope.of(context).unfocus();
+                          context.read<PlaceBloc>().add(SelectPlaceEvent(placeId));
+                        },
+                      ),
+                    ),
+                    
+                    // Sección de Mis listas (siempre visible cuando no hay búsqueda)
+                    CustomListsSection(
+                      customSpots: customSpots,
+                      onAddListTap: _onAddListTap,
+                    ),
+                  ],
                 );
               }
 
@@ -309,6 +416,7 @@ class _SearchPageState extends State<SearchPage> {
           
           const SizedBox(height: 30),
         ],
+      ),
       ),
       ),
     );

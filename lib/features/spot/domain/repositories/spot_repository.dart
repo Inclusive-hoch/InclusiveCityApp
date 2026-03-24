@@ -1,5 +1,3 @@
-import 'package:inclusive_app/features/spot/data/models/custom_spot_model.dart';
-import 'package:inclusive_app/features/spot/data/models/spot_model.dart';
 import 'package:inclusive_app/features/spot/domain/entities/custom_spot.dart';
 import 'package:inclusive_app/features/spot/domain/entities/spot.dart';
 
@@ -22,10 +20,10 @@ abstract class SpotRepository {
   Future<CustomSpot> createCustomSpot(CustomSpot customSpot);
 
   /// Obtiene todas las listas personalizadas del usuario.
-  Future<List<CustomSpotModel>> getCustomSpots();
+  Future<List<CustomSpot>> getCustomSpots();
 
   /// Agrega un spot a una lista personalizada existente.
-  Future<CustomSpotModel> addSpotToList(String listName, SpotModel spot);
+  Future<CustomSpot> addSpotToList(String listName, Spot spot);
 
   /// Elimina una lista personalizada completa.
   /// 

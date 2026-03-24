@@ -2,7 +2,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inclusive_app/core/errors/exceptions.dart';
-import 'package:inclusive_app/features/spot/data/models/spot_model.dart';
 import 'package:inclusive_app/features/spot/domain/entities/custom_spot.dart';
 import 'package:inclusive_app/features/spot/domain/entities/spot.dart';
 import 'package:inclusive_app/features/spot/domain/usecases/add_spot_to_list.dart';
@@ -174,20 +173,23 @@ class SpotBloc extends Bloc<SpotEvent, SpotState> {
     emit(SpotLoading());
 
     try {
-      final spotModel = SpotModel.fromEntity(event.spot);
       final updatedList = await addSpotToList(
         event.listName,
-        spotModel,
+        event.spot,
       );
+      debugPrint('✅ [SpotBloc] Spot agregado a lista: ${event.listName}');
       emit(SpotAddedToList(updatedList: updatedList));
+    } on ConflictException catch (e) {
+      debugPrint('⚠️ [SpotBloc] ConflictException: ${e.message}');
+      emit(SpotError(message: e.message));
     } on ServerException catch (e) {
       debugPrint('❌ [SpotBloc] Error al agregar spot: ${e.message}');
-      emit(SpotError(message: 'Error al agregar spot: ${e.message}'));
+      emit(SpotError(message: 'Error del servidor: ${e.message}'));
     } on NetworkException catch (e) {
       emit(SpotError(message: 'Sin conexión: ${e.message}'));
     } catch (e) {
       debugPrint('❌ [SpotBloc] Error inesperado al agregar spot: $e');
-      emit(SpotError(message: 'Error al agregar spot: ${e.toString()}'));
+      emit(SpotError(message: 'Error al agregar lugar: ${e.toString()}'));
     }
   }
 
