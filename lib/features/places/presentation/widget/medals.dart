@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
+import 'package:inclusive_app/core/utils/accessibility_medals.dart';
 
 /// Sección que muestra las características de accesibilidad de un lugar.
-/// 
-/// Muestra las medallas o insignias que el lugar ha recibido basadas
-/// en sus características de accesibilidad (rampas, ascensores, etc.).
+///
+/// Muestra las medallas o insignias que el lugar ha recibido, deduplicadas
+/// y usando el sistema estándar de medallas de accesibilidad.
 class AccessibilityMedalsSection extends StatelessWidget {
-  /// Lista de medallas de accesibilidad del lugar.
+  /// Lista de medallas de accesibilidad del lugar (strings del backend).
   final List<String> medals;
 
   const AccessibilityMedalsSection({
@@ -14,9 +15,30 @@ class AccessibilityMedalsSection extends StatelessWidget {
     required this.medals,
   });
 
+  /// Convierte la lista de strings del backend en medallas únicas y ordenadas.
+  ///
+  /// Deduplica usando el [AccessibilityMedal.apiName] como clave, de modo que
+  /// si el backend envía "BANOS" dos veces, solo se muestra una vez.
+  List<AccessibilityMedal> get _uniqueMedals {
+    final seen = <String>{};
+    final result = <AccessibilityMedal>[];
+    for (final apiName in medals) {
+      final medal = AccessibilityMedalsHelper.fromApiName(apiName);
+      if (medal == null) continue;
+      // Usamos el apiName de la medalla resuelta para deduplicar
+      // (banosLimpios y banos comparten el mismo apiName "BANOS")
+      final key = medal.apiName;
+      if (seen.add(key)) {
+        result.add(medal);
+      }
+    }
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (medals.isEmpty) {
+    final uniqueMedals = _uniqueMedals;
+    if (uniqueMedals.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -25,7 +47,7 @@ class AccessibilityMedalsSection extends StatelessWidget {
       children: [
         _buildTitle(),
         const SizedBox(height: 12),
-        _buildMedalsList(),
+        _buildMedalsList(uniqueMedals),
       ],
     );
   }
@@ -43,55 +65,38 @@ class AccessibilityMedalsSection extends StatelessWidget {
   }
 
   /// Construye la lista de medallas en formato Wrap.
-  Widget _buildMedalsList() {
+  Widget _buildMedalsList(List<AccessibilityMedal> uniqueMedals) {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: medals.map((medal) => _MedalChip(medal: medal)).toList(),
+      children: uniqueMedals.map((medal) => _MedalChip(medal: medal)).toList(),
     );
   }
 }
 
-/// Chip individual que representa una medalla de accesibilidad.
+/// Ícono circular que representa una medalla de accesibilidad.
+///
+/// Usa el mismo estilo visual que las tarjetas de evaluaciones del perfil:
+/// círculo con fondo [AppColor.primaryLight] e ícono [AppColor.primaryNormal].
+/// El [Tooltip] muestra el nombre al mantener presionado.
 class _MedalChip extends StatelessWidget {
-  final String medal;
+  final AccessibilityMedal medal;
 
   const _MedalChip({required this.medal});
 
   @override
   Widget build(BuildContext context) {
-    final icon = _getMedalIcon(medal);
-
-    return Chip(
-      avatar: Icon(icon, size: 18, color: AppColor.primaryNormal),
-      label: Text(
-        medal,
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
+    return Tooltip(
+      message: medal.displayName,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColor.primaryLight,
         ),
+        child: Icon(medal.icon, color: AppColor.primaryNormal, size: 26),
       ),
-      backgroundColor: AppColor.primaryLight,
-      side: BorderSide.none,
     );
-  }
-
-  /// Obtiene el ícono apropiado según el tipo de medalla.
-  IconData _getMedalIcon(String medal) {
-    final medalLower = medal.toLowerCase();
-
-    if (medalLower.contains('rampa') || medalLower.contains('ramp')) {
-      return Icons.accessible;
-    }
-    if (medalLower.contains('elevator') || medalLower.contains('ascensor')) {
-      return Icons.elevator;
-    }
-    if (medalLower.contains('parking') || medalLower.contains('estacionamiento')) {
-      return Icons.local_parking;
-    }
-    if (medalLower.contains('bathroom') || medalLower.contains('baño')) {
-      return Icons.wc;
-    }
-    return Icons.check_circle;
   }
 }
