@@ -151,7 +151,7 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
         id: '6',
         category: ReviewCategory.circulation,
         question:
-            '¿Se puede circular con facilidad dentro del establecimiento?',
+            '¿Se puede circular con facilidad y accesibilidad dentro del establecimiento?',
       ),
     ];
   }
