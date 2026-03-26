@@ -182,35 +182,36 @@ class _MapPageState extends State<MapPage> {
                           });
                         }
 
-                    if (routeState is RouteError) {
-                      _showError(context, routeState.message);
-                    }
-                  },
-                  child: GoogleMap(
-                    initialCameraPosition: _defaultPosition,
-                    onMapCreated: (controller) {
-                      _mapController = controller;
-                    },
-                    polylines: _polylines,
-                    markers: {
-                      ..._clusterManager.getClusteredMarkers(),
-                    },
-                    myLocationEnabled: true,
-                    zoomControlsEnabled: false,
-                    onCameraMove: (position) {
-                      _currentZoom = position.zoom;
-                      _controller.handleCameraMove();
-                    },
-                    onCameraIdle: () {
-                      _controller.handleCameraIdle();
-                      _updateClusters();
-                      _checkZoomAndFetchIncidences();
-                    },
+                        if (routeState is RouteError) {
+                          _showError(context, routeState.message);
+                        }
+                      },
+                      child: GoogleMap(
+                        initialCameraPosition: _defaultPosition,
+                        onMapCreated: (controller) {
+                          _mapController = controller;
+                        },
+                        polylines: _polylines,
+                        markers: {
+                          ..._clusterManager.getClusteredMarkers(),
+                        },
+                        myLocationEnabled: true,
+                        zoomControlsEnabled: false,
+                        onCameraMove: (position) {
+                          _currentZoom = position.zoom;
+                          _controller.handleCameraMove();
+                        },
+                        onCameraIdle: () {
+                          _controller.handleCameraIdle();
+                          _updateClusters();
+                          _checkZoomAndFetchIncidences();
+                        },
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
 
             /// BOTÓN MENÚ
             Positioned(

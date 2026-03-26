@@ -14,6 +14,7 @@ import 'package:inclusive_app/features/profile/presentation/pages/profile_page.d
 import 'package:inclusive_app/features/routing/presentation/pages/route_selection_page.dart';
 import 'package:inclusive_app/features/spot/presentation/pages/custom_spots_lists_page.dart';
 import 'package:inclusive_app/features/spot/presentation/pages/list_detail_page.dart';
+import '../../injection_container.dart' as di;
 
 GoRouter createRouter(AuthBloc authBloc) {
   return GoRouter(
