@@ -41,22 +41,23 @@ class SpotRepositoryImpl implements SpotRepository {
     debugPrint('🔹 [SpotRepository] createCustomSpot iniciado para lista: ${customSpot.listName}');
     final model = CustomSpotModel.fromEntity(customSpot);
     final result = await remoteDataSource.createCustomSpot(model);
-    return result;
+    return result.toEntity();
   }
 
   @override
-  Future<List<CustomSpotModel>> getCustomSpots() async {
+  Future<List<CustomSpot>> getCustomSpots() async {
     final lists = await remoteDataSource.getCustomSpots();
-    return lists;
+    return lists.map((model) => model.toEntity()).toList();
   }
 
   @override
-  Future<CustomSpotModel> addSpotToList(
+  Future<CustomSpot> addSpotToList(
     String listName,
-    SpotModel spot,
+    Spot spot,
   ) async {
-    final result = await remoteDataSource.addSpotToList(listName, spot);
-    return result;
+    final spotModel = SpotModel.fromEntity(spot);
+    final result = await remoteDataSource.addSpotToList(listName, spotModel);
+    return result.toEntity();
   }
 
   @override

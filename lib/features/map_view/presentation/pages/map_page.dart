@@ -192,9 +192,9 @@ class _MapPageState extends State<MapPage> {
                           _mapController = controller;
                         },
                         polylines: _polylines,
-                        markers: Set<Marker>.of(
-                          _clusterManager.getClusteredMarkers(),
-                        ),
+                        markers: {
+                          ..._clusterManager.getClusteredMarkers(),
+                        },
                         myLocationEnabled: true,
                         zoomControlsEnabled: false,
                         onCameraMove: (position) {
@@ -441,4 +441,5 @@ class _MapPageState extends State<MapPage> {
       ),
     );
   }
+
 }

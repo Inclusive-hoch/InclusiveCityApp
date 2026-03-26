@@ -9,6 +9,7 @@ import 'package:inclusive_app/features/places/domain/usecases/get_search_history
 import 'package:inclusive_app/features/places/domain/usecases/save_place_to_history.dart';
 import 'package:inclusive_app/features/places/domain/usecases/search_places.dart';
 import 'package:inclusive_app/features/places/domain/entities/place_details.dart';
+import 'package:inclusive_app/features/places/data/models/place_search_result_model.dart';
 import 'package:inclusive_app/features/places/domain/entities/place_search_result.dart';
 
 part 'place_event.dart';
@@ -51,6 +52,8 @@ class PlaceBloc extends Bloc<PlacesEvent, PlacesState> {
     on<ClearSearchEvent>(_onClearSearch);
 
     on<SelectPlaceEvent>(_onSelectPlace);
+
+    on<FetchPlaceDetailsEvent>(_onFetchPlaceDetails);
 
     on<LoadSearchHistoryEvent>(_onLoadSearchHistory);
 
@@ -107,6 +110,7 @@ class PlaceBloc extends Bloc<PlacesEvent, PlacesState> {
     if (state is PlacesLoaded) {
       final suggestion = (state as PlacesLoaded).suggestions.firstWhere(
         (s) => s.placeId == event.placeId,
+        orElse: () => PlaceSearchResultModel(placeId: event.placeId, description: ''),
       );
 
       add(SaveToHistoryEvent(suggestion));
@@ -120,6 +124,21 @@ class PlaceBloc extends Bloc<PlacesEvent, PlacesState> {
       emit(PlaceDetailsLoaded(placeDetails));
     } catch (e) {
       emit(PlacesError('No se pudieron cargar los detalles del lugar'));
+    }
+  }
+
+  /// Obtiene detalles de un lugar sin disparar lógica de selección.
+  /// Usado para previsualizar información en tarjetas de listas.
+  Future<void> _onFetchPlaceDetails(
+    FetchPlaceDetailsEvent event,
+    Emitter<PlacesState> emit,
+  ) async {
+    try {
+      final placeDetails = await getPlaceDetailsUseCase(event.placeId);
+      emit(PlaceDetailsFetched(placeDetails));
+    } catch (e) {
+      // No emitir error, solo fallar silenciosamente
+      log('Error al obtener detalles del lugar: $e');
     }
   }
 

@@ -51,7 +51,7 @@ class PlaceLocalDataSourceImpl implements PlaceLocalDataSource {
       }
     } catch (e) {
       log("Error al cargar historial: $e");
-      throw ServerException('Error al cargar historial');///TODO: MODIFICAR YA QUE ESTO ES LOCAL
+      throw CacheException('Error al cargar historial');
     }
   }
 
@@ -78,7 +78,7 @@ class PlaceLocalDataSourceImpl implements PlaceLocalDataSource {
       log("Guardado en historial: ${place.description}");
       log("Total en historial: ${currentCache.length}");
     } catch (e) {
-      throw ('Error al guardar en historial: $e');
+      throw CacheException('Error al guardar en historial: $e');
     }
   }
 }

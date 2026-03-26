@@ -1,4 +1,4 @@
-import 'package:inclusive_app/features/spot/data/models/custom_spot_model.dart';
+import 'package:inclusive_app/features/spot/domain/entities/custom_spot.dart';
 import 'package:inclusive_app/features/spot/domain/repositories/spot_repository.dart';
 
 /// Caso de uso para obtener todas las listas personalizadas de spots.
@@ -7,7 +7,7 @@ class GetCustomSpots {
 
   GetCustomSpots(this.repository);
 
-  Future<List<CustomSpotModel>> call() async {
+  Future<List<CustomSpot>> call() async {
     return await repository.getCustomSpots();
   }
 }

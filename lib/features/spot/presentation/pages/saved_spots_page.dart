@@ -217,6 +217,7 @@ class _SavedPlacesPageState extends State<SavedPlacesPage> {
 
     // Crear el nuevo spot después de un breve delay para asegurar que se eliminó
     Future.delayed(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
       final spot = SpotHelper.createSpotFromPlace(
         place: place,
         name: newName,
@@ -275,7 +276,7 @@ class _SavedPlacesPageState extends State<SavedPlacesPage> {
     }
 
     // Recargar después de eliminar exitosamente
-    if (state is SpotInitial) {
+    if (state is SpotDeleted) {
       _loadUserSpots();
     }
   }

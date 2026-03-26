@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +14,8 @@ import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart'
 import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
 import 'package:inclusive_app/injection_container.dart' as di;
 import 'package:inclusive_app/features/reviews/presentation/views/review_container.dart';
+import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
+import 'package:inclusive_app/features/spot/presentation/widgets/list_selector_bottom_sheet.dart';
 
 /// Página de detalles de un lugar con información de accesibilidad
 ///
@@ -79,9 +82,36 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     }
   }
 
+  /// Muestra el bottom sheet para seleccionar o crear lista
+  void _showListSelectorBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => BlocProvider.value(
+        value: context.read<SpotBloc>(),
+        child: ListSelectorBottomSheet(
+          placeId: widget.placeId,
+          placeName: widget.placeName,
+          address: widget.address,
+          latitude: widget.latitude,
+          longitude: widget.longitude,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return BlocListener<SpotBloc, SpotState>(
+      listener: (context, state) {
+        if (state is SpotCreated || state is CustomSpotCreated) {
+          setState(() {
+            isSaved = true;
+          });
+        }
+      },
+      child: Container(
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -113,9 +143,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     ),
                     // Botones de acción inline
                     IconButton(
-                      onPressed: () {
-                        setState(() => isSaved = !isSaved);
-                      },
+                      onPressed: _showListSelectorBottomSheet,
                       icon: Icon(
                         isSaved ? Icons.bookmark : Icons.bookmark_border,
                         color: AppColor.primaryNormal,
@@ -124,7 +152,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     IconButton(
                       onPressed: () {
                         // TODO: Implementar compartir
-                        print('Compartir lugar');
                       },
                       icon: const Icon(
                         Icons.share,
@@ -255,11 +282,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   placeId: widget.placeId,
                   onLike: () {
                     // TODO: Implementar lógica de "me gusta"
-                    print('Like pressed');
                   },
                   onDislike: () {
                     // TODO: Implementar lógica de "no me gusta"
-                    print('Dislike pressed');
                   },
                 ),
               ),
@@ -268,7 +293,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 
   /// Genera la ruta desde la ubicación del usuario hasta este lugar
@@ -299,39 +325,42 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     // Disparar el evento para obtener la ubicación
     mapBloc.add(map_bloc.GetUserLocationEvent());
 
-    // Esperar el resultado
-    await for (final state in mapBloc.stream) {
-      if (state is map_bloc.MapLocationLoaded) {
-        // Cerrar el diálogo de carga
-        if (mounted) Navigator.of(context).pop();
-        
-        // Navegar a la ruta
-        _navigateToRoute(context, state.latitude, state.longitude);
-        break;
-      } else if (state is map_bloc.MapError) {
-        // Cerrar el diálogo de carga
-        if (mounted) Navigator.of(context).pop();
-        
-        // Mostrar el error al usuario
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              duration: const Duration(seconds: 4),
-              backgroundColor: Colors.red,
-              action: SnackBarAction(
-                label: 'Configuración',
-                textColor: Colors.white,
-                onPressed: () {
-                  // Abrir la configuración del dispositivo
-                  Geolocator.openLocationSettings();
-                },
-              ),
+    // Esperar el resultado con timeout para evitar espera indefinida
+    try {
+      final resultState = await mapBloc.stream
+          .firstWhere(
+            (s) => s is map_bloc.MapLocationLoaded || s is map_bloc.MapError,
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Cerrar diálogo de carga
+
+      if (resultState is map_bloc.MapLocationLoaded) {
+        _navigateToRoute(context, resultState.latitude, resultState.longitude);
+      } else if (resultState is map_bloc.MapError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(resultState.message),
+            duration: const Duration(seconds: 4),
+            backgroundColor: Colors.red,
+            action: SnackBarAction(
+              label: 'Configuración',
+              textColor: Colors.white,
+              onPressed: () => Geolocator.openLocationSettings(),
             ),
-          );
-        }
-        break;
+          ),
+        );
       }
+    } on TimeoutException {
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo obtener la ubicación. Verifica tu GPS.'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 

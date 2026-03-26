@@ -44,7 +44,32 @@ class SpotsListView extends StatelessWidget {
           return _buildSpotsList(spots);
         }
 
-        // Estado inicial o error
+        if (state is SpotError) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                  const SizedBox(height: 16),
+                  Text(
+                    state.message,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: onRefresh,
+                    child: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // Estado inicial
         return EmptySavedPlaces(onAddPlace: onAddPlace);
       },
     );

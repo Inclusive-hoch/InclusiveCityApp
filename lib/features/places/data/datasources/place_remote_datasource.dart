@@ -52,7 +52,7 @@ class PlaceRemoteDataSourceImpl implements PlaceRemoteDataSource {
 
       return places;
     } else {
-      throw ServerException('');
+      throw ServerException('Error ${response.statusCode}: ${response.body}');
     }
   }
 
@@ -72,7 +72,7 @@ class PlaceRemoteDataSourceImpl implements PlaceRemoteDataSource {
       final Map<String, dynamic> data = jsonResponse['data'];
       return PlaceDetailsModel.fromJson(data);
     } else {
-      throw ServerException('');
+      throw ServerException('Error ${response.statusCode}: ${response.body}');
     }
   }
 }
