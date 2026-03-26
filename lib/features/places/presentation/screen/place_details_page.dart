@@ -10,7 +10,8 @@ import 'package:inclusive_app/features/places/presentation/widget/medals.dart';
 import 'package:inclusive_app/features/places/presentation/widget/feedback.dart'
     as place_feedback;
 import 'package:inclusive_app/shared/widgets/grabber.dart';
-import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart' as map_bloc;
+import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart'
+    as map_bloc;
 import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
 import 'package:inclusive_app/injection_container.dart' as di;
 import 'package:inclusive_app/features/reviews/presentation/views/review_container.dart';
@@ -112,189 +113,195 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         }
       },
       child: Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Stack(
-        children: [
-          // Contenido principal con scroll
-          ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              // Grabber para indicar que es deslizable
-              const Center(child: Grabber()),
-              const SizedBox(height: 8),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Stack(
+          children: [
+            // Contenido principal con scroll
+            ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                // Grabber para indicar que es deslizable
+                const Center(child: Grabber()),
+                const SizedBox(height: 8),
 
-              // Header con título y botones de acción
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        widget.placeName,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                // Header con título y botones de acción
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.placeName,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
                         ),
                       ),
-                    ),
-                    // Botones de acción inline
-                    IconButton(
-                      onPressed: _showListSelectorBottomSheet,
-                      icon: Icon(
-                        isSaved ? Icons.bookmark : Icons.bookmark_border,
-                        color: AppColor.primaryNormal,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        // TODO: Implementar compartir
-                      },
-                      icon: const Icon(
-                        Icons.share,
-                        color: AppColor.primaryNormal,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
-                        Icons.close,
-                        color: AppColor.primaryNormal,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Rating y medallas
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(children: [Rating(rating: widget.rating)]),
-              ),
-              const SizedBox(height: 12),
-
-              // Medallas de accesibilidad
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: AccessibilityMedalsSection(medals: widget.medals),
-              ),
-              const SizedBox(height: 16),
-
-              // Botón de ruta
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _onGenerateRoute(context),
-                    icon: const Icon(Icons.route, size: 20),
-                    label: const Text('Generar ruta'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColor.primaryNormal,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Galería de fotos
-              SizedBox(
-                height: 250,
-                child: _authToken.isEmpty
-                    ? const Center(
-                        child: CircularProgressIndicator(
+                      // Botones de acción inline
+                      IconButton(
+                        onPressed: _showListSelectorBottomSheet,
+                        icon: Icon(
+                          isSaved ? Icons.bookmark : Icons.bookmark_border,
                           color: AppColor.primaryNormal,
                         ),
-                      )
-                    : PhotoGallery(
-                        photoReferences: widget.photoReferences,
-                        authToken: _authToken,
                       ),
-              ),
-              const SizedBox(height: 16),
-
-              // Dirección
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 18,
-                      color: Colors.grey.shade600,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        widget.address,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade700,
+                      IconButton(
+                        onPressed: () {
+                          // TODO: Implementar compartir
+                        },
+                        icon: const Icon(
+                          Icons.share,
+                          color: AppColor.primaryNormal,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Botón de reseñar accesibilidad
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => _showReviewModal(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColor.primaryNormal,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(
+                          Icons.close,
+                          color: AppColor.primaryNormal,
+                        ),
                       ),
-                    ),
-                    child: const Text(
-                      'Reseñar Accesibilidad',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Rating y medallas
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Row(children: [Rating(rating: widget.rating)]),
+                ),
+                const SizedBox(height: 12),
+
+                // Medallas de accesibilidad
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: AccessibilityMedalsSection(medals: widget.medals),
+                ),
+                const SizedBox(height: 16),
+
+                // Botón de ruta
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _onGenerateRoute(context),
+                      icon: const Icon(Icons.route, size: 20),
+                      label: const Text('Generar ruta'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColor.primaryNormal,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
-              // Pregunta de feedback
+                // Galería de fotos
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: place_feedback.Feedback(
-                  placeId: widget.placeId,
-                  onLike: () {
-                    // TODO: Implementar lógica de "me gusta"
-                  },
-                  onDislike: () {
-                    // TODO: Implementar lógica de "no me gusta"
-                  },
+                child: SizedBox(
+                  height: 200,
+                  child: _authToken.isEmpty
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColor.primaryNormal,
+                          ),
+                        )
+                      : ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: PhotoGallery(
+                            photoReferences: widget.photoReferences,
+                            authToken: _authToken,
+                          ),
+                        ),
                 ),
               ),
-              const SizedBox(height: 32),
-            ],
-          ),
-        ],
+                const SizedBox(height: 16),
+
+                // Dirección
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 18,
+                        color: Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          widget.address,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Botón de reseñar accesibilidad
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => _showReviewModal(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColor.primaryNormal,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Reseñar Accesibilidad',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Pregunta de feedback
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: place_feedback.Feedback(
+                    placeId: widget.placeId,
+                    onLike: () {
+                      // TODO: Implementar lógica de "me gusta"
+                    },
+                    onDislike: () {
+                      // TODO: Implementar lógica de "no me gusta"
+                    },
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
   }
 
   /// Genera la ruta desde la ubicación del usuario hasta este lugar
@@ -316,9 +323,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(
-        child: CircularProgressIndicator(
-          color: AppColor.primaryNormal,
-        ),
+        child: CircularProgressIndicator(color: AppColor.primaryNormal),
       ),
     );
 
