@@ -371,6 +371,7 @@ void _setupMarkers() {
               markers: _markers,
               myLocationEnabled: true,
               myLocationButtonEnabled: false,
+              compassEnabled: false,
               zoomControlsEnabled: false,
             );
           },
