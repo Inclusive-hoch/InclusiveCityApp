@@ -52,6 +52,11 @@ import 'package:inclusive_app/features/profile/data/repositories/user_evaluation
 import 'package:inclusive_app/features/profile/domain/repositories/user_evaluation_repository.dart';
 import 'package:inclusive_app/features/profile/domain/usecases/get_user_evaluations.dart';
 import 'package:inclusive_app/features/profile/application/bloc/user_evaluation_bloc.dart';
+import 'package:inclusive_app/features/reviews/data/datasources/review_remote_datasource.dart';
+import 'package:inclusive_app/features/reviews/data/repositories/review_repository_impl.dart';
+import 'package:inclusive_app/features/reviews/domain/repositories/review_repository.dart';
+import 'package:inclusive_app/features/reviews/domain/usecases/save_place_stat_data_usecase.dart';
+import 'package:inclusive_app/features/reviews/presentation/bloc/review_bloc.dart';
 import 'package:inclusive_app/features/routing/data/datasources/route_remote_datasource.dart';
 import 'package:inclusive_app/features/routing/data/datasources/route_remote_datasource_impl.dart';
 import 'package:inclusive_app/features/routing/data/datasources/route_local_datasource.dart';
@@ -229,6 +234,25 @@ Future<void> init() async {
   sl.registerFactory(
     () => UserEvaluationBloc(getUserEvaluations: sl(), placeRepository: sl()),
   );
+
+  // Reviews - DataSource
+  sl.registerLazySingleton<ReviewRemoteDataSource>(
+    () => ReviewRemoteDataSourceImpl(
+      client: sl(),
+      getToken: () => sl<FirebaseAuthService>().getIdToken(),
+    ),
+  );
+
+  // Reviews - Repository
+  sl.registerLazySingleton<ReviewRepository>(
+    () => ReviewRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Reviews - UseCase
+  sl.registerLazySingleton(() => SavePlaceStatDataUseCase(sl()));
+
+  // Reviews - Bloc
+  sl.registerFactory(() => ReviewBloc(savePlaceStatDataUseCase: sl()));
 
   // Routing - DataSource
   sl.registerLazySingleton<RouteRemoteDataSource>(

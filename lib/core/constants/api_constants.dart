@@ -16,6 +16,10 @@ class ApiConstants {
   static String placeDetails(String placeId) => "$placesBase/$placeId";
   static String placePhoto(String photoReference) =>
       "$placesBase/photo/$photoReference";
+  static String placeStatDataSave(String placeId) =>
+      "$placesBase/statdata/save/$placeId";
+  static String placeStatDataUpdate(String placeId) =>
+      "$placesBase/statdata/update/$placeId";
 
   // Spots endpoints
   static String get spotsBase => "$baseUrl/location/spot";

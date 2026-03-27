@@ -64,7 +64,7 @@ class Feedback extends StatelessWidget {
       icon: Icons.thumb_up_rounded,
       iconColor: AppColor.success,
       backgroundColor: AppColor.greenLight,
-      onPressed: () => _handleLike(context),
+      onPressed: _handleLike,
     );
   }
 
@@ -74,31 +74,18 @@ class Feedback extends StatelessWidget {
       icon: Icons.thumb_down_rounded,
       iconColor: AppColor.error,
       backgroundColor: AppColor.redLight,
-      onPressed: () => _handleDislike(context),
+      onPressed: _handleDislike,
     );
   }
 
   /// Maneja el evento de like.
-  void _handleLike(BuildContext context) {
+  void _handleLike() {
     onLike?.call();
-    _showFeedbackMessage(context);
   }
 
   /// Maneja el evento de dislike.
-  void _handleDislike(BuildContext context) {
+  void _handleDislike() {
     onDislike?.call();
-    _showFeedbackMessage(context);
-  }
-
-  /// Muestra mensaje de confirmación.
-  void _showFeedbackMessage(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('¡Gracias por tu opinión!'),
-        backgroundColor: AppColor.success,
-        duration: Duration(seconds: 2),
-      ),
-    );
   }
 }
 

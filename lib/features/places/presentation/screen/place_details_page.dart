@@ -12,6 +12,8 @@ import 'package:inclusive_app/features/places/presentation/widget/feedback.dart'
 import 'package:inclusive_app/shared/widgets/grabber.dart';
 import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart'
     as map_bloc;
+import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart'
+  as place_bloc;
 import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
 import 'package:inclusive_app/injection_container.dart' as di;
 import 'package:inclusive_app/features/reviews/presentation/views/review_container.dart';
@@ -66,10 +68,25 @@ class PlaceDetailsPage extends StatefulWidget {
 class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   bool isSaved = false;
   String _authToken = '';
+  String? _selectedRateChoice;
+  late String _placeName;
+  late String _address;
+  late List<String> _photoReferences;
+  late List<String> _medals;
+  late double _rating;
+  late double _latitude;
+  late double _longitude;
 
   @override
   void initState() {
     super.initState();
+    _placeName = widget.placeName;
+    _address = widget.address;
+    _photoReferences = List<String>.from(widget.photoReferences);
+    _medals = List<String>.from(widget.medals);
+    _rating = widget.rating;
+    _latitude = widget.latitude;
+    _longitude = widget.longitude;
     _loadAuthToken();
   }
 
@@ -93,10 +110,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         value: context.read<SpotBloc>(),
         child: ListSelectorBottomSheet(
           placeId: widget.placeId,
-          placeName: widget.placeName,
-          address: widget.address,
-          latitude: widget.latitude,
-          longitude: widget.longitude,
+          placeName: _placeName,
+          address: _address,
+          latitude: _latitude,
+          longitude: _longitude,
         ),
       ),
     );
@@ -134,7 +151,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     children: [
                       Expanded(
                         child: Text(
-                          widget.placeName,
+                          _placeName,
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -174,14 +191,14 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 // Rating y medallas
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Row(children: [Rating(rating: widget.rating)]),
+                  child: Row(children: [Rating(rating: _rating)]),
                 ),
                 const SizedBox(height: 12),
 
                 // Medallas de accesibilidad
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: AccessibilityMedalsSection(medals: widget.medals),
+                  child: AccessibilityMedalsSection(medals: _medals),
                 ),
                 const SizedBox(height: 16),
 
@@ -221,7 +238,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       : ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: PhotoGallery(
-                            photoReferences: widget.photoReferences,
+                            photoReferences: _photoReferences,
                             authToken: _authToken,
                           ),
                         ),
@@ -243,7 +260,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          widget.address,
+                          _address,
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.grey.shade700,
@@ -261,7 +278,23 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => _showReviewModal(context),
+                      onPressed: () {
+                        if (_selectedRateChoice == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Primero selecciona si te gusta o no te gusta este lugar.',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        _showReviewModal(
+                          context,
+                          rateChoice: _selectedRateChoice!,
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColor.primaryNormal,
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -288,10 +321,12 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   child: place_feedback.Feedback(
                     placeId: widget.placeId,
                     onLike: () {
-                      // TODO: Implementar lógica de "me gusta"
+                      _selectedRateChoice = 'LIKE';
+                      _showReviewModal(context, rateChoice: 'LIKE');
                     },
                     onDislike: () {
-                      // TODO: Implementar lógica de "no me gusta"
+                      _selectedRateChoice = 'DISLIKE';
+                      _showReviewModal(context, rateChoice: 'DISLIKE');
                     },
                   ),
                 ),
@@ -380,21 +415,68 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       extra: {
         'originLat': userLat,
         'originLng': userLng,
-        'destLat': widget.latitude,
-        'destLng': widget.longitude,
+        'destLat': _latitude,
+        'destLng': _longitude,
         'originName': 'Mi ubicación',
-        'destName': widget.placeName,
+        'destName': _placeName,
       },
     );
   }
 
   /// Abre el modal de reseña de accesibilidad
-  void _showReviewModal(BuildContext context) {
-    showModalBottomSheet(
+  Future<void> _showReviewModal(
+    BuildContext context, {
+    required String rateChoice,
+  }) async {
+    final submitted = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const ReviewContainer(),
+      builder: (context) => ReviewContainer(
+        placeId: widget.placeId,
+        rateChoice: rateChoice,
+      ),
     );
+
+    if (submitted == true) {
+      await _refreshPlaceDetails();
+    }
+  }
+
+  Future<void> _refreshPlaceDetails() async {
+    final bloc = context.read<place_bloc.PlaceBloc>();
+    bloc.add(place_bloc.FetchPlaceDetailsEvent(widget.placeId));
+
+    try {
+      final resultState = await bloc.stream
+          .firstWhere(
+            (state) =>
+                state is place_bloc.PlaceDetailsFetched &&
+                state.placeDetails.placeId == widget.placeId,
+          )
+          .timeout(const Duration(seconds: 12));
+
+      if (!mounted || resultState is! place_bloc.PlaceDetailsFetched) return;
+
+      final details = resultState.placeDetails;
+      setState(() {
+        _placeName = details.name;
+        _address = details.address;
+        _photoReferences = List<String>.from(details.photos);
+        _medals = List<String>.from(details.medals);
+        _rating = details.rating;
+        _latitude = details.latitude;
+        _longitude = details.longitude;
+      });
+    } on TimeoutException {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'La review se envio, pero no se pudo refrescar el detalle del lugar.',
+          ),
+        ),
+      );
+    }
   }
 }

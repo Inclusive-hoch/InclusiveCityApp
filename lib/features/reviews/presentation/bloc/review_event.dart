@@ -29,7 +29,29 @@ class ReviewQuestionAnswered extends ReviewEvent {
 
 class ReviewBackRequested extends ReviewEvent {}
 
-class ReviewFinalizeRequested extends ReviewEvent {}
+class ReviewRateChoiceChanged extends ReviewEvent {
+  final String rateChoice;
+
+  const ReviewRateChoiceChanged(this.rateChoice);
+
+  @override
+  List<Object?> get props => [rateChoice];
+}
+
+class ReviewSubmitRequested extends ReviewEvent {
+  final String placeId;
+  final String rateChoice;
+  final List<String> forms;
+
+  const ReviewSubmitRequested({
+    required this.placeId,
+    required this.rateChoice,
+    required this.forms,
+  });
+
+  @override
+  List<Object?> get props => [placeId, rateChoice, forms];
+}
 
 class ReviewNextRequested extends ReviewEvent {}
 
