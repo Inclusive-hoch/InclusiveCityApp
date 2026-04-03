@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
+import 'package:inclusive_app/core/constants/accessibility_medals.dart';
 
 /// Sección que muestra las características de accesibilidad de un lugar.
 /// 
@@ -60,12 +61,22 @@ class _MedalChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = _getMedalIcon(medal);
+    AccessibilityMedal? realMedal;
+    final upperMedal = medal.toUpperCase();
+    for (final m in AccessibilityMedalsHelper.orderedMedals) {
+      if (m.apiName.toUpperCase() == upperMedal || m.displayName.toUpperCase() == upperMedal) {
+        realMedal = m;
+        break;
+      }
+    }
+    
+    final icon = realMedal?.icon ?? _getMedalIcon(medal);
+    final labelText = realMedal?.displayName ?? medal;
 
     return Chip(
       avatar: Icon(icon, size: 18, color: AppColor.primaryNormal),
       label: Text(
-        medal,
+        labelText,
         style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w500,
