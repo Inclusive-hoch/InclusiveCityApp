@@ -326,7 +326,10 @@ class _SearchPageState extends State<SearchPage> {
         ),
         child: ListView(
           controller: widget.scrollController,
-          padding: EdgeInsets.zero,
+          physics: const ClampingScrollPhysics(), // Evita el scroll infinito rebotando, priorizando el drag del panel
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.paddingOf(context).bottom + 20, // Respeta el espacio de los botones de navegación
+          ),
           children: [
             const Center(child: Grabber()),
 
@@ -372,6 +375,7 @@ class _SearchPageState extends State<SearchPage> {
                   state is PlacesEmpty ||
                   state is PlaceDetailsLoaded ||
                   state is PlaceDetailsLoading ||
+                  state is PlaceDetailsFetched ||
                   (state is PlacesLoaded && state.suggestions.isEmpty)) {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
