@@ -4,6 +4,7 @@ import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/spot/domain/entities/spot.dart';
 import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart';
 import 'package:inclusive_app/core/constants/api_constants.dart';
+import 'package:inclusive_app/core/constants/accessibility_medals.dart';
 
 /// Tarjeta que muestra un lugar dentro de una lista personalizada.
 /// 
@@ -229,10 +230,23 @@ class _PlaceListItemCardState extends State<PlaceListItemCard> {
   }
 
   Widget _buildAccessibilityIcon(String medal) {
-    final key = medal.toLowerCase();
     Widget iconWidget;
 
-    if (key == 'wheelchair' || key == 'accesible' || key == 'rampa' || key == 'silla de ruedas') {
+    // Primero, intentar sincronizar con las medallas oficiales del core/review buscando por apiName o displayName
+    AccessibilityMedal? realMedal;
+    final upperMedal = medal.toUpperCase();
+    for (final m in AccessibilityMedalsHelper.orderedMedals) {
+      if (m.apiName.toUpperCase() == upperMedal || m.displayName.toUpperCase() == upperMedal) {
+        realMedal = m;
+        break;
+      }
+    }
+
+    if (realMedal != null) {
+      iconWidget = Icon(realMedal.icon, size: 22, color: Colors.white);
+    } else {
+      final key = medal.toLowerCase();
+      if (key == 'wheelchair' || key == 'accesible' || key == 'rampa' || key == 'silla de ruedas') {
       iconWidget = const Icon(Icons.accessible, size: 22, color: Colors.white);
     } else if (key == 'parking' || key == 'estacionamiento') {
       iconWidget = const Icon(Icons.local_parking, size: 22, color: Colors.white);
@@ -245,8 +259,9 @@ class _PlaceListItemCardState extends State<PlaceListItemCard> {
       iconWidget = const Icon(Icons.wc, size: 22, color: Colors.white);
     } else if (key == 'braille') {
       iconWidget = const Icon(Icons.text_fields, size: 22, color: Colors.white);
-    } else {
-      iconWidget = const Icon(Icons.check_circle, size: 22, color: Colors.white);
+      } else {
+        iconWidget = const Icon(Icons.check_circle, size: 22, color: Colors.white);
+      }
     }
 
     return Container(
