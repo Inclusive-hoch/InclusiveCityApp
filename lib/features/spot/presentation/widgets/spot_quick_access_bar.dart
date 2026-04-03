@@ -122,14 +122,14 @@ class _SpotPill extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24), // Radio suavizado
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Padding más amplio
           decoration: BoxDecoration(
             color: isActive 
                 ? AppColor.secondaryDark.withOpacity(0.1)
                 : AppColor.neutralLight,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: isActive 
                   ? AppColor.secondaryDark.withOpacity(0.3)
@@ -142,16 +142,16 @@ class _SpotPill extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                size: 18,
+                size: 24, // Ícono más grande para mayor visibilidad
                 color: isActive 
                     ? AppColor.secondaryDarker 
                     : AppColor.secondaryNormal,
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8), // Más separación
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 16, // Fuente más grande para legibilidad
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
                   color: isActive 
                       ? AppColor.secondaryDarker 
