@@ -226,7 +226,7 @@ class _MapPageState extends State<MapPage> {
 
             /// BOTÓN CENTRAR USUARIO
             Positioned(
-              bottom: MediaQuery.of(context).size.height * 0.18,
+              bottom: MediaQuery.of(context).size.height * 0.20,
               left: 20,
               child: CustomFloatingActionButton.primary(
                 icon: Icons.navigation,
@@ -242,7 +242,7 @@ class _MapPageState extends State<MapPage> {
 
             /// BOTÓN INCIDENCIA
             Positioned(
-              bottom: MediaQuery.of(context).size.height * 0.18,
+              bottom: MediaQuery.of(context).size.height * 0.20,
               right: 20,
               child: ValueListenableBuilder<bool>(
                 valueListenable: _controller.isCenteredOnUser,
@@ -260,8 +260,8 @@ class _MapPageState extends State<MapPage> {
 
             /// SEARCH / BOTTOM SHEET
             DraggableScrollableSheet(
-              initialChildSize: 0.15,
-              minChildSize: 0.15,
+              initialChildSize: 0.18,
+              minChildSize: 0.18,
               maxChildSize: 0.9,
               builder: (context, scrollController) {
                 return SearchPage(scrollController: scrollController);
