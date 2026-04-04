@@ -40,17 +40,15 @@ class ReviewRateChoiceChanged extends ReviewEvent {
 
 class ReviewSubmitRequested extends ReviewEvent {
   final String placeId;
-  final String rateChoice;
   final List<String> forms;
 
   const ReviewSubmitRequested({
     required this.placeId,
-    required this.rateChoice,
     required this.forms,
   });
 
   @override
-  List<Object?> get props => [placeId, rateChoice, forms];
+  List<Object?> get props => [placeId, forms];
 }
 
 class ReviewNextRequested extends ReviewEvent {}

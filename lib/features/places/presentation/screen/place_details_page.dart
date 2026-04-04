@@ -16,6 +16,7 @@ import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart'
   as place_bloc;
 import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
 import 'package:inclusive_app/injection_container.dart' as di;
+import 'package:inclusive_app/features/reviews/domain/usecases/save_place_rate_choice_usecase.dart';
 import 'package:inclusive_app/features/reviews/presentation/views/review_container.dart';
 import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:inclusive_app/features/spot/presentation/widgets/list_selector_bottom_sheet.dart';
@@ -67,6 +68,7 @@ class PlaceDetailsPage extends StatefulWidget {
 
 class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   bool isSaved = false;
+  bool _isSubmittingRate = false;
   String _authToken = '';
   String? _selectedRateChoice;
   late String _placeName;
@@ -279,20 +281,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        if (_selectedRateChoice == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Primero selecciona si te gusta o no te gusta este lugar.',
-                              ),
-                            ),
-                          );
-                          return;
-                        }
-
                         _showReviewModal(
                           context,
-                          rateChoice: _selectedRateChoice!,
+                          rateChoice: _selectedRateChoice ?? 'DISLIKE',
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -321,21 +312,109 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   child: place_feedback.Feedback(
                     placeId: widget.placeId,
                     onLike: () {
-                      _selectedRateChoice = 'LIKE';
-                      _showReviewModal(context, rateChoice: 'LIKE');
+                      _confirmAndSubmitRateChoice('LIKE');
                     },
                     onDislike: () {
-                      _selectedRateChoice = 'DISLIKE';
-                      _showReviewModal(context, rateChoice: 'DISLIKE');
+                      _confirmAndSubmitRateChoice('DISLIKE');
                     },
                   ),
                 ),
                 const SizedBox(height: 32),
               ],
             ),
+            if (_isSubmittingRate)
+              const Positioned.fill(
+                child: ColoredBox(
+                  color: Color(0x66000000),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: AppColor.primaryNormal,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _confirmAndSubmitRateChoice(String rateChoice) async {
+    final isLike = rateChoice == 'LIKE';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(isLike ? 'Confirmar me gusta' : 'Confirmar no me gusta'),
+          content: Text(
+            isLike
+                ? 'Se enviara tu calificacion de me gusta para este lugar. Deseas continuar?'
+                : 'Se enviara tu calificacion de no me gusta para este lugar. Deseas continuar?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Confirmar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _isSubmittingRate = true;
+    });
+
+    final savePlaceRateChoiceUseCase = di.sl<SavePlaceRateChoiceUseCase>();
+    final result = await savePlaceRateChoiceUseCase(
+      SavePlaceRateChoiceParams(
+        placeId: widget.placeId,
+        rateChoice: rateChoice,
+      ),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isSubmittingRate = false;
+    });
+
+    await result.fold(
+      (failure) async {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(failure.message)),
+        );
+      },
+      (_) async {
+        if (!mounted) return;
+        setState(() {
+          _selectedRateChoice = rateChoice;
+        });
+        await _refreshPlaceDetails();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              rateChoice == 'LIKE'
+                  ? 'Se envio tu me gusta correctamente.'
+                  : 'Se envio tu no me gusta correctamente.',
+            ),
+            backgroundColor: AppColor.greenNormal,
+          ),
+        );
+      },
     );
   }
 
@@ -353,7 +432,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
     // Si no tenemos ubicación, intentar obtenerla
     // Mostrar indicador de carga
-    if (!mounted) return;
+    if (!context.mounted) return;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -373,7 +452,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           )
           .timeout(const Duration(seconds: 15));
 
-      if (!mounted) return;
+      if (!context.mounted) return;
       Navigator.of(context).pop(); // Cerrar diálogo de carga
 
       if (resultState is map_bloc.MapLocationLoaded) {
@@ -393,7 +472,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         );
       }
     } on TimeoutException {
-      if (!mounted) return;
+      if (!context.mounted) return;
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

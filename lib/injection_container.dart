@@ -55,6 +55,7 @@ import 'package:inclusive_app/features/profile/application/bloc/user_evaluation_
 import 'package:inclusive_app/features/reviews/data/datasources/review_remote_datasource.dart';
 import 'package:inclusive_app/features/reviews/data/repositories/review_repository_impl.dart';
 import 'package:inclusive_app/features/reviews/domain/repositories/review_repository.dart';
+import 'package:inclusive_app/features/reviews/domain/usecases/save_place_rate_choice_usecase.dart';
 import 'package:inclusive_app/features/reviews/domain/usecases/save_place_stat_data_usecase.dart';
 import 'package:inclusive_app/features/reviews/presentation/bloc/review_bloc.dart';
 import 'package:inclusive_app/features/routing/data/datasources/route_remote_datasource.dart';
@@ -249,6 +250,7 @@ Future<void> init() async {
   );
 
   // Reviews - UseCase
+  sl.registerLazySingleton(() => SavePlaceRateChoiceUseCase(sl()));
   sl.registerLazySingleton(() => SavePlaceStatDataUseCase(sl()));
 
   // Reviews - Bloc

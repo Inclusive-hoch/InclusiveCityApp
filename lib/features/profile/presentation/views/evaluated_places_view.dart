@@ -29,7 +29,7 @@ class _EvaluatedPlacesViewState extends State<EvaluatedPlacesView> {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated) {
       context.read<UserEvaluationBloc>().add(
-        LoadUserEvaluations(userId: authState.user.uid),
+        RefreshUserEvaluations(userId: authState.user.uid),
       );
     }
   }

@@ -93,14 +93,13 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
     );
 
     developer.log(
-      'Submitting review | placeId=${event.placeId} | rateChoice=${event.rateChoice} | forms=${event.forms}',
+      'Submitting review forms | placeId=${event.placeId} | forms=${event.forms}',
       name: 'ReviewBloc',
     );
 
     final result = await savePlaceStatDataUseCase(
       SavePlaceStatDataParams(
         placeId: event.placeId,
-        rateChoice: event.rateChoice,
         forms: event.forms,
       ),
     );

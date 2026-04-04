@@ -17,7 +17,9 @@ class ApiConstants {
   static String placePhoto(String photoReference) =>
       "$placesBase/photo/$photoReference";
   static String placeStatDataSave(String placeId) =>
-      "$placesBase/statdata/save/$placeId";
+      "$placesBase/statdata/save/form/$placeId";
+  static String placeStatDataSaveRate(String placeId) =>
+      "$placesBase/statdata/save/rate/$placeId";
   static String placeStatDataUpdate(String placeId) =>
       "$placesBase/statdata/update/$placeId";
 

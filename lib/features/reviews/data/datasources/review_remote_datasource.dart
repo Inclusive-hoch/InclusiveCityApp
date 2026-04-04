@@ -8,6 +8,11 @@ import 'package:inclusive_app/core/errors/exceptions.dart';
 import 'package:inclusive_app/features/reviews/data/models/review_stat_data_request_model.dart';
 
 abstract class ReviewRemoteDataSource {
+  Future<void> savePlaceRateChoice({
+    required String placeId,
+    required String rateChoice,
+  });
+
   Future<void> savePlaceStatData({
     required String placeId,
     required ReviewStatDataRequestModel request,
@@ -26,6 +31,41 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
     required this.client,
     required this.getToken,
   });
+
+  @override
+  Future<void> savePlaceRateChoice({
+    required String placeId,
+    required String rateChoice,
+  }) async {
+    final token = await getToken();
+    final uri = Uri.parse(ApiConstants.placeStatDataSaveRate(placeId));
+    final payload = {'rateChoice': rateChoice};
+
+    developer.log(
+      'POST $uri | payload=${json.encode(payload)}',
+      name: 'ReviewRemoteDataSource',
+    );
+
+    try {
+      final response = await client.post(
+        uri,
+        headers: ApiConstants.authHeaders(token),
+        body: json.encode(payload),
+      );
+
+      _throwIfNotSuccess(
+        response,
+        endpointName: 'savePlaceRateChoice',
+      );
+
+      developer.log(
+        'savePlaceRateChoice success | status=${response.statusCode}',
+        name: 'ReviewRemoteDataSource',
+      );
+    } on SocketException {
+      throw NetworkException('No hay conexion a internet.');
+    }
+  }
 
   @override
   Future<void> savePlaceStatData({

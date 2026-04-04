@@ -3,15 +3,17 @@ import 'package:equatable/equatable.dart';
 import 'package:inclusive_app/features/reviews/domain/entities/review_failure.dart';
 import 'package:inclusive_app/features/reviews/domain/repositories/review_repository.dart';
 
-class SavePlaceStatDataUseCase {
+class SavePlaceRateChoiceUseCase {
   final ReviewRepository repository;
 
-  const SavePlaceStatDataUseCase(this.repository);
+  const SavePlaceRateChoiceUseCase(this.repository);
 
-  Future<Either<ReviewFailure, Unit>> call(SavePlaceStatDataParams params) async {
-    final saveResult = await repository.savePlaceStatData(
+  Future<Either<ReviewFailure, Unit>> call(
+    SavePlaceRateChoiceParams params,
+  ) async {
+    final saveResult = await repository.savePlaceRateChoice(
       placeId: params.placeId,
-      forms: params.forms,
+      rateChoice: params.rateChoice,
     );
 
     return saveResult.fold(
@@ -21,15 +23,15 @@ class SavePlaceStatDataUseCase {
   }
 }
 
-class SavePlaceStatDataParams extends Equatable {
+class SavePlaceRateChoiceParams extends Equatable {
   final String placeId;
-  final List<String> forms;
+  final String rateChoice;
 
-  const SavePlaceStatDataParams({
+  const SavePlaceRateChoiceParams({
     required this.placeId,
-    required this.forms,
+    required this.rateChoice,
   });
 
   @override
-  List<Object> get props => [placeId, forms];
+  List<Object> get props => [placeId, rateChoice];
 }

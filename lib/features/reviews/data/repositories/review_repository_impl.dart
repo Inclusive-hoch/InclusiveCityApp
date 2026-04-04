@@ -11,16 +11,46 @@ class ReviewRepositoryImpl implements ReviewRepository {
   const ReviewRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<Either<ReviewFailure, Unit>> savePlaceStatData({
+  Future<Either<ReviewFailure, Unit>> savePlaceRateChoice({
     required String placeId,
     required String rateChoice,
+  }) async {
+    try {
+      await remoteDataSource.savePlaceRateChoice(
+        placeId: placeId,
+        rateChoice: rateChoice,
+      );
+      return const Right(unit);
+    } on BadRequestException catch (e) {
+      return Left(ReviewFailure(e.message, statusCode: 400));
+    } on UnauthorizedException catch (e) {
+      return Left(ReviewFailure(e.message, statusCode: 401));
+    } on ForbiddenException catch (e) {
+      return Left(ReviewFailure(e.message, statusCode: 403));
+    } on NotFoundException catch (e) {
+      return Left(ReviewFailure(e.message, statusCode: 404));
+    } on ConflictException catch (e) {
+      return Left(ReviewFailure(e.message, statusCode: 409));
+    } on InternalServerException catch (e) {
+      return Left(ReviewFailure(e.message, statusCode: e.statusCode ?? 500));
+    } on NetworkException catch (e) {
+      return Left(ReviewFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ReviewFailure(e.message, statusCode: e.statusCode));
+    } catch (_) {
+      return const Left(ReviewFailure('Error inesperado al guardar calificacion.'));
+    }
+  }
+
+  @override
+  Future<Either<ReviewFailure, Unit>> savePlaceStatData({
+    required String placeId,
     required List<String> forms,
   }) async {
     try {
       await remoteDataSource.savePlaceStatData(
         placeId: placeId,
         request: ReviewStatDataRequestModel(
-          rateChoice: rateChoice,
           forms: forms,
         ),
       );

@@ -84,7 +84,6 @@ class ComplianceMenuView extends StatelessWidget {
                         context.read<ReviewBloc>().add(
                           ReviewSubmitRequested(
                             placeId: placeId,
-                            rateChoice: state.rateChoice,
                             forms: formsPayload,
                           ),
                         );
