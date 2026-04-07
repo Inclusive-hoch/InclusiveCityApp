@@ -35,6 +35,12 @@ class InsertIncidence {
       'Falta de rampa': 'NO_RAMPA',
       'Rampa dañada': 'RAMPA_DANADA',
       'Rampa bloqueada': 'RAMPA_BLOQUEADA',
+      'Falta de rebaje': 'FALTA_REBAJE',
+      'Semáforo sin señal auditiva': 'SEMAFORO_MUTE',
+      'Grietas': 'GRIETAS',
+      'Baches': 'BACHES',
+      'Desniveles': 'DESNIVELES',
+      'Superficie resbaladiza': 'SUPERFICIE_RESBALADIZA',
       'ALUMBRADO_PUBLICO': 'ALUMBRADO_PUBLICO',
       'OBRA': 'OBRA',
       'ESCOMBROS': 'ESCOMBROS',
@@ -42,6 +48,12 @@ class InsertIncidence {
       'NO_RAMPA': 'NO_RAMPA',
       'RAMPA_DANADA': 'RAMPA_DANADA',
       'RAMPA_BLOQUEADA': 'RAMPA_BLOQUEADA',
+      'FALTA_REBAJE': 'FALTA_REBAJE',
+      'SEMAFORO_MUTE': 'SEMAFORO_MUTE',
+      'GRIETAS': 'GRIETAS',
+      'BACHES': 'BACHES',
+      'DESNIVELES': 'DESNIVELES',
+      'SUPERFICIE_RESBALADIZA': 'SUPERFICIE_RESBALADIZA',
     };
 
     final resolved = mapping[incidence.trim()];

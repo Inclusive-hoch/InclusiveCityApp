@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Mapeo de nombres de incidencia del backend a iconos de Material.
 ///
-/// Los nombres del backend vienen en formato uppercase (ej: "ILUMINACION"),
+/// Los nombres del backend vienen en formato uppercase (ej: "ALUMBRADO_PUBLICO"),
 /// y se mapean a los iconos ya definidos en los subtipos de incidencias
 /// de la presentación.
 const Map<String, IconData> incidenceBackendIcons = {
@@ -13,16 +13,21 @@ const Map<String, IconData> incidenceBackendIcons = {
   'SUPERFICIE_RESBALADIZA': Icons.severe_cold,
 
   // Cruces peatonales
+  'FALTA_REBAJE': Icons.height,
   'FALTA_DE_REBAJE': Icons.height,
+  'SEMAFORO_MUTE': Icons.hearing_disabled,
   'SEMAFORO_SIN_SENAL_AUDITIVA': Icons.hearing_disabled,
 
   // Problemas temporales
+  'ALUMBRADO_PUBLICO': Icons.lightbulb_outline,
   'ILUMINACION': Icons.lightbulb_outline,
   'OBRA': Icons.engineering,
   'ESCOMBROS': Icons.delete_sweep,
+  'BLOQUEDO_RUTA': Icons.block,
   'BLOQUEO_DE_RUTA': Icons.block,
 
   // Rampas
+  'NO_RAMPA': Icons.not_accessible,
   'FALTA_DE_RAMPA': Icons.not_accessible,
   'RAMPA_DANADA': Icons.report_problem,
   'RAMPA_BLOQUEADA': Icons.do_not_step,
@@ -40,20 +45,22 @@ const Map<String, String> incidenceDisplayNames = {
   'SUPERFICIE_RESBALADIZA': 'Superficie resbaladiza',
 
   // Cruces peatonales
+  'FALTA_REBAJE': 'Falta de rebaje',
   'FALTA_DE_REBAJE': 'Falta de rebaje',
+  'SEMAFORO_MUTE': 'Semáforo sin señal auditiva',
   'SEMAFORO_SIN_SENAL_AUDITIVA': 'Semáforo sin señal auditiva',
 
   // Problemas temporales
-  'ILUMINACION': 'Problema alumbrado público',
   'ALUMBRADO_PUBLICO': 'Problema alumbrado público',
+  'ILUMINACION': 'Problema alumbrado público',
   'OBRA': 'Obra',
   'ESCOMBROS': 'Escombros',
-  'BLOQUEO_DE_RUTA': 'Bloqueo de ruta',
   'BLOQUEDO_RUTA': 'Bloqueo de ruta',
+  'BLOQUEO_DE_RUTA': 'Bloqueo de ruta',
 
   // Rampas
-  'FALTA_DE_RAMPA': 'Falta de rampa',
   'NO_RAMPA': 'Falta de rampa',
+  'FALTA_DE_RAMPA': 'Falta de rampa',
   'RAMPA_DANADA': 'Rampa dañada',
   'RAMPA_BLOQUEADA': 'Rampa bloqueada',
 };
