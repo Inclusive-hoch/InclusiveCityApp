@@ -17,31 +17,45 @@ class UserEvaluationRepositoryImpl implements UserEvaluationRepository {
   });
 
   @override
-  Future<List<UserEvaluation>> getUserEvaluations(String userId) async {
-    try {
-      final lastUpdate = await localDatasource.getLastUpdate(userId);
+  Future<List<UserEvaluation>> getUserEvaluations(
+    String userId, {
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh) {
+      try {
+        final lastUpdate = await localDatasource.getLastUpdate(userId);
 
-      if (lastUpdate != null) {
-        final cacheValid =
-            DateTime.now().difference(lastUpdate) < const Duration(hours: 6);
+        if (lastUpdate != null) {
+          final cacheValid =
+              DateTime.now().difference(lastUpdate) < const Duration(hours: 6);
 
-        if (cacheValid) {
-          final cachedEvaluations = await localDatasource.getCachedEvaluations(
-            userId,
-          );
-          if (cachedEvaluations.isNotEmpty) {
-            return cachedEvaluations;
+          if (cacheValid) {
+            final cachedEvaluations = await localDatasource.getCachedEvaluations(
+              userId,
+            );
+            if (cachedEvaluations.isNotEmpty) {
+              return cachedEvaluations;
+            }
           }
         }
-      }
-    } catch (_) {}
+      } catch (_) {}
+    }
 
     if (await networkInfo.isConnected) {
       try {
         final evaluations = await remoteDataSource.getUserEvaluations(userId);
         await localDatasource.cacheEvaluations(userId, evaluations);
         return evaluations;
-      } catch (e) {
+      } catch (_) {
+        try {
+          final cachedEvaluations = await localDatasource.getCachedEvaluations(
+            userId,
+          );
+          if (cachedEvaluations.isNotEmpty) {
+            return cachedEvaluations;
+          }
+        } catch (_) {}
+
         throw Exception('Error al obtener los datos');
       }
     } else {

@@ -6,7 +6,13 @@ class GetUserEvaluations {
 
   GetUserEvaluations(this.repository);
 
-  Future<List<UserEvaluation>> call(String userId) async{
-    return await repository.getUserEvaluations(userId);
+  Future<List<UserEvaluation>> call(
+    String userId, {
+    bool forceRefresh = false,
+  }) async {
+    return await repository.getUserEvaluations(
+      userId,
+      forceRefresh: forceRefresh,
+    );
   }
 }

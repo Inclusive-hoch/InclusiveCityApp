@@ -16,6 +16,12 @@ class ApiConstants {
   static String placeDetails(String placeId) => "$placesBase/$placeId";
   static String placePhoto(String photoReference) =>
       "$placesBase/photo/$photoReference";
+  static String placeStatDataSave(String placeId) =>
+      "$placesBase/statdata/save/form/$placeId";
+  static String placeStatDataSaveRate(String placeId) =>
+      "$placesBase/statdata/save/rate/$placeId";
+  static String placeStatDataUpdate(String placeId) =>
+      "$placesBase/statdata/update/$placeId";
 
   // Spots endpoints
   static String get spotsBase => "$baseUrl/location/spot";
@@ -41,6 +47,8 @@ class ApiConstants {
   static String get allIncidences => "$incidenceBase/all";
   static String get incidenceBySector => "$baseUrl/location/incidence/sector";
   static String get insertIncidence => "$baseUrl/location/incidence/insert";
+  static String get uploadIncidenceImage =>
+      "$baseUrl/location/incidence/image/upload";
 
   // === ROUTE API (puerto 8060) ===
   static String get routeBase => "$baseUrl/route";

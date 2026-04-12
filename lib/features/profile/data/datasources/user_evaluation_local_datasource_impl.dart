@@ -28,7 +28,17 @@ class UserEvaluationLocalDatasourceImpl implements UserEvaluationLocalDatasource
   Future<void> cacheEvaluations(String userId, List<UserEvaluation> evaluations) async {
     // transforma la lista de evaluaciones en json
     final List<Map<String, dynamic>> jsonList = evaluations.map((e) {
-      return (e as UserEvaluationModel).toJson();
+      if (e is UserEvaluationModel) {
+        return e.toJson();
+      }
+
+      return {
+        'placeId': e.placeId,
+        'medals': e.medals,
+        'rating': e.rating,
+        'rateChoice': e.rateChoice,
+        'forms': e.forms,
+      };
     }).toList();
 
     //guardar la lista json en sharedprederences

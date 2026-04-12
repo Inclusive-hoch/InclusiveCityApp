@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:inclusive_app/core/constants/api_constants.dart';
 import 'package:inclusive_app/core/errors/exceptions.dart';
@@ -94,6 +95,15 @@ class IncidentRemoteDataSourceImpl implements IncidentRemoteDataSource {
     String image = '',
   }) async {
     final token = await getToken();
+
+    var resolvedImage = image.trim();
+    if (resolvedImage.isNotEmpty && !_isRemoteUrl(resolvedImage)) {
+      resolvedImage = await _uploadIncidenceImage(
+        imagePath: resolvedImage,
+        token: token,
+      );
+    }
+
     final response = await client.post(
       Uri.parse(ApiConstants.insertIncidence),
       headers: {...ApiConstants.authHeaders(token)},
@@ -104,7 +114,7 @@ class IncidentRemoteDataSourceImpl implements IncidentRemoteDataSource {
           'longitude': longitude.toString(),
         },
         'incidence': incidence,
-        'image': image,
+        'image': resolvedImage,
       }),
     );
 
@@ -114,5 +124,53 @@ class IncidentRemoteDataSourceImpl implements IncidentRemoteDataSource {
         response.statusCode,
       );
     }
+  }
+
+  bool _isRemoteUrl(String value) {
+    final uri = Uri.tryParse(value);
+    return uri != null &&
+        uri.hasScheme &&
+        (uri.scheme == 'http' || uri.scheme == 'https');
+  }
+
+  Future<String> _uploadIncidenceImage({
+    required String imagePath,
+    required String token,
+  }) async {
+    final file = File(imagePath);
+    if (!await file.exists()) {
+      throw ServerException('No se encontro la imagen capturada', 400);
+    }
+
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse(ApiConstants.uploadIncidenceImage),
+    )..headers['Authorization'] = 'Bearer $token';
+
+    request.files.add(await http.MultipartFile.fromPath('file', imagePath));
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw ServerException(
+        'No se pudo subir la imagen de la incidencia',
+        response.statusCode,
+      );
+    }
+
+    final Map<String, dynamic> jsonResponse = json.decode(
+      utf8.decode(response.bodyBytes),
+    );
+    final data = jsonResponse['data'];
+
+    if (data is! String || data.trim().isEmpty) {
+      throw ServerException(
+        'Respuesta invalida al subir la imagen de la incidencia',
+        500,
+      );
+    }
+
+    return data.trim();
   }
 }

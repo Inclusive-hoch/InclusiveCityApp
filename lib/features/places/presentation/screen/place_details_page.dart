@@ -10,9 +10,13 @@ import 'package:inclusive_app/features/places/presentation/widget/medals.dart';
 import 'package:inclusive_app/features/places/presentation/widget/feedback.dart'
     as place_feedback;
 import 'package:inclusive_app/shared/widgets/grabber.dart';
-import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart' as map_bloc;
+import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart'
+    as map_bloc;
+import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart'
+  as place_bloc;
 import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
 import 'package:inclusive_app/injection_container.dart' as di;
+import 'package:inclusive_app/features/reviews/domain/usecases/save_place_rate_choice_usecase.dart';
 import 'package:inclusive_app/features/reviews/presentation/views/review_container.dart';
 import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:inclusive_app/features/spot/presentation/widgets/list_selector_bottom_sheet.dart';
@@ -64,11 +68,27 @@ class PlaceDetailsPage extends StatefulWidget {
 
 class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   bool isSaved = false;
+  bool _isSubmittingRate = false;
   String _authToken = '';
+  String? _selectedRateChoice;
+  late String _placeName;
+  late String _address;
+  late List<String> _photoReferences;
+  late List<String> _medals;
+  late double _rating;
+  late double _latitude;
+  late double _longitude;
 
   @override
   void initState() {
     super.initState();
+    _placeName = widget.placeName;
+    _address = widget.address;
+    _photoReferences = List<String>.from(widget.photoReferences);
+    _medals = List<String>.from(widget.medals);
+    _rating = widget.rating;
+    _latitude = widget.latitude;
+    _longitude = widget.longitude;
     _loadAuthToken();
   }
 
@@ -92,10 +112,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         value: context.read<SpotBloc>(),
         child: ListSelectorBottomSheet(
           placeId: widget.placeId,
-          placeName: widget.placeName,
-          address: widget.address,
-          latitude: widget.latitude,
-          longitude: widget.longitude,
+          placeName: _placeName,
+          address: _address,
+          latitude: _latitude,
+          longitude: _longitude,
         ),
       ),
     );
@@ -112,189 +132,290 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         }
       },
       child: Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Stack(
-        children: [
-          // Contenido principal con scroll
-          ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              // Grabber para indicar que es deslizable
-              const Center(child: Grabber()),
-              const SizedBox(height: 8),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Stack(
+          children: [
+            // Contenido principal con scroll
+            ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                // Grabber para indicar que es deslizable
+                const Center(child: Grabber()),
+                const SizedBox(height: 8),
 
-              // Header con título y botones de acción
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        widget.placeName,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                // Header con título y botones de acción
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _placeName,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
                         ),
                       ),
-                    ),
-                    // Botones de acción inline
-                    IconButton(
-                      onPressed: _showListSelectorBottomSheet,
-                      icon: Icon(
-                        isSaved ? Icons.bookmark : Icons.bookmark_border,
-                        color: AppColor.primaryNormal,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        // TODO: Implementar compartir
-                      },
-                      icon: const Icon(
-                        Icons.share,
-                        color: AppColor.primaryNormal,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
-                        Icons.close,
-                        color: AppColor.primaryNormal,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Rating y medallas
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(children: [Rating(rating: widget.rating)]),
-              ),
-              const SizedBox(height: 12),
-
-              // Medallas de accesibilidad
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: AccessibilityMedalsSection(medals: widget.medals),
-              ),
-              const SizedBox(height: 16),
-
-              // Botón de ruta
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _onGenerateRoute(context),
-                    icon: const Icon(Icons.route, size: 20),
-                    label: const Text('Generar ruta'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColor.primaryNormal,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Galería de fotos
-              SizedBox(
-                height: 250,
-                child: _authToken.isEmpty
-                    ? const Center(
-                        child: CircularProgressIndicator(
+                      // Botones de acción inline
+                      IconButton(
+                        onPressed: _showListSelectorBottomSheet,
+                        icon: Icon(
+                          isSaved ? Icons.bookmark : Icons.bookmark_border,
                           color: AppColor.primaryNormal,
                         ),
-                      )
-                    : PhotoGallery(
-                        photoReferences: widget.photoReferences,
-                        authToken: _authToken,
                       ),
-              ),
-              const SizedBox(height: 16),
-
-              // Dirección
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 18,
-                      color: Colors.grey.shade600,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        widget.address,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade700,
+                      IconButton(
+                        onPressed: () {
+                          // TODO: Implementar compartir
+                        },
+                        icon: const Icon(
+                          Icons.share,
+                          color: AppColor.primaryNormal,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Botón de reseñar accesibilidad
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => _showReviewModal(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColor.primaryNormal,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(
+                          Icons.close,
+                          color: AppColor.primaryNormal,
+                        ),
                       ),
-                    ),
-                    child: const Text(
-                      'Reseñar Accesibilidad',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Rating y medallas
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Row(children: [Rating(rating: _rating)]),
+                ),
+                const SizedBox(height: 12),
+
+                // Medallas de accesibilidad
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: AccessibilityMedalsSection(medals: _medals),
+                ),
+                const SizedBox(height: 16),
+
+                // Botón de ruta
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _onGenerateRoute(context),
+                      icon: const Icon(Icons.route, size: 20),
+                      label: const Text('Generar ruta'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColor.primaryNormal,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
-              // Pregunta de feedback
+                // Galería de fotos
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: place_feedback.Feedback(
-                  placeId: widget.placeId,
-                  onLike: () {
-                    // TODO: Implementar lógica de "me gusta"
-                  },
-                  onDislike: () {
-                    // TODO: Implementar lógica de "no me gusta"
-                  },
+                child: SizedBox(
+                  height: 200,
+                  child: _authToken.isEmpty
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColor.primaryNormal,
+                          ),
+                        )
+                      : ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: PhotoGallery(
+                            photoReferences: _photoReferences,
+                            authToken: _authToken,
+                          ),
+                        ),
                 ),
               ),
-              const SizedBox(height: 32),
-            ],
-          ),
-        ],
+                const SizedBox(height: 16),
+
+                // Dirección
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 18,
+                        color: Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          _address,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Botón de reseñar accesibilidad
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        _showReviewModal(
+                          context,
+                          rateChoice: _selectedRateChoice ?? 'DISLIKE',
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColor.primaryNormal,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Reseñar Accesibilidad',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Pregunta de feedback
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: place_feedback.Feedback(
+                    placeId: widget.placeId,
+                    onLike: () {
+                      _confirmAndSubmitRateChoice('LIKE');
+                    },
+                    onDislike: () {
+                      _confirmAndSubmitRateChoice('DISLIKE');
+                    },
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+            if (_isSubmittingRate)
+              const Positioned.fill(
+                child: ColoredBox(
+                  color: Color(0x66000000),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: AppColor.primaryNormal,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
+
+  Future<void> _confirmAndSubmitRateChoice(String rateChoice) async {
+    final isLike = rateChoice == 'LIKE';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(isLike ? 'Confirmar me gusta' : 'Confirmar no me gusta'),
+          content: Text(
+            isLike
+                ? 'Se enviara tu calificacion de me gusta para este lugar. Deseas continuar?'
+                : 'Se enviara tu calificacion de no me gusta para este lugar. Deseas continuar?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Confirmar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _isSubmittingRate = true;
+    });
+
+    final savePlaceRateChoiceUseCase = di.sl<SavePlaceRateChoiceUseCase>();
+    final result = await savePlaceRateChoiceUseCase(
+      SavePlaceRateChoiceParams(
+        placeId: widget.placeId,
+        rateChoice: rateChoice,
+      ),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isSubmittingRate = false;
+    });
+
+    await result.fold(
+      (failure) async {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(failure.message)),
+        );
+      },
+      (_) async {
+        if (!mounted) return;
+        setState(() {
+          _selectedRateChoice = rateChoice;
+        });
+        await _refreshPlaceDetails();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              rateChoice == 'LIKE'
+                  ? 'Se envio tu me gusta correctamente.'
+                  : 'Se envio tu no me gusta correctamente.',
+            ),
+            backgroundColor: AppColor.greenNormal,
+          ),
+        );
+      },
+    );
   }
 
   /// Genera la ruta desde la ubicación del usuario hasta este lugar
@@ -311,14 +432,12 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
     // Si no tenemos ubicación, intentar obtenerla
     // Mostrar indicador de carga
-    if (!mounted) return;
+    if (!context.mounted) return;
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(
-        child: CircularProgressIndicator(
-          color: AppColor.primaryNormal,
-        ),
+        child: CircularProgressIndicator(color: AppColor.primaryNormal),
       ),
     );
 
@@ -333,7 +452,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           )
           .timeout(const Duration(seconds: 15));
 
-      if (!mounted) return;
+      if (!context.mounted) return;
       Navigator.of(context).pop(); // Cerrar diálogo de carga
 
       if (resultState is map_bloc.MapLocationLoaded) {
@@ -353,7 +472,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         );
       }
     } on TimeoutException {
-      if (!mounted) return;
+      if (!context.mounted) return;
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -375,21 +494,68 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       extra: {
         'originLat': userLat,
         'originLng': userLng,
-        'destLat': widget.latitude,
-        'destLng': widget.longitude,
+        'destLat': _latitude,
+        'destLng': _longitude,
         'originName': 'Mi ubicación',
-        'destName': widget.placeName,
+        'destName': _placeName,
       },
     );
   }
 
   /// Abre el modal de reseña de accesibilidad
-  void _showReviewModal(BuildContext context) {
-    showModalBottomSheet(
+  Future<void> _showReviewModal(
+    BuildContext context, {
+    required String rateChoice,
+  }) async {
+    final submitted = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const ReviewContainer(),
+      builder: (context) => ReviewContainer(
+        placeId: widget.placeId,
+        rateChoice: rateChoice,
+      ),
     );
+
+    if (submitted == true) {
+      await _refreshPlaceDetails();
+    }
+  }
+
+  Future<void> _refreshPlaceDetails() async {
+    final bloc = context.read<place_bloc.PlaceBloc>();
+    bloc.add(place_bloc.FetchPlaceDetailsEvent(widget.placeId));
+
+    try {
+      final resultState = await bloc.stream
+          .firstWhere(
+            (state) =>
+                state is place_bloc.PlaceDetailsFetched &&
+                state.placeDetails.placeId == widget.placeId,
+          )
+          .timeout(const Duration(seconds: 12));
+
+      if (!mounted || resultState is! place_bloc.PlaceDetailsFetched) return;
+
+      final details = resultState.placeDetails;
+      setState(() {
+        _placeName = details.name;
+        _address = details.address;
+        _photoReferences = List<String>.from(details.photos);
+        _medals = List<String>.from(details.medals);
+        _rating = details.rating;
+        _latitude = details.latitude;
+        _longitude = details.longitude;
+      });
+    } on TimeoutException {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'La review se envio, pero no se pudo refrescar el detalle del lugar.',
+          ),
+        ),
+      );
+    }
   }
 }

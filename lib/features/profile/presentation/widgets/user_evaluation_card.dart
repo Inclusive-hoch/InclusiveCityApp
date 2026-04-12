@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
-import 'package:inclusive_app/core/constants/accessibility_medals.dart';
+import 'package:inclusive_app/core/utils/accessibility_medals.dart';
 import 'package:inclusive_app/core/constants/api_constants.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/profile/domain/entities/user_evaluation.dart';
@@ -138,16 +138,14 @@ class _UserEvaluationCardState extends State<UserEvaluationCard> {
     return Image.network(
       ApiConstants.placePhoto(widget.photoReference!),
       fit: BoxFit.cover,
-      headers: {
-        'Authorization': 'Bearer $_authToken',
-      },
+      headers: {'Authorization': 'Bearer $_authToken'},
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
         return Center(
           child: CircularProgressIndicator(
             value: loadingProgress.expectedTotalBytes != null
                 ? loadingProgress.cumulativeBytesLoaded /
-                    loadingProgress.expectedTotalBytes!
+                      loadingProgress.expectedTotalBytes!
                 : null,
             color: AppColor.primaryNormal,
             strokeWidth: 2,
@@ -176,10 +174,7 @@ class _UserEvaluationCardState extends State<UserEvaluationCard> {
         const SizedBox(width: 4),
         Text(
           isLiked ? 'Te gusta este lugar' : 'No te gusta este lugar',
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppColor.primaryNormal,
-          ),
+          style: const TextStyle(fontSize: 12, color: AppColor.primaryNormal),
         ),
       ],
     );
@@ -213,11 +208,7 @@ class _UserEvaluationCardState extends State<UserEvaluationCard> {
           shape: BoxShape.circle,
           color: AppColor.primaryLight,
         ),
-        child: Icon(
-          medal.icon,
-          color: AppColor.primaryNormal,
-          size: 26,
-        ),
+        child: Icon(medal.icon, color: AppColor.primaryNormal, size: 26),
       ),
     );
   }

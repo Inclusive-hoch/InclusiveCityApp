@@ -96,127 +96,134 @@ class _LoginFormState extends State<LoginForm> {
 
                     return Form(
                       key: _formKey,
-                      child: Column(
-                        spacing: 40,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SvgPicture.asset(
-                            'assets/logo/title.svg',
-                            width: 200,
-                            height: 200,
-                          ),
-                          Column(
-                            spacing: 20,
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 320),
+                          child: Column(
+                            spacing: 40,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              SizedBox(
-                                width: 300,
-                                child: TextFormField(
-                                  controller: _emailController,
-                                  keyboardType: TextInputType.emailAddress,
-                                  autovalidateMode:
-                                      AutovalidateMode.onUserInteraction,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Correo electrónico',
-                                  ),
-                                  validator: (value) {
-                                    final email = value?.trim() ?? '';
-                                    if (email.isEmpty) {
-                                      return 'Por favor ingresa tu correo electrónico.';
-                                    }
-                                    if (!_emailRegex.hasMatch(email)) {
-                                      return 'Ingresa un correo electrónico válido.';
-                                    }
-                                    return null;
-                                  },
-                                ),
+                              SvgPicture.asset(
+                                'assets/logo/title.svg',
+                                width: 200,
+                                height: 200,
                               ),
-                              SizedBox(
-                                width: 300,
-                                child: TextFormField(
-                                  controller: _passwordController,
-                                  obscureText: true,
-                                  enableSuggestions: false,
-                                  autocorrect: false,
-                                  autovalidateMode:
-                                      AutovalidateMode.onUserInteraction,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Contraseña',
-                                  ),
-                                  validator: (value) {
-                                    final password = value ?? '';
-                                    if (password.isEmpty) {
-                                      return 'Por favor ingresa tu contraseña.';
-                                    }
-                                    if (password.length < 6) {
-                                      return 'La contraseña debe tener al menos 6 caracteres.';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                              if (_authErrorMessage != null)
-                                Container(
-                                  width: 300,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red.shade50,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: Colors.red.shade300,
+                              Column(
+                                spacing: 20,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  TextFormField(
+                                    controller: _emailController,
+                                    keyboardType: TextInputType.emailAddress,
+                                    autovalidateMode:
+                                        AutovalidateMode.onUserInteraction,
+                                    decoration: const InputDecoration(
+                                      border: OutlineInputBorder(),
+                                      labelText: 'Correo electrónico',
                                     ),
+                                    validator: (value) {
+                                      final email = value?.trim() ?? '';
+                                      if (email.isEmpty) {
+                                        return 'Por favor ingresa tu correo electrónico.';
+                                      }
+                                      if (!_emailRegex.hasMatch(email)) {
+                                        return 'Ingresa un correo electrónico válido.';
+                                      }
+                                      return null;
+                                    },
                                   ),
-                                  child: Text(
-                                    _authErrorMessage!,
-                                    style: TextStyle(
-                                      color: Colors.red.shade800,
+                                  TextFormField(
+                                    controller: _passwordController,
+                                    obscureText: true,
+                                    enableSuggestions: false,
+                                    autocorrect: false,
+                                    autovalidateMode:
+                                        AutovalidateMode.onUserInteraction,
+                                    decoration: const InputDecoration(
+                                      border: OutlineInputBorder(),
+                                      labelText: 'Contraseña',
                                     ),
+                                    validator: (value) {
+                                      final password = value ?? '';
+                                      if (password.isEmpty) {
+                                        return 'Por favor ingresa tu contraseña.';
+                                      }
+                                      if (password.length < 6) {
+                                        return 'La contraseña debe tener al menos 6 caracteres.';
+                                      }
+                                      return null;
+                                    },
                                   ),
-                                ),
-                              FilledButton(
-                                onPressed: isLoading ? null : _submitLogin,
-                                style: ButtonStyle(
-                                  elevation: const WidgetStatePropertyAll(2),
-                                  fixedSize: const WidgetStatePropertyAll(
-                                    Size(300, 43),
-                                  ),
-                                  shape: WidgetStatePropertyAll(
-                                    RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  backgroundColor: const WidgetStatePropertyAll(
-                                    AppColor.primaryNormal,
-                                  ),
-                                ),
-                                child: isLoading
-                                    ? const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
+                                  if (_authErrorMessage != null)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 10,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.shade50,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: Colors.red.shade300,
                                         ),
-                                      )
-                                    : const Text('Iniciar sesión'),
-                              ),
-                              InkWell(
-                                onTap: () => {},
-                                child: Text(
-                                  '¿Olvidaste tu contraseña?',
-                                  style: TextStyle(
-                                    color: AppColor.primaryNormal,
-                                    decoration: TextDecoration.underline,
+                                      ),
+                                      child: Text(
+                                        _authErrorMessage!,
+                                        style: TextStyle(
+                                          color: Colors.red.shade800,
+                                        ),
+                                      ),
+                                    ),
+                                  FilledButton(
+                                    onPressed: isLoading ? null : _submitLogin,
+                                    style: ButtonStyle(
+                                      elevation: const WidgetStatePropertyAll(
+                                        2,
+                                      ),
+                                      fixedSize: const WidgetStatePropertyAll(
+                                        Size.fromHeight(43),
+                                      ),
+                                      shape: WidgetStatePropertyAll(
+                                        RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                      backgroundColor:
+                                          const WidgetStatePropertyAll(
+                                            AppColor.primaryNormal,
+                                          ),
+                                    ),
+                                    child: isLoading
+                                        ? const SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : const Text('Iniciar sesión'),
                                   ),
-                                ),
+                                  Center(
+                                    child: InkWell(
+                                      onTap: () => {},
+                                      child: Text(
+                                        '¿Olvidaste tu contraseña?',
+                                        style: TextStyle(
+                                          color: AppColor.primaryNormal,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
+                        ),
                       ),
                     );
                   },

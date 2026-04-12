@@ -196,6 +196,8 @@ class _MapPageState extends State<MapPage> {
                           ..._clusterManager.getClusteredMarkers(),
                         },
                         myLocationEnabled: true,
+                        myLocationButtonEnabled: false,
+                        compassEnabled: false,
                         zoomControlsEnabled: false,
                         onCameraMove: (position) {
                           _currentZoom = position.zoom;

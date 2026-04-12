@@ -27,10 +27,7 @@ class UserEvaluationModel extends UserEvaluation {
     Map<String, dynamic> json,
     String currentUserId,
   ) {
-    final statsData = json['statsData'] as Map<String, dynamic>? ?? {};
-
-    // Obtener los datos del usuario actual desde statsData
-    final userStats = statsData[currentUserId] as Map<String, dynamic>?;
+    final userStats = _extractUserStats(json['statsData'], currentUserId);
 
     // Si no hay statsData (formato de caché), leer directamente del JSON
     final rateChoice = userStats?['rateChoice'] as String? ?? 
@@ -48,6 +45,32 @@ class UserEvaluationModel extends UserEvaluation {
       rateChoice: rateChoice,
       forms: forms,
     );
+  }
+
+  /// Soporta ambos formatos de backend:
+  /// - Map con userId como llave
+  /// - Lista de objetos con userId/rateChoice/forms
+  static Map<String, dynamic>? _extractUserStats(
+    dynamic rawStatsData,
+    String currentUserId,
+  ) {
+    if (rawStatsData is Map<String, dynamic>) {
+      final value = rawStatsData[currentUserId];
+      if (value is Map<String, dynamic>) {
+        return value;
+      }
+      return null;
+    }
+
+    if (rawStatsData is List) {
+      for (final item in rawStatsData) {
+        if (item is Map<String, dynamic> && item['userId'] == currentUserId) {
+          return item;
+        }
+      }
+    }
+
+    return null;
   }
 
   /// Mapea a json

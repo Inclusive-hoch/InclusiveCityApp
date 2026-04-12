@@ -121,18 +121,6 @@ class AccessibilityFormView extends StatelessWidget {
                       );
                     },
                   ),
-                  const SizedBox(height: 12),
-                  CustomFilledButton(
-                    label: 'No aplica',
-                    style: CustomButtonStyle.neutral,
-                    icon: Icons.horizontal_rule,
-                    width: double.infinity,
-                    onPressed: () {
-                      context.read<ReviewBloc>().add(
-                        ReviewQuestionAnswered(currentQuestion.id, false),
-                      );
-                    },
-                  ),
                 ],
               ),
             ),

@@ -89,16 +89,30 @@ extension AccessibilityMedalExtension on AccessibilityMedal {
 
 /// Clase helper para trabajar con medallas de accesibilidad
 class AccessibilityMedalsHelper {
-  /// Lista ordenada de todas las medallas (orden igual al array forms)
+  /// Lista ordenada de medallas según el backend (orden igual al array forms)
   static const List<AccessibilityMedal> orderedMedals = AccessibilityMedal.values;
+
+  /// Lista de medallas visibles en la UI (5 en total, sin duplicar baños)
+  static const List<AccessibilityMedal> visibleMedals = [
+    AccessibilityMedal.atencionPreferencial,
+    AccessibilityMedal.accesibilidad,
+    AccessibilityMedal.banos,
+    AccessibilityMedal.estacionamiento,
+    AccessibilityMedal.facilCirculacion,
+  ];
 
   /// Obtiene las medallas confirmadas basado en el array de forms
   /// Retorna una lista de medallas donde forms[i] == "YES"
   static List<AccessibilityMedal> getConfirmedMedals(List<String> forms) {
     final confirmed = <AccessibilityMedal>[];
     for (var i = 0; i < forms.length && i < orderedMedals.length; i++) {
+      final medal = orderedMedals[i];
+      if (!visibleMedals.contains(medal)) {
+        continue;
+      }
+
       if (forms[i].toUpperCase() == 'YES') {
-        confirmed.add(orderedMedals[i]);
+        confirmed.add(medal);
       }
     }
     return confirmed;
