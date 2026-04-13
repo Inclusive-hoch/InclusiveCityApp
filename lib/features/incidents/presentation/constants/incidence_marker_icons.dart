@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 /// de la presentación.
 const Map<String, IconData> incidenceBackendIcons = {
   // Veredas y superficies
+  'GRITEAS': Icons.foundation,
   'GRIETAS': Icons.foundation,
   'BACHES': Icons.dangerous,
   'DESNIVELES': Icons.signal_cellular_0_bar,
@@ -39,6 +40,7 @@ const IconData defaultIncidenceIcon = Icons.warning_amber;
 /// Mapeo de nombres de incidencia (backend o UI) a etiquetas legibles.
 const Map<String, String> incidenceDisplayNames = {
   // Veredas y superficies
+  'GRITEAS': 'Grietas',
   'GRIETAS': 'Grietas',
   'BACHES': 'Baches',
   'DESNIVELES': 'Desniveles',
