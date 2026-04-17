@@ -4,7 +4,7 @@ import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/spot/domain/entities/spot.dart';
 import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart';
 import 'package:inclusive_app/core/constants/api_constants.dart';
-import 'package:inclusive_app/core/constants/accessibility_medals.dart';
+import 'package:inclusive_app/core/utils/accessibility_medals.dart';
 
 /// Tarjeta que muestra un lugar dentro de una lista personalizada.
 /// 
@@ -230,48 +230,24 @@ class _PlaceListItemCardState extends State<PlaceListItemCard> {
   }
 
   Widget _buildAccessibilityIcon(String medal) {
-    Widget iconWidget;
+    // Resuelve la medalla usando el helper canónico (igual que places/widget/medals.dart)
+    final resolvedMedal = AccessibilityMedalsHelper.fromApiName(medal);
 
-    // Primero, intentar sincronizar con las medallas oficiales del core/review buscando por apiName o displayName
-    AccessibilityMedal? realMedal;
-    final upperMedal = medal.toUpperCase();
-    for (final m in AccessibilityMedalsHelper.orderedMedals) {
-      if (m.apiName.toUpperCase() == upperMedal || m.displayName.toUpperCase() == upperMedal) {
-        realMedal = m;
-        break;
-      }
-    }
+    final Widget iconWidget = resolvedMedal != null
+        ? Icon(resolvedMedal.icon, size: 22, color: Colors.white)
+        : const Icon(Icons.check_circle_outline, size: 22, color: Colors.white);
 
-    if (realMedal != null) {
-      iconWidget = Icon(realMedal.icon, size: 22, color: Colors.white);
-    } else {
-      final key = medal.toLowerCase();
-      if (key == 'wheelchair' || key == 'accesible' || key == 'rampa' || key == 'silla de ruedas') {
-      iconWidget = const Icon(Icons.accessible, size: 22, color: Colors.white);
-    } else if (key == 'parking' || key == 'estacionamiento') {
-      iconWidget = const Icon(Icons.local_parking, size: 22, color: Colors.white);
-    } else if (key == 'elevator' || key == 'ascensor') {
-      iconWidget = const Text(
-        'E',
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-      );
-    } else if (key == 'bathroom' || key == 'baño' || key == 'baño accesible') {
-      iconWidget = const Icon(Icons.wc, size: 22, color: Colors.white);
-    } else if (key == 'braille') {
-      iconWidget = const Icon(Icons.text_fields, size: 22, color: Colors.white);
-      } else {
-        iconWidget = const Icon(Icons.check_circle, size: 22, color: Colors.white);
-      }
-    }
-
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: const Color(0xFF4B7BEC),
-        borderRadius: BorderRadius.circular(10),
+    return Tooltip(
+      message: resolvedMedal?.displayName ?? medal,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: const Color(0xFF4B7BEC),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Center(child: iconWidget),
       ),
-      child: Center(child: iconWidget),
     );
   }
 }
