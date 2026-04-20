@@ -140,14 +140,7 @@ class _PlaceListItemCardState extends State<PlaceListItemCard> {
             if (_medals != null && _medals!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Row(
-                  children: _medals!.take(3).map((medal) {
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: _buildAccessibilityIcon(medal),
-                    );
-                  }).toList(),
-                ),
+                child: _buildMedalsWrap(_medals!),
               ),
 
             const SizedBox(height: 12),
@@ -229,24 +222,41 @@ class _PlaceListItemCardState extends State<PlaceListItemCard> {
     );
   }
 
-  Widget _buildAccessibilityIcon(String medal) {
-    // Resuelve la medalla usando el helper canónico (igual que places/widget/medals.dart)
-    final resolvedMedal = AccessibilityMedalsHelper.fromApiName(medal);
+  /// Construye el Wrap de medallas deduplicadas, igual que [AccessibilityMedalsSection].
+  Widget _buildMedalsWrap(List<String> rawMedals) {
+    // Deduplica por apiName (igual que medals.dart)
+    final seen = <String>{};
+    final unique = <AccessibilityMedal>[];
+    for (final apiName in rawMedals) {
+      final medal = AccessibilityMedalsHelper.fromApiName(apiName);
+      if (medal == null) continue;
+      if (seen.add(medal.apiName)) {
+        unique.add(medal);
+      }
+    }
 
-    final Widget iconWidget = resolvedMedal != null
-        ? Icon(resolvedMedal.icon, size: 22, color: Colors.white)
-        : const Icon(Icons.check_circle_outline, size: 22, color: Colors.white);
+    if (unique.isEmpty) return const SizedBox.shrink();
 
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: unique.map((medal) => _buildMedalChip(medal)).toList(),
+    );
+  }
+
+  /// Chip circular de medalla — mismo estilo que [_MedalChip] en medals.dart
+  /// y [_buildMedalIcon] en user_evaluation_card.dart.
+  Widget _buildMedalChip(AccessibilityMedal medal) {
     return Tooltip(
-      message: resolvedMedal?.displayName ?? medal,
+      message: medal.displayName,
       child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: const Color(0xFF4B7BEC),
-          borderRadius: BorderRadius.circular(10),
+        width: 48,
+        height: 48,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColor.primaryLight,
         ),
-        child: Center(child: iconWidget),
+        child: Icon(medal.icon, color: AppColor.primaryNormal, size: 26),
       ),
     );
   }
