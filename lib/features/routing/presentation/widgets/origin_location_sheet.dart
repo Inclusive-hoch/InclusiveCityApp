@@ -124,9 +124,8 @@ class _OriginSheetContentState extends State<_OriginSheetContent> {
 
   /// Maneja selección desde el historial (placeId sin coords).
   void _onHistoryPlaceSelected(String placeId) {
-    // SelectPlaceEvent ya fue disparado por HistoryList; el BlocListener
-    // interceptará PlaceDetailsLoaded y disparará el callback.
-    _focusNode.unfocus();
+    // SelectPlaceEvent y el unfocus ya son manejados internamente por HistoryList.
+    // El BlocListener interceptará PlaceDetailsLoaded y disparará el callback.
   }
 
   @override
@@ -273,7 +272,6 @@ class _OriginSheetContentState extends State<_OriginSheetContent> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: HistoryList(
                         history: history,
-                        focusNode: _focusNode,
                         onPlaceSelected: _onHistoryPlaceSelected,
                       ),
                     );

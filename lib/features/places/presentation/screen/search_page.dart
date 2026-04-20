@@ -382,8 +382,9 @@ class _SearchPageState extends State<SearchPage> {
                       child: HistoryList(
                         history: _searchHistory,
                         onPlaceSelected: (placeId) {
+                          // HistoryList ya dispara SelectPlaceEvent internamente,
+                          // aquí solo quitamos el foco del teclado.
                           FocusScope.of(context).unfocus();
-                          context.read<PlaceBloc>().add(SelectPlaceEvent(placeId));
                         },
                       ),
                     ),
