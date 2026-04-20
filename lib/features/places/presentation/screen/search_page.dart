@@ -51,12 +51,8 @@ class _SearchPageState extends State<SearchPage> {
   // Historial de búsquedas
   List<PlaceSearchResult> _searchHistory = [];
 
-  // FocusNode para la lista de historial
-  final FocusNode _historyFocusNode = FocusNode();
-
   @override
   void dispose() {
-    _historyFocusNode.dispose();
     super.dispose();
   }
 
@@ -385,7 +381,6 @@ class _SearchPageState extends State<SearchPage> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: HistoryList(
                         history: _searchHistory,
-                        focusNode: _historyFocusNode,
                         onPlaceSelected: (placeId) {
                           FocusScope.of(context).unfocus();
                           context.read<PlaceBloc>().add(SelectPlaceEvent(placeId));
