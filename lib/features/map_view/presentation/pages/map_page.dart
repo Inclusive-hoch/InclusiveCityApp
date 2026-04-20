@@ -26,10 +26,14 @@ class MapPage extends StatefulWidget {
   State<MapPage> createState() => _MapPageState();
 }
 
-class _MapPageState extends State<MapPage> {
+class _MapPageState extends State<MapPage> with WidgetsBindingObserver {
   GoogleMapController? _mapController;
   late final MapPageController _controller;
   final Set<Polyline> _polylines = {};
+
+  /// Controlador del panel de búsqueda para expandirlo programáticamente.
+  final DraggableScrollableController _searchSheetController =
+      DraggableScrollableController();
 
   /// Cluster manager para agrupar markers de incidencias.
   late MarkersClusterManager _clusterManager;
@@ -77,6 +81,7 @@ class _MapPageState extends State<MapPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _controller = MapPageController();
     _clusterManager = _buildClusterManager();
 
@@ -85,9 +90,30 @@ class _MapPageState extends State<MapPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _searchSheetController.dispose();
     _mapController?.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  /// Bug 1 + 7: expande el sheet cuando el teclado aparece para que el
+  /// TextField y los resultados no queden ocultos detrás del teclado.
+  @override
+  void didChangeMetrics() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+      if (bottomInset > 150 &&
+          _searchSheetController.isAttached &&
+          _searchSheetController.size < 0.55) {
+        _searchSheetController.animateTo(
+          0.55,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   @override
@@ -262,9 +288,13 @@ class _MapPageState extends State<MapPage> {
 
             /// SEARCH / BOTTOM SHEET
             DraggableScrollableSheet(
+              controller: _searchSheetController,
               initialChildSize: 0.18,
               minChildSize: 0.18,
               maxChildSize: 0.9,
+              // Bug 2: snap a posiciones definidas para evitar estados intermedios
+              snap: true,
+              snapSizes: const [0.18, 0.55, 0.9],
               builder: (context, scrollController) {
                 return SearchPage(scrollController: scrollController);
               },
