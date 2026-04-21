@@ -155,6 +155,7 @@ class IncidenceDetailSheet extends StatelessWidget {
         latitude: incidence.latitude,
         longitude: incidence.longitude,
         incidence: incidence.incidence,
+        userId: incidence.userId,
         image: incidence.image ?? '',
       ),
     );

@@ -23,6 +23,7 @@ class IncidentReportBloc
         latitude: event.latitude,
         longitude: event.longitude,
         incidence: event.incidence,
+        userId: event.userId,
         image: event.image,
       );
 
@@ -50,6 +51,7 @@ class ReportIncidentRequested extends IncidentReportEvent {
   final double latitude;
   final double longitude;
   final String incidence;
+  final String? userId;
   final String image;
 
   const ReportIncidentRequested({
@@ -57,11 +59,19 @@ class ReportIncidentRequested extends IncidentReportEvent {
     required this.latitude,
     required this.longitude,
     required this.incidence,
+    this.userId,
     this.image = '',
   });
 
   @override
-  List<Object?> get props => [placeId, latitude, longitude, incidence, image];
+  List<Object?> get props => [
+    placeId,
+    latitude,
+    longitude,
+    incidence,
+    userId,
+    image,
+  ];
 }
 
 abstract class IncidentReportState extends Equatable {

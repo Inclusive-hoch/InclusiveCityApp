@@ -363,7 +363,10 @@ class _MapPageState extends State<MapPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => IncidenceDetailSheet(incidences: incidences),
+      builder: (sheetContext) => BlocProvider.value(
+        value: context.read<IncidentReportBloc>(),
+        child: IncidenceDetailSheet(incidences: incidences),
+      ),
     );
   }
 

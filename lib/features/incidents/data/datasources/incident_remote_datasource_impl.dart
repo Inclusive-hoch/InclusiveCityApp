@@ -92,6 +92,7 @@ class IncidentRemoteDataSourceImpl implements IncidentRemoteDataSource {
     required double latitude,
     required double longitude,
     required String incidence,
+    String? userId,
     String image = '',
   }) async {
     final token = await getToken();
@@ -104,18 +105,25 @@ class IncidentRemoteDataSourceImpl implements IncidentRemoteDataSource {
       );
     }
 
+    final body = <String, dynamic>{
+      'placeId': placeId,
+      'location': {
+        'latitude': latitude.toString(),
+        'longitude': longitude.toString(),
+      },
+      'incidence': incidence,
+      'image': resolvedImage,
+    };
+
+    final normalizedUserId = userId?.trim() ?? '';
+    if (normalizedUserId.isNotEmpty) {
+      body['userId'] = normalizedUserId;
+    }
+
     final response = await client.post(
       Uri.parse(ApiConstants.insertIncidence),
       headers: {...ApiConstants.authHeaders(token)},
-      body: json.encode({
-        'placeId': placeId,
-        'location': {
-          'latitude': latitude.toString(),
-          'longitude': longitude.toString(),
-        },
-        'incidence': incidence,
-        'image': resolvedImage,
-      }),
+      body: json.encode(body),
     );
 
     if (response.statusCode != 200 && response.statusCode != 201) {

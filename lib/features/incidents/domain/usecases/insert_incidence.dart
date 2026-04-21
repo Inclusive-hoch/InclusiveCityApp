@@ -10,6 +10,7 @@ class InsertIncidence {
     required double latitude,
     required double longitude,
     required String incidence,
+    String? userId,
     String image = '',
   }) {
     final backendIncidence = _toBackendIncidenceName(incidence);
@@ -22,6 +23,7 @@ class InsertIncidence {
       latitude: latitude,
       longitude: longitude,
       incidence: backendIncidence,
+      userId: userId,
       image: image,
     );
   }
