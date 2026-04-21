@@ -52,8 +52,8 @@ class _MapPageState extends State<MapPage> {
   bool _showingIncidences = false;
 
   static const CameraPosition _defaultPosition = CameraPosition(
-    target: LatLng(0, 0),
-    zoom: 2,
+    target: LatLng(-38.74070211734774, -72.60299648535563),
+    zoom: 8,
   );
 
   /// Crea una nueva instancia del cluster manager con la configuración estándar.
