@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/spot/domain/entities/spot.dart';
-import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart';
+import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:inclusive_app/core/constants/api_constants.dart';
+import 'package:inclusive_app/core/utils/accessibility_medals.dart';
 
 /// Tarjeta que muestra un lugar dentro de una lista personalizada.
 /// 
@@ -42,24 +43,24 @@ class _PlaceListItemCardState extends State<PlaceListItemCard> {
   }
 
   void _loadPlaceDetails() {
-    context.read<PlaceBloc>().add(FetchPlaceDetailsEvent(widget.spot.placeId));
+    context.read<SpotBloc>().add(FetchSpotPlaceDetailsEvent(widget.spot.placeId));
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<PlaceBloc, PlacesState>(
+    return BlocListener<SpotBloc, SpotState>(
       listener: (context, state) {
-        if (state is PlaceDetailsFetched && state.placeDetails.placeId == widget.spot.placeId) {
+        if (state is SpotPlaceDetailsFetched && state.placeId == widget.spot.placeId) {
           setState(() {
-            _rating = state.placeDetails.rating;
-            _medals = state.placeDetails.medals;
-            _photoReferences = state.placeDetails.photos;
-            if (state.placeDetails.photos.isNotEmpty) {
-              _photoUrl = ApiConstants.placePhoto(state.placeDetails.photos.first);
+            _rating = state.details.rating;
+            _medals = state.details.medals;
+            _photoReferences = state.details.photos;
+            if (state.details.photos.isNotEmpty) {
+              _photoUrl = ApiConstants.placePhoto(state.details.photos.first);
             }
             _isLoading = false;
           });
-        } else if (state is PlacesError) {
+        } else if (state is SpotPlaceDetailsFailed && state.placeId == widget.spot.placeId) {
           setState(() {
             _isLoading = false;
           });
@@ -139,14 +140,7 @@ class _PlaceListItemCardState extends State<PlaceListItemCard> {
             if (_medals != null && _medals!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Row(
-                  children: _medals!.take(3).map((medal) {
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: _buildAccessibilityIcon(medal),
-                    );
-                  }).toList(),
-                ),
+                child: _buildMedalsWrap(_medals!),
               ),
 
             const SizedBox(height: 12),
@@ -228,35 +222,42 @@ class _PlaceListItemCardState extends State<PlaceListItemCard> {
     );
   }
 
-  Widget _buildAccessibilityIcon(String medal) {
-    final key = medal.toLowerCase();
-    Widget iconWidget;
-
-    if (key == 'wheelchair' || key == 'accesible' || key == 'rampa' || key == 'silla de ruedas') {
-      iconWidget = const Icon(Icons.accessible, size: 22, color: Colors.white);
-    } else if (key == 'parking' || key == 'estacionamiento') {
-      iconWidget = const Icon(Icons.local_parking, size: 22, color: Colors.white);
-    } else if (key == 'elevator' || key == 'ascensor') {
-      iconWidget = const Text(
-        'E',
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-      );
-    } else if (key == 'bathroom' || key == 'baño' || key == 'baño accesible') {
-      iconWidget = const Icon(Icons.wc, size: 22, color: Colors.white);
-    } else if (key == 'braille') {
-      iconWidget = const Icon(Icons.text_fields, size: 22, color: Colors.white);
-    } else {
-      iconWidget = const Icon(Icons.check_circle, size: 22, color: Colors.white);
+  /// Construye el Wrap de medallas deduplicadas, igual que [AccessibilityMedalsSection].
+  Widget _buildMedalsWrap(List<String> rawMedals) {
+    // Deduplica por apiName (igual que medals.dart)
+    final seen = <String>{};
+    final unique = <AccessibilityMedal>[];
+    for (final apiName in rawMedals) {
+      final medal = AccessibilityMedalsHelper.fromApiName(apiName);
+      if (medal == null) continue;
+      if (seen.add(medal.apiName)) {
+        unique.add(medal);
+      }
     }
 
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: const Color(0xFF4B7BEC),
-        borderRadius: BorderRadius.circular(10),
+    if (unique.isEmpty) return const SizedBox.shrink();
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: unique.map((medal) => _buildMedalChip(medal)).toList(),
+    );
+  }
+
+  /// Chip circular de medalla — mismo estilo que [_MedalChip] en medals.dart
+  /// y [_buildMedalIcon] en user_evaluation_card.dart.
+  Widget _buildMedalChip(AccessibilityMedal medal) {
+    return Tooltip(
+      message: medal.displayName,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColor.primaryLight,
+        ),
+        child: Icon(medal.icon, color: AppColor.primaryNormal, size: 26),
       ),
-      child: Center(child: iconWidget),
     );
   }
 }

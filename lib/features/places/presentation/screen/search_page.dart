@@ -51,12 +51,8 @@ class _SearchPageState extends State<SearchPage> {
   // Historial de búsquedas
   List<PlaceSearchResult> _searchHistory = [];
 
-  // FocusNode para la lista de historial
-  final FocusNode _historyFocusNode = FocusNode();
-
   @override
   void dispose() {
-    _historyFocusNode.dispose();
     super.dispose();
   }
 
@@ -326,7 +322,10 @@ class _SearchPageState extends State<SearchPage> {
         ),
         child: ListView(
           controller: widget.scrollController,
-          padding: EdgeInsets.zero,
+          physics: const ClampingScrollPhysics(), // Evita el scroll infinito rebotando, priorizando el drag del panel
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.paddingOf(context).bottom + 20, // Respeta el espacio de los botones de navegación
+          ),
           children: [
             const Center(child: Grabber()),
 
@@ -372,6 +371,7 @@ class _SearchPageState extends State<SearchPage> {
                   state is PlacesEmpty ||
                   state is PlaceDetailsLoaded ||
                   state is PlaceDetailsLoading ||
+                  state is PlaceDetailsFetched ||
                   (state is PlacesLoaded && state.suggestions.isEmpty)) {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,10 +381,10 @@ class _SearchPageState extends State<SearchPage> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: HistoryList(
                         history: _searchHistory,
-                        focusNode: _historyFocusNode,
                         onPlaceSelected: (placeId) {
+                          // HistoryList ya dispara SelectPlaceEvent internamente,
+                          // aquí solo quitamos el foco del teclado.
                           FocusScope.of(context).unfocus();
-                          context.read<PlaceBloc>().add(SelectPlaceEvent(placeId));
                         },
                       ),
                     ),

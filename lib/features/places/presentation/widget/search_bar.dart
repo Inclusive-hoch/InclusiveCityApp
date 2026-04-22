@@ -60,53 +60,66 @@ class _SearchBar extends State<SearchBar> {
   /// Emite eventos al BLoC según el texto ingresado.
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: TextField(
-        controller: _searchController,
-        focusNode: _focusNode,
-        decoration: InputDecoration(
-          hintText: "¿Adónde vas?",
-          hintStyle: const TextStyle(color: AppColor.neutralDarkNormal),
-          filled: true,
-          fillColor: AppColor.neutralLight,
-          prefixIcon: const Icon(Icons.search, color: AppColor.primaryNormal),
-          suffixIcon: IconButton(
-            icon: Icon(
-              _speechHelper.isListening ? Icons.mic : Icons.mic_none,
-              color: _speechHelper.isListening ? AppColor.error : AppColor.primaryNormal,
+    // Bug 6: limpia el TextField cuando el usuario navega al detalle de un lugar
+    return BlocListener<PlaceBloc, PlacesState>(
+      listener: (context, state) {
+        if (state is PlaceDetailsLoaded) {
+          _searchController.clear();
+          context.read<PlaceBloc>().add(LoadSearchHistoryEvent());
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: TextField(
+          controller: _searchController,
+          focusNode: _focusNode,
+          decoration: InputDecoration(
+            hintText: "¿Adónde vas?",
+            hintStyle: const TextStyle(color: AppColor.neutralDarkNormal),
+            filled: true,
+            fillColor: AppColor.neutralLight,
+            prefixIcon: const Icon(Icons.search, color: AppColor.primaryNormal),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _speechHelper.isListening ? Icons.mic : Icons.mic_none,
+                color: _speechHelper.isListening ? AppColor.error : AppColor.primaryNormal,
+              ),
+              onPressed: () {
+                if (!_speechHelper.isAvailable) {
+                  log('Reconocimiento de voz no disponible');
+                  return;
+                }
+
+                if (_speechHelper.isListening) {
+                  _speechHelper.stop();
+                } else {
+                  _speechHelper.listen(
+                    onResult: (text) {
+                      _searchController.text = text;
+                      // Bug 4: también disparar la búsqueda al reconocer voz
+                      if (text.isNotEmpty) {
+                        context.read<PlaceBloc>().add(SearchPlacesEvent(text));
+                      }
+                    },
+                  );
+                }
+                setState(() {});
+              },
             ),
-            onPressed: () {
-              if (!_speechHelper.isAvailable) {
-                log('Reconocimiento de voz no disponible');
-                return;
-              }
-              
-              if (_speechHelper.isListening) {
-                _speechHelper.stop();
-              } else {
-                _speechHelper.listen(
-                  onResult: (text) {
-                    _searchController.text = text;
-                  },
-                );
-              }
-              setState(() {});
-            },
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(vertical: 16),
           ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+          onChanged: (query) {
+            if (query.isEmpty) {
+              context.read<PlaceBloc>().add(LoadSearchHistoryEvent());
+            } else {
+              context.read<PlaceBloc>().add(SearchPlacesEvent(query));
+            }
+          },
         ),
-        onChanged: (query) {
-          if (query.isEmpty) {
-            context.read<PlaceBloc>().add(LoadSearchHistoryEvent());
-          } else {
-            context.read<PlaceBloc>().add(SearchPlacesEvent(query));
-          }
-        },
       ),
     );
   }

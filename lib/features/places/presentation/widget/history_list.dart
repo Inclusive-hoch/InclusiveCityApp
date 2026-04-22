@@ -17,18 +17,14 @@ import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart'
 class HistoryList extends StatelessWidget {
   /// Lista de lugares buscados recientemente.
   final List<PlaceSearchResult> history;
-  
+
   /// Callback ejecutado cuando se selecciona un lugar del historial.
   final Function(String placeId) onPlaceSelected;
-  
-  /// Nodo de foco del campo de búsqueda para remover el foco al seleccionar.
-  final FocusNode focusNode;
 
   const HistoryList({
     super.key,
     required this.history,
     required this.onPlaceSelected,
-    required this.focusNode,
   });
 
   @override
@@ -91,12 +87,13 @@ class HistoryList extends StatelessWidget {
   ///
   /// Ejecuta las siguientes acciones:
   /// 1. Dispara [SelectPlaceEvent] al BLoC de lugares
-  /// 2. Quita el foco del campo de búsqueda
+  /// 2. Quita el foco del teclado (cierra el teclado si está abierto)
   /// 3. Notifica al widget padre mediante el callback [onPlaceSelected]
   void _handlePlaceSelection(BuildContext context, String placeId) {
     context.read<PlaceBloc>().add(SelectPlaceEvent(placeId));
-    focusNode.unfocus();
-    onPlaceSelected(placeId); // ✅ Notifica al padre, él decide qué hacer
+    // Bug 5: usar FocusScope para cerrar correctamente cualquier teclado activo
+    FocusScope.of(context).unfocus();
+    onPlaceSelected(placeId);
   }
 
   /// Construye un [ListTile] personalizado para mostrar un elemento del historial.

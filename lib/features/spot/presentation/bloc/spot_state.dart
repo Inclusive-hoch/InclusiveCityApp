@@ -96,3 +96,29 @@ class SpotDeletedFromList extends SpotState {
   @override
   List<Object?> get props => [deletedCount];
 }
+
+/// Estado cuando se obtuvieron los detalles de Places para un spot.
+/// Incluye [placeId] para que cada tarjeta filtre su propia respuesta
+/// y no colisione con las respuestas de otras tarjetas en la lista.
+class SpotPlaceDetailsFetched extends SpotState {
+  final String placeId;
+  final PlaceDetails details;
+
+  const SpotPlaceDetailsFetched({
+    required this.placeId,
+    required this.details,
+  });
+
+  @override
+  List<Object?> get props => [placeId, details];
+}
+
+/// Estado cuando falló la carga de detalles de Places para un spot.
+class SpotPlaceDetailsFailed extends SpotState {
+  final String placeId;
+
+  const SpotPlaceDetailsFailed({required this.placeId});
+
+  @override
+  List<Object?> get props => [placeId];
+}
