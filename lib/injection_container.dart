@@ -293,6 +293,7 @@ Future<void> init() async {
       addSpotToList: sl(),
       deleteCustomSpotList: sl(),
       deleteSpotFromList: sl(),
+      getPlaceDetailsUseCase: sl(),
     ),
   );
 }
