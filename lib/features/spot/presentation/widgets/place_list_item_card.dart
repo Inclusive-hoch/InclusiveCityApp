@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/spot/domain/entities/spot.dart';
-import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart';
+import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:inclusive_app/core/constants/api_constants.dart';
 import 'package:inclusive_app/core/utils/accessibility_medals.dart';
 
@@ -43,24 +43,24 @@ class _PlaceListItemCardState extends State<PlaceListItemCard> {
   }
 
   void _loadPlaceDetails() {
-    context.read<PlaceBloc>().add(FetchPlaceDetailsEvent(widget.spot.placeId));
+    context.read<SpotBloc>().add(FetchSpotPlaceDetailsEvent(widget.spot.placeId));
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<PlaceBloc, PlacesState>(
+    return BlocListener<SpotBloc, SpotState>(
       listener: (context, state) {
-        if (state is PlaceDetailsFetched && state.placeDetails.placeId == widget.spot.placeId) {
+        if (state is SpotPlaceDetailsFetched && state.placeId == widget.spot.placeId) {
           setState(() {
-            _rating = state.placeDetails.rating;
-            _medals = state.placeDetails.medals;
-            _photoReferences = state.placeDetails.photos;
-            if (state.placeDetails.photos.isNotEmpty) {
-              _photoUrl = ApiConstants.placePhoto(state.placeDetails.photos.first);
+            _rating = state.details.rating;
+            _medals = state.details.medals;
+            _photoReferences = state.details.photos;
+            if (state.details.photos.isNotEmpty) {
+              _photoUrl = ApiConstants.placePhoto(state.details.photos.first);
             }
             _isLoading = false;
           });
-        } else if (state is PlacesError) {
+        } else if (state is SpotPlaceDetailsFailed && state.placeId == widget.spot.placeId) {
           setState(() {
             _isLoading = false;
           });
