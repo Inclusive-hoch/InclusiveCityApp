@@ -96,3 +96,14 @@ class DeleteSpotFromListEvent extends SpotEvent {
   @override
   List<Object?> get props => [listName, latitude, longitude];
 }
+
+/// Evento para obtener los detalles de Google Places de un spot
+/// (foto, rating, medallas) sin interferir con el PlaceBloc global.
+class FetchSpotPlaceDetailsEvent extends SpotEvent {
+  final String placeId;
+
+  const FetchSpotPlaceDetailsEvent(this.placeId);
+
+  @override
+  List<Object?> get props => [placeId];
+}
