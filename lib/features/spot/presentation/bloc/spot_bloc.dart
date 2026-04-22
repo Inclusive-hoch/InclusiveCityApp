@@ -2,6 +2,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inclusive_app/core/errors/exceptions.dart';
+import 'package:inclusive_app/features/places/domain/entities/place_details.dart';
+import 'package:inclusive_app/features/places/domain/usecases/get_place_detail.dart';
 import 'package:inclusive_app/features/spot/domain/entities/custom_spot.dart';
 import 'package:inclusive_app/features/spot/domain/entities/spot.dart';
 import 'package:inclusive_app/features/spot/domain/usecases/add_spot_to_list.dart';
@@ -30,6 +32,10 @@ class SpotBloc extends Bloc<SpotEvent, SpotState> {
   final DeleteCustomSpotList deleteCustomSpotList;
   final DeleteSpotFromList deleteSpotFromList;
 
+  /// Caso de uso para obtener detalles de un lugar de Google Places.
+  /// Usado exclusivamente por [PlaceListItemCard] para cargar foto, rating y medallas.
+  final GetPlaceDetails getPlaceDetailsUseCase;
+
   SpotBloc({
     required this.saveSpot,
     required this.getUserSpots,
@@ -39,6 +45,7 @@ class SpotBloc extends Bloc<SpotEvent, SpotState> {
     required this.addSpotToList,
     required this.deleteCustomSpotList,
     required this.deleteSpotFromList,
+    required this.getPlaceDetailsUseCase,
   }) : super(SpotInitial()) {
     on<CreateSpotEvent>(_onCreateSpot);
     on<LoadUserSpotsEvent>(_onLoadUserSpots);
@@ -48,6 +55,7 @@ class SpotBloc extends Bloc<SpotEvent, SpotState> {
     on<AddSpotToListEvent>(_onAddSpotToList);
     on<DeleteCustomSpotListEvent>(_onDeleteCustomSpotList);
     on<DeleteSpotFromListEvent>(_onDeleteSpotFromList);
+    on<FetchSpotPlaceDetailsEvent>(_onFetchSpotPlaceDetails);
   }
 
   /// Maneja la creación de un nuevo spot.
@@ -236,6 +244,23 @@ class SpotBloc extends Bloc<SpotEvent, SpotState> {
     } catch (e) {
       debugPrint('❌ [SpotBloc] Error inesperado al eliminar: $e');
       emit(SpotError(message: 'Error al eliminar: ${e.toString()}'));
+    }
+  }
+
+  /// Obtiene los detalles de Google Places (foto, rating, medallas) para
+  /// un spot específico. Emite [SpotPlaceDetailsFetched] con el [placeId]
+  /// incluido para que cada [PlaceListItemCard] filtre su propia respuesta.
+  /// No emite [SpotLoading] para no interrumpir otras operaciones en curso.
+  Future<void> _onFetchSpotPlaceDetails(
+    FetchSpotPlaceDetailsEvent event,
+    Emitter<SpotState> emit,
+  ) async {
+    try {
+      final details = await getPlaceDetailsUseCase(event.placeId);
+      emit(SpotPlaceDetailsFetched(placeId: event.placeId, details: details));
+    } catch (e) {
+      debugPrint('❌ [SpotBloc] Error al obtener detalles del lugar ${event.placeId}: $e');
+      emit(SpotPlaceDetailsFailed(placeId: event.placeId));
     }
   }
 }
