@@ -16,6 +16,7 @@ import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart'
   as place_bloc;
 import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
 import 'package:inclusive_app/injection_container.dart' as di;
+import 'package:inclusive_app/features/profile/domain/usecases/get_user_evaluations.dart';
 import 'package:inclusive_app/features/reviews/domain/usecases/save_place_rate_choice_usecase.dart';
 import 'package:inclusive_app/features/reviews/presentation/views/review_container.dart';
 import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
@@ -90,6 +91,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     _latitude = widget.latitude;
     _longitude = widget.longitude;
     _loadAuthToken();
+    _loadInitialUserRateChoice();
   }
 
   /// Carga el token de autenticación para las fotos.
@@ -99,6 +101,38 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       setState(() {
         _authToken = token;
       });
+    }
+  }
+
+  Future<void> _loadInitialUserRateChoice() async {
+    final userId = di.sl<FirebaseAuthService>().getCurrentUserId();
+    if (userId == null || userId.isEmpty) {
+      return;
+    }
+
+    try {
+      final getUserEvaluations = di.sl<GetUserEvaluations>();
+      final evaluations = await getUserEvaluations(userId, forceRefresh: true);
+
+      String? normalizedRateChoice;
+      for (final evaluation in evaluations) {
+        if (evaluation.placeId == widget.placeId) {
+          normalizedRateChoice = evaluation.rateChoice.toUpperCase();
+          break;
+        }
+      }
+
+      if (!mounted || normalizedRateChoice == null) {
+        return;
+      }
+
+      if (normalizedRateChoice == 'LIKE' || normalizedRateChoice == 'DISLIKE') {
+        setState(() {
+          _selectedRateChoice = normalizedRateChoice;
+        });
+      }
+    } catch (_) {
+      // Si falla la carga, el usuario igual puede votar manualmente.
     }
   }
 
@@ -311,6 +345,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: place_feedback.Feedback(
                     placeId: widget.placeId,
+                    selectedRateChoice: _selectedRateChoice,
                     onLike: () {
                       _confirmAndSubmitRateChoice('LIKE');
                     },
