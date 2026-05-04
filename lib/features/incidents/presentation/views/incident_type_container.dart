@@ -76,12 +76,10 @@ class _IncidentTypeContainerState extends State<IncidentTypeContainer> {
                               color: AppColor.primaryNormalActive,
                             ),
                             onPressed: () {
+                              context
+                                  .read<IncidentTypeBloc>()
+                                  .add(IncidentTypeReset());
                               Navigator.of(context).pop();
-                              Future.microtask(() {
-                                context.read<IncidentTypeBloc>().add(
-                                  IncidentTypeReset(),
-                                );
-                              });
                             },
                           );
                         },
@@ -192,10 +190,8 @@ class _IncidentTypeContainerState extends State<IncidentTypeContainer> {
                   label: 'Atrás',
                   style: CustomButtonStyle.secondary,
                   onPressed: () {
+                    context.read<IncidentTypeBloc>().add(IncidentTypeReset());
                     Navigator.of(context).pop();
-                    Future.microtask(() {
-                      context.read<IncidentTypeBloc>().add(IncidentTypeReset());
-                    });
                   },
                 ),
               ),
