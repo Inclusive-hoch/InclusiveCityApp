@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
 import 'package:inclusive_app/core/utils/accessibility_medals.dart';
-import 'package:inclusive_app/core/constants/api_constants.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
+import 'package:inclusive_app/core/utils/place_photo_url_builder.dart';
 import 'package:inclusive_app/features/profile/domain/entities/user_evaluation.dart';
-import 'package:inclusive_app/injection_container.dart' as di;
 
 /// Widget que muestra una tarjeta de evaluación del usuario
-class UserEvaluationCard extends StatefulWidget {
+class UserEvaluationCard extends StatelessWidget {
   final UserEvaluation evaluation;
   final String? placeName;
   final String? placeType;
   final String? photoReference;
+  final String authToken;
   final VoidCallback? onTap;
 
   const UserEvaluationCard({
@@ -20,41 +19,19 @@ class UserEvaluationCard extends StatefulWidget {
     this.placeName,
     this.placeType,
     this.photoReference,
+    required this.authToken,
     this.onTap,
   });
-
-  @override
-  State<UserEvaluationCard> createState() => _UserEvaluationCardState();
-}
-
-class _UserEvaluationCardState extends State<UserEvaluationCard> {
-  String _authToken = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadAuthToken();
-  }
-
-  /// Carga el token de autenticación para las fotos.
-  Future<void> _loadAuthToken() async {
-    final token = await di.sl<FirebaseAuthService>().getIdToken();
-    if (mounted) {
-      setState(() {
-        _authToken = token;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     // Obtener las medallas confirmadas basado en forms
     final confirmedMedals = AccessibilityMedalsHelper.getConfirmedMedals(
-      widget.evaluation.forms,
+      evaluation.forms,
     );
 
     return InkWell(
-      onTap: widget.onTap,
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
@@ -79,7 +56,7 @@ class _UserEvaluationCardState extends State<UserEvaluationCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.placeName ?? 'Lugar desconocido',
+                        placeName ?? 'Lugar desconocido',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -90,7 +67,7 @@ class _UserEvaluationCardState extends State<UserEvaluationCard> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        widget.placeType ?? 'Tipo no especificado',
+                        placeType ?? 'Tipo no especificado',
                         style: const TextStyle(
                           fontSize: 14,
                           color: AppColor.neutralDark,
@@ -116,7 +93,7 @@ class _UserEvaluationCardState extends State<UserEvaluationCard> {
   /// Construye la imagen del lugar con autenticación
   Widget _buildPlaceImage() {
     // Si no hay token aún, mostrar loading
-    if (_authToken.isEmpty) {
+    if (authToken.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(
           color: AppColor.primaryNormal,
@@ -126,7 +103,7 @@ class _UserEvaluationCardState extends State<UserEvaluationCard> {
     }
 
     // Si no hay foto, mostrar icono de lugar
-    if (widget.photoReference == null || widget.photoReference!.isEmpty) {
+    if (photoReference == null || photoReference!.isEmpty) {
       return const Icon(
         Icons.place,
         color: AppColor.neutralDarkHover,
@@ -135,10 +112,11 @@ class _UserEvaluationCardState extends State<UserEvaluationCard> {
     }
 
     // Cargar imagen con autenticación
+    final photoUrl = const PlacePhotoUrlBuilder().build(photoReference!);
     return Image.network(
-      ApiConstants.placePhoto(widget.photoReference!),
+      photoUrl,
       fit: BoxFit.cover,
-      headers: {'Authorization': 'Bearer $_authToken'},
+      headers: {'Authorization': 'Bearer $authToken'},
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
         return Center(
@@ -163,7 +141,7 @@ class _UserEvaluationCardState extends State<UserEvaluationCard> {
   }
 
   Widget _buildRateIndicator() {
-    final isLiked = widget.evaluation.rateChoice.toUpperCase() == 'LIKE';
+    final isLiked = evaluation.rateChoice.toUpperCase() == 'LIKE';
     return Row(
       children: [
         Icon(

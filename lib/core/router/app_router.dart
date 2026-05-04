@@ -37,28 +37,28 @@ GoRouter createRouter(AuthBloc authBloc) {
       return null;
     },
     routes: [
-      GoRoute(path: '/login', builder: (_, __) => const AuthPage()),
-      GoRoute(path: '/login_form', builder: (_, __) => const LoginForm()),
-      GoRoute(path: '/register_form', builder: (_, __) => const RegisterForm()),
+      GoRoute(path: '/login', builder: (context, state) => const AuthPage()),
+      GoRoute(path: '/login_form', builder: (context, state) => const LoginForm()),
+      GoRoute(path: '/register_form', builder: (context, state) => const RegisterForm()),
       GoRoute(
         path: '/map',
-        builder: (_, __) => BlocProvider(
+        builder: (context, state) => BlocProvider(
           create: (_) => di.sl<IncidentReportBloc>(),
           child: const MapPage(),
         ),
       ),
-      GoRoute(path: '/profile', builder: (_, __) => const ProfilePage()),
+      GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
       GoRoute(
         path: '/profile/details',
-        builder: (_, __) => const ProfileDetailsPage(),
+        builder: (context, state) => const ProfileDetailsPage(),
       ),
       GoRoute(
         path: '/profile/evaluations',
-        builder: (_, __) => const EvaluatedPlacesPage(),
+        builder: (context, state) => const EvaluatedPlacesPage(),
       ),
       GoRoute(
         path: '/route-selection',
-        builder: (_, state) {
+        builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>;
           return RouteSelectionPage(
             originLat: extra['originLat'] as double,
@@ -72,11 +72,11 @@ GoRouter createRouter(AuthBloc authBloc) {
       ),
       GoRoute(
         path: '/custom-spots-lists',
-        builder: (_, __) => const CustomSpotsListsPage(),
+        builder: (context, state) => const CustomSpotsListsPage(),
       ),
       GoRoute(
         path: '/list-detail',
-        builder: (_, state) {
+        builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>;
           return ListDetailPage(
             listName: extra['listName'] as String,

@@ -10,7 +10,6 @@ import 'package:inclusive_app/features/places/presentation/widget/search_result_
 import 'package:inclusive_app/features/spot/domain/entities/spot.dart';
 import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
 import 'package:inclusive_app/features/spot/presentation/widgets/spot_quick_access_bar.dart';
-import 'package:inclusive_app/injection_container.dart' as di;
 import 'package:inclusive_app/shared/widgets/grabber.dart';
 
 /// Modal bottom sheet para seleccionar la ubicación de origen de una ruta.
@@ -27,19 +26,18 @@ class OriginLocationSheet {
     required void Function(String name, double lat, double lng) onOriginSelected,
     String title = 'Seleccionar origen',
   }) {
+    final placeBloc = context.read<PlaceBloc>();
+    final spotBloc = context.read<SpotBloc>();
+    placeBloc.add(LoadSearchHistoryEvent());
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) => MultiBlocProvider(
         providers: [
-          BlocProvider<PlaceBloc>(
-            create: (_) => di.sl<PlaceBloc>()
-              ..add(LoadSearchHistoryEvent()),
-          ),
-          BlocProvider<SpotBloc>(
-            create: (_) => di.sl<SpotBloc>(),
-          ),
+          BlocProvider<PlaceBloc>.value(value: placeBloc),
+          BlocProvider<SpotBloc>.value(value: spotBloc),
         ],
         child: DraggableScrollableSheet(
           initialChildSize: 0.75,

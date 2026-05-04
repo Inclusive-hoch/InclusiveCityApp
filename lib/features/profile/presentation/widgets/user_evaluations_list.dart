@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
+import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:inclusive_app/features/auth/presentation/bloc/auth_state.dart';
 import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart';
@@ -19,9 +20,12 @@ class UserEvaluationsList extends StatefulWidget {
 }
 
 class _UserEvaluationsListState extends State<UserEvaluationsList> {
+  String _authToken = '';
+
   @override
   void initState() {
     super.initState();
+    _loadAuthToken();
     // Obtener el userId del AuthBloc y cargar las evaluaciones
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated) {
@@ -29,6 +33,14 @@ class _UserEvaluationsListState extends State<UserEvaluationsList> {
         RefreshUserEvaluations(userId: authState.user.uid),
       );
     }
+  }
+
+  Future<void> _loadAuthToken() async {
+    final token = await context.read<FirebaseAuthService>().getIdToken();
+    if (!mounted) return;
+    setState(() {
+      _authToken = token;
+    });
   }
 
   /// Navega al mapa y muestra los detalles del lugar
@@ -141,6 +153,7 @@ class _UserEvaluationsListState extends State<UserEvaluationsList> {
                     photoReference: placeDetails?.photos.isNotEmpty == true
                         ? placeDetails!.photos.first
                         : null,
+                    authToken: _authToken,
                     onTap: () => _navigateToPlaceDetails(context, evaluation.placeId),
                   );
                 },

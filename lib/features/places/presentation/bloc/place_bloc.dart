@@ -9,7 +9,6 @@ import 'package:inclusive_app/features/places/domain/usecases/get_search_history
 import 'package:inclusive_app/features/places/domain/usecases/save_place_to_history.dart';
 import 'package:inclusive_app/features/places/domain/usecases/search_places.dart';
 import 'package:inclusive_app/features/places/domain/entities/place_details.dart';
-import 'package:inclusive_app/features/places/data/models/place_search_result_model.dart';
 import 'package:inclusive_app/features/places/domain/entities/place_search_result.dart';
 
 part 'place_event.dart';
@@ -108,9 +107,12 @@ class PlaceBloc extends Bloc<PlacesEvent, PlacesState> {
     Emitter<PlacesState> emit,
   ) async {
     if (state is PlacesLoaded) {
-      final suggestion = (state as PlacesLoaded).suggestions.firstWhere(
+      final suggestions = List<PlaceSearchResult>.from(
+        (state as PlacesLoaded).suggestions,
+      );
+      final suggestion = suggestions.firstWhere(
         (s) => s.placeId == event.placeId,
-        orElse: () => PlaceSearchResultModel(placeId: event.placeId, description: ''),
+        orElse: () => PlaceSearchResult(placeId: event.placeId, description: ''),
       );
 
       add(SaveToHistoryEvent(suggestion));

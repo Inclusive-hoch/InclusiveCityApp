@@ -15,7 +15,6 @@ import 'package:inclusive_app/features/map_view/presentation/bloc/map_bloc.dart'
 import 'package:inclusive_app/features/places/presentation/bloc/place_bloc.dart'
   as place_bloc;
 import 'package:inclusive_app/core/auth/firebase_auth_service.dart';
-import 'package:inclusive_app/injection_container.dart' as di;
 import 'package:inclusive_app/features/reviews/domain/usecases/save_place_rate_choice_usecase.dart';
 import 'package:inclusive_app/features/reviews/presentation/views/review_container.dart';
 import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
@@ -94,7 +93,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   /// Carga el token de autenticación para las fotos.
   Future<void> _loadAuthToken() async {
-    final token = await di.sl<FirebaseAuthService>().getIdToken();
+    final token = await context.read<FirebaseAuthService>().getIdToken();
     if (mounted) {
       setState(() {
         _authToken = token;
@@ -374,7 +373,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       _isSubmittingRate = true;
     });
 
-    final savePlaceRateChoiceUseCase = di.sl<SavePlaceRateChoiceUseCase>();
+    final savePlaceRateChoiceUseCase =
+      context.read<SavePlaceRateChoiceUseCase>();
     final result = await savePlaceRateChoiceUseCase(
       SavePlaceRateChoiceParams(
         placeId: widget.placeId,
