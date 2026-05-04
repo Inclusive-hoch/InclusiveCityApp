@@ -212,7 +212,7 @@ Compartido desde Inclusive City App 🌍''';
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: listStyle['color'].withOpacity(0.1),
+                    color: listStyle['color'].withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -358,7 +358,7 @@ Compartido desde Inclusive City App 🌍''';
             Icon(
               listStyle['icon'],
               size: 100,
-              color: listStyle['color'].withOpacity(0.3),
+              color: listStyle['color'].withValues(alpha: 0.3),
             ),
             const SizedBox(height: 24),
             const Text(

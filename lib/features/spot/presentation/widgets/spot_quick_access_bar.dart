@@ -127,13 +127,13 @@ class _SpotPill extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Padding más amplio
           decoration: BoxDecoration(
             color: isActive 
-                ? AppColor.secondaryDark.withOpacity(0.1)
+              ? AppColor.secondaryDark.withValues(alpha: 0.1)
                 : AppColor.neutralLight,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: isActive 
-                  ? AppColor.secondaryDark.withOpacity(0.3)
-                  : AppColor.neutralDarkNormal.withOpacity(0.2),
+                  ? AppColor.secondaryDark.withValues(alpha: 0.3)
+                  : AppColor.neutralDarkNormal.withValues(alpha: 0.2),
               width: 1,
             ),
           ),

@@ -51,7 +51,7 @@ class LocationField extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isEditable 
-                      ? AppColor.primaryNormal.withOpacity(0.4) 
+                      ? AppColor.primaryNormal.withValues(alpha: 0.4)
                       : Colors.grey.shade300,
                   width: isEditable ? 1.5 : 1,
                 ),
@@ -74,7 +74,7 @@ class LocationField extends StatelessWidget {
                     Icon(
                       Icons.edit_location_alt_outlined,
                       size: 18,
-                      color: AppColor.primaryNormal.withOpacity(0.7),
+                      color: AppColor.primaryNormal.withValues(alpha: 0.7),
                     ),
                   ],
                 ],

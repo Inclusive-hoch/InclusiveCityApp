@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
-import 'package:inclusive_app/core/constants/api_constants.dart';
+import 'package:inclusive_app/core/utils/place_photo_url_builder.dart';
 
 /// Galería de fotos con navegación por páginas.
 /// 
@@ -60,7 +60,8 @@ class _PlacePhotoGalleryState extends State<PhotoGallery> {
         });
       },
       itemBuilder: (context, index) {
-        final photoUrl = ApiConstants.placePhoto(widget.photoReferences[index]);
+        final photoUrl = const PlacePhotoUrlBuilder()
+            .build(widget.photoReferences[index]);
         return _buildPhotoItem(photoUrl);
       },
     );
@@ -140,7 +141,7 @@ class _PlacePhotoGalleryState extends State<PhotoGallery> {
         shape: BoxShape.circle,
         color: _selectedPhotoIndex == index
             ? AppColor.primaryNormal
-            : AppColor.surface.withOpacity(0.5),
+            : AppColor.surface.withValues(alpha: 0.5),
       ),
     );
   }

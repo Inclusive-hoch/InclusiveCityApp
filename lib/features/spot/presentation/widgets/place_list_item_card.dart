@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inclusive_app/core/theme/app_color.dart';
 import 'package:inclusive_app/features/spot/domain/entities/spot.dart';
 import 'package:inclusive_app/features/spot/presentation/bloc/spot_bloc.dart';
-import 'package:inclusive_app/core/constants/api_constants.dart';
 import 'package:inclusive_app/core/utils/accessibility_medals.dart';
+import 'package:inclusive_app/core/utils/place_photo_url_builder.dart';
 
 /// Tarjeta que muestra un lugar dentro de una lista personalizada.
 /// 
@@ -56,7 +56,8 @@ class _PlaceListItemCardState extends State<PlaceListItemCard> {
             _medals = state.details.medals;
             _photoReferences = state.details.photos;
             if (state.details.photos.isNotEmpty) {
-              _photoUrl = ApiConstants.placePhoto(state.details.photos.first);
+              _photoUrl = const PlacePhotoUrlBuilder()
+                  .build(state.details.photos.first);
             }
             _isLoading = false;
           });

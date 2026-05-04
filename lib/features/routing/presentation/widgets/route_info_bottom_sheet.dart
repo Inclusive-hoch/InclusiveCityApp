@@ -32,7 +32,7 @@ class RouteInfoBottomSheet extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: const Offset(0, -2),
                 ),
@@ -196,7 +196,7 @@ class RouteInfoBottomSheet extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
           ),
           elevation: 2,
-          shadowColor: AppColor.primaryNormal.withOpacity(0.3),
+          shadowColor: AppColor.primaryNormal.withValues(alpha: 0.3),
         ),
         child: const Text(
           'Cancelar',

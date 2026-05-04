@@ -29,7 +29,7 @@ class RouteLocationCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: Colors.black.withValues(alpha: 0.15),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -64,7 +64,7 @@ class RouteLocationCard extends StatelessWidget {
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppColor.primaryNormal.withOpacity(0.4),
+                          color: AppColor.primaryNormal.withValues(alpha: 0.4),
                           width: 1.5,
                         ),
                       ),
@@ -85,7 +85,7 @@ class RouteLocationCard extends StatelessWidget {
                           Icon(
                             Icons.edit_location_alt_outlined,
                             size: 18,
-                            color: AppColor.primaryNormal.withOpacity(0.7),
+                            color: AppColor.primaryNormal.withValues(alpha: 0.7),
                           ),
                         ],
                       ),
@@ -141,7 +141,7 @@ class RouteLocationCard extends StatelessWidget {
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppColor.primaryNormal.withOpacity(0.4),
+                          color: AppColor.primaryNormal.withValues(alpha: 0.4),
                           width: 1.5,
                         ),
                       ),
@@ -162,7 +162,7 @@ class RouteLocationCard extends StatelessWidget {
                           Icon(
                             Icons.edit_location_alt_outlined,
                             size: 18,
-                            color: AppColor.primaryNormal.withOpacity(0.7),
+                            color: AppColor.primaryNormal.withValues(alpha: 0.7),
                           ),
                         ],
                       ),
