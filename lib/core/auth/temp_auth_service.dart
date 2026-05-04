@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:inclusive_app/core/constants/api_constants.dart';
 
-/// Servicio temporal de autenticación hardcodeado.
-/// TODO: Eliminar cuando el servicio de Auth real esté listo.
+/// Servicio temporal de autenticacion para desarrollo.
+/// TODO: Eliminar cuando el servicio de Auth real este listo.
 class TempAuthService {
   static const String _tokenKey = 'temp_jwt_token';
   final SharedPreferences prefs;
@@ -16,16 +16,19 @@ class TempAuthService {
     required this.client,
   });
 
-  /// Realiza login automático con credenciales hardcodeadas.
+  /// Realiza login con credenciales provistas.
   /// Guarda el token JWT en SharedPreferences.
-  Future<void> loginHardcoded() async {
+  Future<void> loginWithCredentials({
+    required String email,
+    required String password,
+  }) async {
     try {
       final response = await client.post(
         Uri.parse(ApiConstants.login),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'email': 'sebastian123f18@gmail.com',
-          'password': '12345678',
+          'email': email,
+          'password': password,
         }),
       );
 

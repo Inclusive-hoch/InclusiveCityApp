@@ -1,4 +1,5 @@
-import 'dart:convert';import 'package:flutter/foundation.dart';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:inclusive_app/core/constants/api_constants.dart';
 import 'package:inclusive_app/core/errors/exceptions.dart';
@@ -31,19 +32,23 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
     required this.getToken,
   });
 
+  void _log(String message) {
+    if (kDebugMode) {
+      debugPrint(message);
+    }
+  }
+
   /// Añade un spot a una lista personalizada mediante POST request.
   /// Lanza [ServerException] si el request falla.
   /// Lanza [NetworkException] si hay problemas de conectividad.
   @override
   Future<CustomSpotModel> addSpotToList(String listName, SpotModel spot) async {
-    debugPrint('🔷 [SpotDataSource] Agregando spot "${spot.spotName}" a lista "$listName"');
-    
+    _log('🔷 [SpotDataSource] Agregando spot "${spot.spotName}" a lista "$listName"');
+
     try {
       final token = await getToken();
       final requestBody = spot.toJson();
       final requestJson = jsonEncode(requestBody);
-      
-      debugPrint('🔷 [SpotDataSource] JSON enviado: $requestJson');
 
       final response = await client.post(
         Uri.parse(ApiConstants.addSpotToList(listName)),
@@ -56,11 +61,11 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonResponse['data'] as Map<String, dynamic>;
-        debugPrint('✅ [SpotDataSource] Spot agregado exitosamente a lista "$listName"');
+        _log('✅ [SpotDataSource] Spot agregado exitosamente a lista "$listName"');
         return CustomSpotModel.fromJson(data);
       } else {
-        final errorMsg = 'Error al agregar spot a lista "$listName". Status ${response.statusCode}: $responseBody';
-        debugPrint('❌ [SpotDataSource] $errorMsg');
+        final errorMsg = 'Error al agregar spot a lista "$listName". Status ${response.statusCode}';
+        _log('❌ [SpotDataSource] $errorMsg');
         throw ServerException(errorMsg, response.statusCode);
       }
     } catch (e) {
@@ -68,7 +73,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
         throw NetworkException('No se pudo conectar al servidor al agregar spot a lista: ${e.message}');
       }
       if (e is ServerException || e is NetworkException) rethrow;
-      debugPrint('❌ [SpotDataSource] Error inesperado en addSpotToList: $e');
+      _log('❌ [SpotDataSource] Error inesperado en addSpotToList: $e');
       rethrow;
     }
   }
@@ -78,8 +83,8 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
   /// Lanza [NetworkException] si hay problemas de conectividad.
   @override
   Future<CustomSpotModel> createCustomSpot(CustomSpotModel customSpot) async {
-    debugPrint('🔷 [SpotDataSource] Creando lista personalizada: ${customSpot.listName}');
-    
+    _log('🔷 [SpotDataSource] Creando lista personalizada: ${customSpot.listName}');
+
     try {
       final token = await getToken();
 
@@ -94,11 +99,11 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonResponse['data'] as Map<String, dynamic>;
-        debugPrint('✅ [SpotDataSource] Lista creada exitosamente');
+        _log('✅ [SpotDataSource] Lista creada exitosamente');
         return CustomSpotModel.fromJson(data);
       } else {
-        final errorMsg = 'Error al crear lista personalizada "${customSpot.listName}". Status ${response.statusCode}: $responseBody';
-        debugPrint('❌ [SpotDataSource] $errorMsg');
+        final errorMsg = 'Error al crear lista personalizada "${customSpot.listName}". Status ${response.statusCode}';
+        _log('❌ [SpotDataSource] $errorMsg');
         throw ServerException(errorMsg, response.statusCode);
       }
     } catch (e) {
@@ -106,7 +111,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
         throw NetworkException('No se pudo conectar al servidor al crear lista personalizada: ${e.message}');
       }
       if (e is ServerException || e is NetworkException) rethrow;
-      debugPrint('❌ [SpotDataSource] Error inesperado en createCustomSpot: $e');
+      _log('❌ [SpotDataSource] Error inesperado en createCustomSpot: $e');
       rethrow;
     }
   }
@@ -116,15 +121,12 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
   /// Lanza [NetworkException] si hay problemas de conectividad.
   @override
   Future<SpotModel> createSpot(SpotModel spot) async {
-    debugPrint('🔷 [SpotDataSource] Creando spot: ${spot.spotName}');
-    
+    _log('🔷 [SpotDataSource] Creando spot: ${spot.spotName}');
+
     try {
       final token = await getToken();
       final requestBody = spot.toJson();
       final requestJson = json.encode(requestBody);
-      
-      debugPrint('🔷 [SpotDataSource] JSON enviado: $requestJson');
-      debugPrint('🔷 [SpotDataSource] Endpoint: ${ApiConstants.createSpot}');
       
       final response = await client.post(
         Uri.parse(ApiConstants.createSpot),
@@ -136,30 +138,29 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
         final String responseBody = utf8.decode(response.bodyBytes);
         final Map<String, dynamic> jsonResponse = json.decode(responseBody);
         final Map<String, dynamic> data = jsonResponse['data'];
-        debugPrint('✅ [SpotDataSource] Spot creado exitosamente');
+        _log('✅ [SpotDataSource] Spot creado exitosamente');
         return SpotModel.fromJson(data);
       } else if (response.statusCode == 401) {
-        debugPrint('❌ [SpotDataSource] Token inválido o expirado');
+        _log('❌ [SpotDataSource] Token invalido o expirado');
         throw UnauthorizedException('Token inválido o expirado al crear spot "${spot.spotName}"');
       } else if (response.statusCode == 409) {
-        debugPrint('⚠️ [SpotDataSource] Spot duplicado en ubicación (${spot.latitude}, ${spot.longitude})');
+        _log('⚠️ [SpotDataSource] Spot duplicado en ubicacion (${spot.latitude}, ${spot.longitude})');
         throw ConflictException('El spot "${spot.spotName}" ya existe en esta ubicación');
       } else if (response.statusCode == 500) {
         final String responseBody = utf8.decode(response.bodyBytes);
         
         // Detectar error de clave duplicada de MongoDB (E11000)
         if (responseBody.contains('E11000') && responseBody.contains('duplicate key')) {
-          debugPrint('⚠️ [SpotDataSource] Spot duplicado - mismo lugar ya guardado');
+          _log('⚠️ [SpotDataSource] Spot duplicado - mismo lugar ya guardado');
           throw ConflictException('Este lugar ya está guardado. Por favor, elige otro lugar o elimina el existente.');
         }
-        
-        final errorMsg = 'Error interno del servidor al crear spot "${spot.spotName}". Status ${response.statusCode}: $responseBody';
-        debugPrint('❌ [SpotDataSource] $errorMsg');
+
+        final errorMsg = 'Error interno del servidor al crear spot "${spot.spotName}". Status ${response.statusCode}';
+        _log('❌ [SpotDataSource] $errorMsg');
         throw ServerException(errorMsg, response.statusCode);
       } else {
-        final String responseBody = utf8.decode(response.bodyBytes);
-        final errorMsg = 'Error al crear spot "${spot.spotName}". Status ${response.statusCode}: $responseBody';
-        debugPrint('❌ [SpotDataSource] $errorMsg');
+        final errorMsg = 'Error al crear spot "${spot.spotName}". Status ${response.statusCode}';
+        _log('❌ [SpotDataSource] $errorMsg');
         throw ServerException(errorMsg, response.statusCode);
       }
     } on http.ClientException catch (e) {
@@ -168,7 +169,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
       if (e is UnauthorizedException || e is ConflictException || e is ServerException || e is NetworkException) {
         rethrow;
       }
-      debugPrint('❌ [SpotDataSource] Error inesperado en createSpot: $e');
+      _log('❌ [SpotDataSource] Error inesperado en createSpot: $e');
       rethrow;
     }
   }
@@ -192,8 +193,8 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
       if (response.statusCode == 200) {
         return jsonResponse['data'] as int;
       } else {
-        final errorMsg = 'Error al eliminar lista "$listName". Status ${response.statusCode}: $responseBody';
-        debugPrint('❌ [SpotDataSource] $errorMsg');
+        final errorMsg = 'Error al eliminar lista "$listName". Status ${response.statusCode}';
+        _log('❌ [SpotDataSource] $errorMsg');
         throw ServerException(errorMsg, response.statusCode);
       }
     } catch (e) {
@@ -201,7 +202,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
         throw NetworkException('No se pudo conectar al servidor al eliminar lista: ${e.message}');
       }
       if (e is ServerException || e is NetworkException) rethrow;
-      debugPrint('❌ [SpotDataSource] Error inesperado en deleteCustomSpotList: $e');
+      _log('❌ [SpotDataSource] Error inesperado en deleteCustomSpotList: $e');
       rethrow;
     }
   }
@@ -226,8 +227,8 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
       if (response.statusCode == 200) {
         return jsonResponse['data'] as int;
       } else {
-        final errorMsg = 'Error al eliminar spot en ($latitude, $longitude). Status ${response.statusCode}: $responseBody';
-        debugPrint('❌ [SpotDataSource] $errorMsg');
+        final errorMsg = 'Error al eliminar spot en ($latitude, $longitude). Status ${response.statusCode}';
+        _log('❌ [SpotDataSource] $errorMsg');
         throw ServerException(errorMsg, response.statusCode);
       }
     } catch (e) {
@@ -235,7 +236,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
         throw NetworkException('No se pudo conectar al servidor al eliminar spot: ${e.message}');
       }
       if (e is ServerException || e is NetworkException) rethrow;
-      debugPrint('❌ [SpotDataSource] Error inesperado en deleteSpot: $e');
+      _log('❌ [SpotDataSource] Error inesperado en deleteSpot: $e');
       rethrow;
     }
   }
@@ -264,8 +265,8 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
       if (response.statusCode == 200) {
         return jsonResponse['data'] as int;
       } else {
-        final errorMsg = 'Error al eliminar spot de lista "$listName". Status ${response.statusCode}: $responseBody';
-        debugPrint('❌ [SpotDataSource] $errorMsg');
+        final errorMsg = 'Error al eliminar spot de lista "$listName". Status ${response.statusCode}';
+        _log('❌ [SpotDataSource] $errorMsg');
         throw ServerException(errorMsg, response.statusCode);
       }
     } catch (e) {
@@ -273,7 +274,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
         throw NetworkException('No se pudo conectar al servidor al eliminar spot de lista: ${e.message}');
       }
       if (e is ServerException || e is NetworkException) rethrow;
-      debugPrint('❌ [SpotDataSource] Error inesperado en deleteSpotFromList: $e');
+      _log('❌ [SpotDataSource] Error inesperado en deleteSpotFromList: $e');
       rethrow;
     }
   }
@@ -283,8 +284,8 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
   /// Lanza [NetworkException] si hay problemas de conectividad.
   @override
   Future<List<CustomSpotModel>> getCustomSpots() async {
-    debugPrint('🔷 [SpotDataSource] Obteniendo listas personalizadas...');
-    
+    _log('🔷 [SpotDataSource] Obteniendo listas personalizadas...');
+
     try {
       final token = await getToken();
 
@@ -293,9 +294,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
         headers: {...ApiConstants.authHeaders(token)},
       );
 
-      debugPrint('🔷 [SpotDataSource] Status Code: ${response.statusCode}');
       final String responseBody = utf8.decode(response.bodyBytes);
-      debugPrint('🔷 [SpotDataSource] Response Body: $responseBody');
 
       final Map<String, dynamic> jsonResponse = json.decode(responseBody);
 
@@ -303,7 +302,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
         final data = jsonResponse['data'];
         
         if (data == null) {
-          debugPrint('⚠️ [SpotDataSource] Backend devolvió data: null para custom spots, retornando lista vacía');
+          _log('⚠️ [SpotDataSource] Backend devolvio data: null para custom spots, retornando lista vacia');
           return [];
         }
         
@@ -311,39 +310,38 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
           throw ServerException('Formato de respuesta inválido: data no es una lista. Tipo: ${data.runtimeType}', 200);
         }
         
-        debugPrint('🔷 [SpotDataSource] Parseando ${data.length} listas...');
+        _log('🔷 [SpotDataSource] Parseando ${data.length} listas...');
         
         final List<CustomSpotModel> customSpots = [];
         for (int i = 0; i < data.length; i++) {
           try {
             final customSpotJson = data[i] as Map<String, dynamic>;
-            debugPrint('🔷 [SpotDataSource] Lista $i: ${customSpotJson['listName']}');
+            _log('🔷 [SpotDataSource] Lista $i parseada');
             customSpots.add(CustomSpotModel.fromJson(customSpotJson));
           } catch (e, stackTrace) {
-            debugPrint('❌ [SpotDataSource] Error parseando lista $i: $e');
-            debugPrint('❌ [SpotDataSource] JSON problemático: ${data[i]}');
-            debugPrint('❌ [SpotDataSource] StackTrace: $stackTrace');
+            _log('❌ [SpotDataSource] Error parseando lista $i: $e');
+            _log('❌ [SpotDataSource] StackTrace: $stackTrace');
             // Continuar con las demás listas en lugar de fallar completamente
           }
         }
-        
-        debugPrint('✅ [SpotDataSource] ${customSpots.length} listas obtenidas exitosamente');
+
+        _log('✅ [SpotDataSource] ${customSpots.length} listas obtenidas exitosamente');
         return customSpots;
       } else if (response.statusCode == 404) {
-        debugPrint('⚠️ [SpotDataSource] 404 en custom spots - usuario sin listas, retornando vacío');
+        _log('⚠️ [SpotDataSource] 404 en custom spots - usuario sin listas, retornando vacio');
         return [];
       } else {
-        final errorMsg = 'Error al obtener listas personalizadas. Status ${response.statusCode}: $responseBody';
-        debugPrint('❌ [SpotDataSource] $errorMsg');
+        final errorMsg = 'Error al obtener listas personalizadas. Status ${response.statusCode}';
+        _log('❌ [SpotDataSource] $errorMsg');
         throw ServerException(errorMsg, response.statusCode);
       }
     } catch (e) {
       if (e is http.ClientException) {
-        debugPrint('❌ [SpotDataSource] Error de red: ${e.message}');
+        _log('❌ [SpotDataSource] Error de red: ${e.message}');
         throw NetworkException('No se pudo conectar al servidor al obtener listas: ${e.message}');
       }
       if (e is ServerException || e is NetworkException) rethrow;
-      debugPrint('❌ [SpotDataSource] Error inesperado en getCustomSpots: $e');
+      _log('❌ [SpotDataSource] Error inesperado en getCustomSpots: $e');
       rethrow;
     }
   }
@@ -353,20 +351,17 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
   /// Lanza [NetworkException] si hay problemas de conectividad.
   @override
   Future<List<SpotModel>> getUserSpots() async {
-    debugPrint('🔷 [SpotDataSource] Obteniendo spots del usuario...');
-    
+    _log('🔷 [SpotDataSource] Obteniendo spots del usuario...');
+
     try {
       final token = await getToken();
-      debugPrint('🔷 [SpotDataSource] Token obtenido: ${token.substring(0, 20)}...');
 
       final response = await client.get(
         Uri.parse(ApiConstants.userSpots),
         headers: {...ApiConstants.authHeaders(token)},
       );
 
-      debugPrint('🔷 [SpotDataSource] Status Code: ${response.statusCode}');
       final String responseBody = utf8.decode(response.bodyBytes);
-      debugPrint('🔷 [SpotDataSource] Response Body: $responseBody');
 
       final Map<String, dynamic> jsonResponse = json.decode(responseBody);
 
@@ -374,7 +369,7 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
         final data = jsonResponse['data'];
         
         if (data == null) {
-          debugPrint('⚠️ [SpotDataSource] Backend devolvió data: null, retornando lista vacía');
+          _log('⚠️ [SpotDataSource] Backend devolvio data: null, retornando lista vacia');
           return [];
         }
         
@@ -382,39 +377,38 @@ class SpotRemoteDatasourceImpl implements SpotRemoteDatasource {
           throw ServerException('Formato de respuesta inválido: data no es una lista. Tipo: ${data.runtimeType}', 200);
         }
         
-        debugPrint('🔷 [SpotDataSource] Parseando ${data.length} spots...');
+        _log('🔷 [SpotDataSource] Parseando ${data.length} spots...');
         
         final List<SpotModel> spots = [];
         for (int i = 0; i < data.length; i++) {
           try {
             final spotJson = data[i] as Map<String, dynamic>;
-            debugPrint('🔷 [SpotDataSource] Spot $i: ${spotJson['spotName']}');
+            _log('🔷 [SpotDataSource] Spot $i parseado');
             spots.add(SpotModel.fromJson(spotJson));
           } catch (e, stackTrace) {
-            debugPrint('❌ [SpotDataSource] Error parseando spot $i: $e');
-            debugPrint('❌ [SpotDataSource] JSON problemático: ${data[i]}');
-            debugPrint('❌ [SpotDataSource] StackTrace: $stackTrace');
+            _log('❌ [SpotDataSource] Error parseando spot $i: $e');
+            _log('❌ [SpotDataSource] StackTrace: $stackTrace');
             // Continuar con los demás spots en lugar de fallar completamente
           }
         }
-        
-        debugPrint('✅ [SpotDataSource] ${spots.length} spots obtenidos exitosamente');
+
+        _log('✅ [SpotDataSource] ${spots.length} spots obtenidos exitosamente');
         return spots;
       } else if (response.statusCode == 404) {
-        debugPrint('⚠️ [SpotDataSource] 404 en user spots - usuario sin spots, retornando vacío');
+        _log('⚠️ [SpotDataSource] 404 en user spots - usuario sin spots, retornando vacio');
         return [];
       } else {
-        final errorMsg = 'Error al obtener spots del usuario. Status ${response.statusCode}: $responseBody';
-        debugPrint('❌ [SpotDataSource] $errorMsg');
+        final errorMsg = 'Error al obtener spots del usuario. Status ${response.statusCode}';
+        _log('❌ [SpotDataSource] $errorMsg');
         throw ServerException(errorMsg, response.statusCode);
       }
     } catch (e) {
       if (e is http.ClientException) {
-        debugPrint('❌ [SpotDataSource] Error de red: ${e.message}');
+        _log('❌ [SpotDataSource] Error de red: ${e.message}');
         throw NetworkException('No se pudo conectar al servidor al obtener spots: ${e.message}');
       }
       if (e is ServerException || e is NetworkException) rethrow;
-      debugPrint('❌ [SpotDataSource] Error inesperado en getUserSpots: $e');
+      _log('❌ [SpotDataSource] Error inesperado en getUserSpots: $e');
       rethrow;
     }
   }

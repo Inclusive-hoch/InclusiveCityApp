@@ -31,17 +31,6 @@ class AuthFirebaseDataSourceImpl implements AuthFirebaseDataSource {
       }
     }
 
-    // Debug logging
-    print('Firebase User Data (Email Login):');
-    print('  - UID: ${user?.uid}');
-    print('  - Email: ${user?.email}');
-    print('  - DisplayName: ${user?.displayName}');
-    print('  - DisplayName from providerData: $displayName');
-    print('  - PhotoURL: ${user?.photoURL}');
-    print(
-      '  - ProviderData: ${user?.providerData.map((p) => p.providerId).toList()}',
-    );
-
     return _createUserModel(user, displayName);
   }
 
@@ -83,17 +72,6 @@ class AuthFirebaseDataSourceImpl implements AuthFirebaseDataSource {
       }
     }
 
-    // Debug logging
-    print('Firebase User Data (Google Login):');
-    print('  - UID: ${user?.uid}');
-    print('  - Email: ${user?.email}');
-    print('  - DisplayName: ${user?.displayName}');
-    print('  - DisplayName from providerData: $displayName');
-    print('  - PhotoURL: ${user?.photoURL}');
-    print(
-      '  - ProviderData: ${user?.providerData.map((p) => p.providerId).toList()}',
-    );
-
     return _createUserModel(user, displayName);
   }
 
@@ -117,17 +95,6 @@ class AuthFirebaseDataSourceImpl implements AuthFirebaseDataSource {
         }
       }
     }
-
-    // Debug logging
-    print('Firebase Current User Data:');
-    print('  - UID: ${reloadedUser.uid}');
-    print('  - Email: ${reloadedUser.email}');
-    print('  - DisplayName: ${reloadedUser.displayName}');
-    print('  - DisplayName from providerData: $displayName');
-    print('  - PhotoURL: ${reloadedUser.photoURL}');
-    print(
-      '  - ProviderData: ${reloadedUser.providerData.map((p) => p.providerId).toList()}',
-    );
 
     return _createUserModel(reloadedUser, displayName);
   }
@@ -166,14 +133,6 @@ class AuthFirebaseDataSourceImpl implements AuthFirebaseDataSource {
         }
       }
     }
-
-    // Debug logging
-    print('Firebase User Data (Registration):');
-    print('  - UID: ${user?.uid}');
-    print('  - Email: ${user?.email}');
-    print('  - DisplayName: ${user?.displayName}');
-    print('  - DisplayName from providerData: $displayName');
-    print('  - PhotoURL: ${user?.photoURL}');
 
     return _createUserModel(user, displayName);
   }

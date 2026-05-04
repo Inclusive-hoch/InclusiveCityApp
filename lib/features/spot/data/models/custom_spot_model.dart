@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:inclusive_app/features/spot/domain/entities/custom_spot.dart';
 import 'spot_model.dart';
 
@@ -39,7 +40,11 @@ class CustomSpotModel extends CustomSpot {
           parsedSpots.add(spot);
         } catch (e) {
           // Si un spot individual falla al parsear, registrar pero continuar
-          print('⚠️ [CustomSpotModel] Error parseando spot en lista "${json['listName']}": $e');
+          if (kDebugMode) {
+            debugPrint(
+              '⚠️ [CustomSpotModel] Error parseando spot en lista "${json['listName']}": $e',
+            );
+          }
         }
       }
     }
