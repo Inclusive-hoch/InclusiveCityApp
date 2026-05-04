@@ -40,7 +40,7 @@ class ProfileAvatar extends StatelessWidget {
             ? DecorationImage(
                 image: NetworkImage(photoUrl!),
                 fit: BoxFit.cover,
-                onError: (_, __) {}, // Silencia errores de carga
+                onError: (exception, stackTrace) {}, // Silencia errores de carga
               )
             : null,
       ),

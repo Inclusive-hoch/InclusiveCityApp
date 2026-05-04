@@ -29,7 +29,7 @@ class MarkerIconGenerator {
     Color iconColor = Colors.white,
     double size = 28,
   }) async {
-    final cacheKey = '${iconData.codePoint}_${backgroundColor.value}_$size';
+    final cacheKey = '${iconData.codePoint}_${backgroundColor.toARGB32()}_$size';
 
     if (_cache.containsKey(cacheKey)) {
       return _cache[cacheKey]!;

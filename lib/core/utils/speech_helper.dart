@@ -29,7 +29,9 @@ class SpeechHelper {
     _speech.listen(
       onResult: (result) => onResult(result.recognizedWords),
       localeId: 'es_ES',
-      listenMode: stt.ListenMode.confirmation,
+      listenOptions: stt.SpeechListenOptions(
+        listenMode: stt.ListenMode.confirmation,
+      ),
     );
   }
 
