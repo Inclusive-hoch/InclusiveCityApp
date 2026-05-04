@@ -55,6 +55,11 @@ class _MapPageState extends State<MapPage> with WidgetsBindingObserver {
   /// Indica si actualmente se están mostrando incidencias.
   bool _showingIncidences = false;
 
+  /// Controla la apertura del detalle de lugares para evitar duplicados.
+  bool _isPlaceDetailsOpen = false;
+  String? _openPlaceId;
+  int _placeDetailsSheetSeq = 0;
+
   static const CameraPosition _defaultPosition = CameraPosition(
     target: LatLng(-38.74070211734774, -72.60299648535563),
     zoom: 8,
@@ -442,7 +447,24 @@ class _MapPageState extends State<MapPage> with WidgetsBindingObserver {
   }
 
   void _showPlaceDetails(BuildContext context, place) {
+    if (_isPlaceDetailsOpen && _openPlaceId == place.placeId) {
+      return;
+    }
+
+    if (_isPlaceDetailsOpen && Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
+
+    _isPlaceDetailsOpen = true;
+    _openPlaceId = place.placeId;
     final sheetController = DraggableScrollableController();
+    final currentSeq = ++_placeDetailsSheetSeq;
+
+    sheetController.addListener(() {
+      if (sheetController.size <= 0.31 && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+    });
 
     showModalBottomSheet(
       context: context,
@@ -456,12 +478,6 @@ class _MapPageState extends State<MapPage> with WidgetsBindingObserver {
         snap: true,
         snapSizes: const [0.3, 0.9],
         builder: (context, scrollController) {
-          sheetController.addListener(() {
-            if (sheetController.size <= 0.31) {
-              Navigator.pop(context);
-            }
-          });
-
           return PlaceDetailsPage(
             placeId: place.placeId,
             placeName: place.name,
@@ -474,7 +490,12 @@ class _MapPageState extends State<MapPage> with WidgetsBindingObserver {
           );
         },
       ),
-    );
+    ).whenComplete(() {
+      if (!mounted) return;
+      if (_placeDetailsSheetSeq != currentSeq) return;
+      _isPlaceDetailsOpen = false;
+      _openPlaceId = null;
+    });
   }
 
 }
